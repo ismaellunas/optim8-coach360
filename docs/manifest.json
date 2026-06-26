@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-26T18:06:21.810Z",
+  "generated": "2026-06-26T18:08:48.455Z",
   "root": "docs",
   "tree": [
     {
@@ -26,18 +26,6 @@
           "type": "file",
           "name": "tech-stack.md",
           "path": "architecture/tech-stack.md"
-        }
-      ]
-    },
-    {
-      "type": "dir",
-      "name": "commercial",
-      "path": "commercial",
-      "children": [
-        {
-          "type": "file",
-          "name": "pricing-philippines.md",
-          "path": "commercial/pricing-philippines.md"
         }
       ]
     },

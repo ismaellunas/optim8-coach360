@@ -34,8 +34,6 @@ docs/
 │   └── ui-reference.md       # UI tokens, primitives (source: src/App.jsx)
 ├── delivery/
 │   └── delivery-estimate.md  # 172 h plan + quick reference (Appendix C)
-├── commercial/
-│   └── pricing-philippines.md
 └── prototype/
     └── README.md             # UI mock only (non-canonical)
 ```
@@ -60,7 +58,6 @@ docs/
 
 | Document | Description |
 | --- | --- |
-| [`commercial/pricing-philippines.md`](./commercial/pricing-philippines.md) | PH market pricing and client SaaS costs |
 | [`prototype/README.md`](./prototype/README.md) | Application UI (`src/App.jsx`) — hardens into production |
 
 **Active planning baseline:** **172 hours** (~22 working days, solo). See [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md).
@@ -79,7 +76,6 @@ docs/
 | Application stack (Vite + Capacitor) | `architecture/tech-stack.md` |
 | Backend SaaS & integrations | `architecture/tech-stack.md` + `architecture/best-practices.md` |
 | Effort & phases | `delivery/delivery-estimate.md` |
-| Commercial pricing | `commercial/pricing-philippines.md` |
 | Application UI & components | `prototype/README.md` + `design/ui-reference.md` |
 
 ---
