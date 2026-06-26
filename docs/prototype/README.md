@@ -1,17 +1,25 @@
-# Coach360 — Application Documentation (UI Prototype)
+# Coach360 — Application Documentation
 
-> **⚠️ Prototype only — not canonical product/architecture documentation.**  
-> For immutable project resources, start at [`../README.md`](../README.md).
+> **Stack:** Vite + React + Capacitor — **single stack for prototype and production**  
+> **Canonical architecture:** [`../architecture/tech-stack.md`](../architecture/tech-stack.md)  
+> **Documentation index:** [`../README.md`](../README.md)
 >
 > **Version:** v1.0.0 MVP  
-> **Stack:** React (single-file JSX), Vite, Capacitor — **not** the planned production stack (see [`../architecture/tech-stack.md`](../architecture/tech-stack.md))  
-> **Target:** Mobile-first, max-width 430px (smartphone UI)
+> **Target:** Mobile-first, max-width 430px (smartphone UI); admin views as web build from same repo
+
+---
+
+## Single-stack note
+
+The UI in `src/App.jsx` is **not throwaway**. Coach360 abandoned a two-stack plan (separate Expo/Next.js production clients) to prioritize delivery speed. This codebase hardens into production — real auth, APIs, and native builds — without a framework migration.
+
+See [`../architecture/tech-stack.md`](../architecture/tech-stack.md#single-stack-decision) for rationale.
 
 ---
 
 ## Overview
 
-Coach360 is a **basketball coaching platform** designed as a mobile app (PWA-style layout). It targets coaches, players, team admins, and club admins. The app provides a unified interface for roster management, session scheduling, player development tracking, content distribution, and team communication — all with an AI insights layer.
+Coach360 is a **basketball coaching platform** designed as a mobile app (Capacitor on iOS/Android, web for admin). It targets coaches, players, team admins, and club admins. The app provides a unified interface for roster management, session scheduling, player development tracking, content distribution, and team communication — all with an AI insights layer.
 
 ---
 
@@ -57,7 +65,9 @@ Onboarding (scr = "ob")
 
 ## Component Architecture
 
-All components live in a single `App.jsx` file. They are compact, mostly functional, and use inline styles for portability.
+All components currently live in a single `App.jsx` file. **This file is the UI source of truth** — see [`../design/ui-reference.md`](../design/ui-reference.md) for the token and primitive catalog.
+
+Stories will extract features into `src/features/` and primitives into `src/ui/` per [`../architecture/best-practices.md`](../architecture/best-practices.md) — by moving existing code, not redesigning.
 
 ### Primitives / Shared Components
 
@@ -229,11 +239,13 @@ The file embeds base64-encoded JPEG images inline as constants:
 
 ---
 
-## Known Constraints / MVP Notes
+## Current constraints / MVP notes
 
-- All data is **static mock data** (no backend or API calls)
-- No routing library — navigation is managed via `useState` (`scr`, `tab`, `sel`)
-- No external component libraries — everything is hand-built with inline styles
-- Single-file architecture — all components, data, and styles are in `App.jsx`
-- Chat does not persist — messages reset on component unmount
-- All "More" menu items are stubs (tap handler is `()=>{}`)
+- Data is **static mock** until Supabase stories land (no API calls yet)
+- No routing library — navigation via `useState` (`scr`, `tab`, `sel`)
+- No external component libraries — hand-built inline styles
+- Single-file architecture — refactor into `src/features/` per story scope
+- Chat does not persist — messages reset on unmount
+- Several "More" menu items are stubs
+
+**Production gaps** (native release, CI, admin web deploy): see [`../architecture/tech-stack.md`](../architecture/tech-stack.md#production-readiness-gaps).

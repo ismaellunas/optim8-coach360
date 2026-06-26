@@ -125,8 +125,8 @@ Milestone 4 (15%): ₱180K - ₱270K
 |---------|------------|--------|
 | **Supabase** (Pro) | $25 (₱1,400) | ₱16,800 |
 | **Sanity** (Growth) | $99 (₱5,544) | ₱66,528 |
-| **Vercel** (Pro) | $20 (₱1,120) | ₱13,440 |
-| **EAS** (builds) | $29 (₱1,624) | ₱19,488 |
+| **Admin web hosting** (static Vite build) | $0–20 (₱0–1,120) | ₱0–13,440 |
+| **Apple Developer + Play Console** | ~$99 + $25/year | ~₱7,000 |
 | **Stripe** | Transaction-based | ~₱10,000 |
 | **Mistral AI** | Usage-based | ~₱15,000 |
 | **Domain, email, misc** | - | ₱10,000 |

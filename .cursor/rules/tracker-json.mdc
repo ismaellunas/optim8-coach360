@@ -1,0 +1,43 @@
+---
+description: Safety rules when editing the development tracker in docs/index.html
+globs: docs/index.html
+alwaysApply: false
+---
+
+# Tracker JSON (`#tracker-data`)
+
+Canonical tracker: `docs/index.html`, embedded in `<script id="tracker-data" type="application/json">`.
+
+## Immutable fields
+
+Never reword or restructure:
+
+- `id`, `type`, `parent`, `title`, `description`, `requirements`
+- Acceptance criterion `statement` text
+- `acceptance_criteria` array structure (during audit)
+
+If something looks wrong, note it in `audit_notes` — do not edit the field.
+
+## Status vocabulary
+
+`TODO` | `IN_PROGRESS` | `IN_REVIEW` | `DONE` | `BLOCKED`
+
+## Formatting
+
+- Modify only the `#tracker-data` JSON block — never HTML/JS outside it
+- Preserve JSON schema, key ordering, and formatting exactly
+- `last_updated`: ISO 8601 date (e.g. `2026-06-27T00:00:00Z`)
+
+## Story `verify` block
+
+Each STORY should eventually have:
+
+```json
+"verify": {
+  "files": ["path/to/changed/source"],
+  "tests": ["test identifier"],
+  "command": "command with machine-readable output"
+}
+```
+
+`verify.files` must be real paths, not `(inferred)` guesses.

@@ -1,0 +1,77 @@
+---
+description: Coach360 UI design system — tokens, primitives, and patterns from src/App.jsx
+globs: "src/**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# UI Design System
+
+**Source of truth:** `src/App.jsx` (lines 11–28 for tokens/primitives; screen patterns in `Home`, `Roster`, etc.)
+
+Full catalog: `docs/design/ui-reference.md`  
+Application docs: `docs/prototype/README.md`
+
+## Before building UI
+
+1. Read existing primitives and color tokens in `src/App.jsx` (`C`, `ff`, `fd`, `Hero`, `Cd`, `Btn`, …).
+2. Reuse them — do not invent parallel button/card/color systems.
+3. Match layout: mobile-first, `maxWidth: 430`, horizontal padding `20px`, bottom safe area `110px` for tab bar.
+
+## Color tokens (`C`)
+
+| Token | Use |
+|-------|-----|
+| `bg`, `sf`, `cd`, `el` | Background layers (app → surface → card → elevated) |
+| `ink`, `sub`, `dim` | Primary, secondary, muted text |
+| `ln` | Borders and dividers |
+| `br`, `br2`, `brG`, `brS` | Brand orange (primary actions, active tab) |
+| `gn`, `gnS`, `gT` | Success / positive |
+| `bl`, `blS` | Info / links |
+| `vi`, `viS` | AI features |
+| `am`, `amS` | Warning / drip / locked |
+| `ro`, `roS` | Error / injury / loss |
+
+Never hardcode hex colors that duplicate these tokens.
+
+## Typography
+
+- **Body / UI:** `ff` → DM Sans (`@fontsource/dm-sans` in `main.jsx`)
+- **Headings / stats:** `fd` → Nunito (`@fontsource/nunito`)
+- Screen titles on `Hero`: Nunito 28px/800, white + text shadow
+- Section headers: `SH` component or `fd` 18px/800 `C.ink`
+
+## Primitives — use these, don't recreate
+
+| Component | When to use |
+|-----------|-------------|
+| `Hero` | Screen header with image + gradient |
+| `Strip` | Section divider banner |
+| `Cd` | Card container (`tap` for pressable rows) |
+| `Btn` | Actions (`primary` = orange gradient) |
+| `Pill` | Status / position badges |
+| `Av` / `IA` | Avatars |
+| `SH` | Section title + optional "View All" |
+| `PB` | Labeled progress bar |
+| `Rg` | Donut percentage gauge |
+| `Sp` | Sparkline chart |
+| `Bk` | Back navigation |
+| `I` | Icons (30+ names in dictionary) |
+
+## Patterns
+
+- Screen mount: `animation: "fu .3s ease"` on root container
+- Primary CTA: `<Btn primary full>` with optional `<I n="..." />`
+- List rows: `<Cd tap={...} sx={{ display:"flex", minHeight:64|72, ... }}>`
+- Filter chips: pill buttons with `background: selected ? C.br : C.cd`
+- Inputs: `background: C.cd`, `border: 1px solid C.ln`, `borderRadius: 14`, `fontFamily: ff`
+- Touch targets: `minHeight: 44` minimum
+
+## Do not
+
+- Add Tailwind, MUI, shadcn, or other UI libraries without an explicit story requirement
+- Use colors from `index.css` / `App.css` (Vite boilerplate — not the app theme)
+- Create new one-off `<button>` or card styles when `Btn` / `Cd` suffice
+
+## Extraction (when refactoring)
+
+When a story grows beyond `App.jsx`, extract to `src/ui/` or `src/components/ui/` **by moving existing primitives unchanged** — tokens (`C`, `ff`, `fd`) first, then components. Update imports; do not redesign during extraction.

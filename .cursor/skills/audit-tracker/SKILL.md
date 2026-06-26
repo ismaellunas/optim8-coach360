@@ -1,0 +1,54 @@
+---
+name: audit-tracker
+description: >-
+  Audit development tracker status from test evidence in docs/index.html.
+  Use when verifying story completion, updating ticket status, or after code changes.
+disable-model-invocation: true
+---
+
+# Audit Tracker
+
+You are performing a status audit on the development tracker at `docs/index.html`. It contains an embedded JSON block (`<script id="tracker-data" type="application/json">`) that is the single source of truth for all EPIC and STORY tickets.
+
+Your job: determine each ticket's true status from test evidence and update the tracker to match. Optimize for minimal context — read as little as possible.
+
+## Process
+
+1. **Read the tracker.** Parse the JSON in `#tracker-data`.
+
+2. **Scope the audit to what changed.** Run `git diff --name-only <last-audit-ref>..HEAD` (or, if no ref is available, ask for one). A STORY needs re-auditing only if any path in its `verify.files` or `verify.tests` appears in the diff. Leave every unaffected ticket's `status`, `last_updated`, and `audit_notes` exactly as they are — do not re-verify them.
+
+3. **Verify by running tests, not by reading code.** For each in-scope story:
+   - Run the story's `verify.command` (or its named `verify.tests`) and parse the machine-readable output.
+   - Map each acceptance criterion to its test result. A criterion is met only if its named test passes.
+   - Read source files only when an acceptance criterion has `test: null` (no test exists). In that case inspect only the paths in `verify.files` — never scan the workspace or follow imports beyond what's needed. Record that this criterion was verified by inspection, not by test.
+
+4. **Assign status** from the fixed vocabulary, based on evidence:
+   - `DONE` — every acceptance criterion's test passes.
+   - `IN_REVIEW` — all criteria appear met but at least one relies on inspection (`test: null`) rather than a passing test, or a test couldn't be executed.
+   - `IN_PROGRESS` — some but not all criteria are met.
+   - `TODO` — no meaningful implementation found.
+   - `BLOCKED` — prevented by an unmet dependency, contradiction, or missing prerequisite. State the blocker in `audit_notes`.
+
+5. **Roll up epics.** Derive each EPIC's status from its children: `TODO` if all children are `TODO`; `DONE` only if all are `DONE`; `BLOCKED` if any child is `BLOCKED`; otherwise `IN_PROGRESS`.
+
+6. **Record findings.** For each updated ticket, write a concise `audit_notes` entry citing the evidence (test name + pass/fail, or the file inspected when no test exists). Overwrite previous `audit_notes`. Set `last_updated` to today's date (ISO 8601).
+
+## Hard constraints
+
+- Modify only these fields per ticket: `status`, `last_updated`, `audit_notes`.
+- Do not alter `id`, `type`, `parent`, `title`, `description`, `requirements`, `acceptance_criteria`, or `verify`. If one looks wrong, note it in `audit_notes` instead of editing.
+- Preserve the JSON schema, key ordering, and formatting exactly. Only the three permitted fields should appear in the diff.
+- Do not touch any HTML or JS outside the `#tracker-data` block.
+- Do not read files outside the in-scope stories' `verify` pointers. If you find yourself wanting to scan the tree, stop — that's a sign a `verify` pointer or a test is missing; flag it instead.
+- Never commit unless explicitly asked.
+
+## Output
+
+Apply edits in place to `docs/index.html`.
+
+Print a summary table to chat: ticket ID, old → new status, one-line reason, for every changed ticket only.
+
+List separately:
+- (a) Acceptance criteria with `test: null` (tests that should be written to make future audits cheaper and objective)
+- (b) Any criterion that is ambiguous or untestable as written

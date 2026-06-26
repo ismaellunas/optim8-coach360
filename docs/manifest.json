@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-26T16:22:02.930Z",
+  "generated": "2026-06-26T17:52:40.613Z",
   "root": "docs",
   "tree": [
     {
@@ -11,6 +11,11 @@
           "type": "file",
           "name": "ai-integration.md",
           "path": "architecture/ai-integration.md"
+        },
+        {
+          "type": "file",
+          "name": "best-practices.md",
+          "path": "architecture/best-practices.md"
         },
         {
           "type": "file",
@@ -45,6 +50,18 @@
           "type": "file",
           "name": "delivery-estimate.md",
           "path": "delivery/delivery-estimate.md"
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "design",
+      "path": "design",
+      "children": [
+        {
+          "type": "file",
+          "name": "ui-reference.md",
+          "path": "design/ui-reference.md"
         }
       ]
     },

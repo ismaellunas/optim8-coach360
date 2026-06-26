@@ -14,7 +14,7 @@ Coach360 has **three content concerns** that must not be conflated:
 | Concern | System | Examples |
 | --- | --- | --- |
 | **Authoring** | Sanity Studio (+ coach mobile upload) | Drills, videos, strategies, package structure |
-| **Platform operations** | Next.js Admin Dashboard (Flow 7) | Publish, approve, pricing, drip config, analytics |
+| **Platform operations** | Admin views in Vite app (Flow 7) | Publish, approve, pricing, drip config, analytics |
 | **Transactional state** | Supabase (+ Stripe) | Purchases, drip unlock progress, assignments |
 
 Sanity Studio has **its own UI** for content editors. The admin dashboard governs **marketplace operations** and links to Studio — it does not replace the CMS editor.
@@ -130,10 +130,10 @@ draft → pending_review → approved | rejected → published (boolean)
 ### Recommended integration
 
 1. **Sanity** — schemas: `drill`, `video`, `strategy`, `trainingPackage`, `module`
-2. **Next.js admin** on Vercel — users (Supabase), subscriptions (Stripe), marketplace ops
+2. **Vite admin views** (`src/features/admin/`) — users (Supabase), subscriptions (Stripe), marketplace ops; deployed as web build
 3. **Embed Studio** at `/admin/studio` or link to `studio.coach360.com`
-4. **Sanity webhook** on publish → Supabase edge function (sync metadata, trigger RAG re-index per [`ai-integration.md`](./ai-integration.md))
-5. **Mobile app** — read published content via Sanity CDN/API; auth and purchases via Supabase
+4. **Sanity webhook** on publish → Supabase Edge Function (sync metadata, trigger RAG re-index per [`ai-integration.md`](./ai-integration.md))
+5. **Capacitor mobile app** — read published content via Sanity CDN/API; auth and purchases via Supabase
 
 ### What does NOT live in Sanity
 
@@ -193,9 +193,9 @@ draft → pending_review → approved | rejected → published (boolean)
 
 ---
 
-## Prototype vs production
+## App data model evolution
 
-[`../prototype/README.md`](../prototype/README.md) describes a flat `cLb[]` library and `sch[]` sessions without hierarchy. Production should follow this document and [`../product/flows.md`](../product/flows.md), not the prototype data models.
+[`../prototype/README.md`](../prototype/README.md) documents the current flat `cLb[]` library and `sch[]` session mocks in `src/App.jsx`. As backends wire in, data shapes should follow this document and [`../product/flows.md`](../product/flows.md) — the same Vite + Capacitor codebase hardens into production; there is no separate production client stack.
 
 ---
 

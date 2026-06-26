@@ -1,0 +1,51 @@
+---
+description: Commit message format for coach360
+alwaysApply: true
+---
+
+# Commits
+
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+type(scope): imperative subject
+
+Optional body explaining why, not what.
+```
+
+## Types
+
+| Type | When |
+|------|------|
+| `feat` | New feature or story implementation |
+| `fix` | Bug fix |
+| `test` | Adding or updating tests only |
+| `docs` | Documentation or tracker-only updates |
+| `chore` | Tooling, deps, config |
+| `refactor` | Code change without behavior change |
+
+## Scope
+
+Optional area: `tracker`, `auth`, `ui`, `docs`, `ci`, story ID (`story-2.1`)
+
+## Subject
+
+- Imperative mood ("add", not "added")
+- Lowercase, no trailing period
+- Max ~72 characters
+- Reference story ID when the change implements a tracker ticket
+
+## Examples
+
+```
+feat(story-2.1): add login flow with JWT validation
+test(story-2.1): add AC1 and AC2 acceptance tests
+docs(tracker): mark STORY-2.1 DONE after audit
+chore: add husky pre-commit hook
+```
+
+## Rules
+
+- Never commit unless explicitly asked.
+- Never skip hooks (`--no-verify`) unless explicitly requested.
+- Never commit secrets (`.env`, credentials).

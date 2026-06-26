@@ -1,0 +1,46 @@
+---
+description: React and JavaScript conventions for coach360 (single Vite + Capacitor stack)
+globs: "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# React Conventions
+
+**Single stack (prototype + production):** Vite + React 19 + Capacitor — `src/App.jsx`.
+
+Canonical architecture: `docs/architecture/tech-stack.md`  
+Integration patterns: `docs/architecture/best-practices.md`  
+UI design system: `docs/design/ui-reference.md` + `.cursor/rules/ui-design-system.mdc`
+
+The UI hardens into production on this stack. There is no migration to Expo, Next.js, or React Native.
+
+## Components
+
+- Functional components with hooks (`useState`, `useEffect`, `useRef`)
+- Match existing patterns: inline styles, compact component names, co-located data constants
+- Minimize scope — change only what the story requires
+- Extract to `src/features/` when a story grows beyond a single screen
+
+## Code quality
+
+- Pass `npm run lint` (ESLint flat config in `eslint.config.js`)
+- ES modules (`import`/`export`), no CommonJS in `src/`
+- Unused vars error unless prefixed with `_` or uppercase (`varsIgnorePattern: '^[A-Z_]'`)
+- Client env vars: `VITE_*` only; never bundle service-role or API secrets
+
+## Capacitor
+
+- Use `@capacitor/core` platform checks when branching native vs web behavior
+- Status bar and keyboard plugins are integrated in `App.jsx` — follow existing usage
+- Run `npm run build && npx cap sync` before native testing
+
+## Tests
+
+- Name tests traceable to acceptance criteria: `test_STORY_X_Y_AC1_*`
+- Colocate under `tests/` or `src/__tests__/`
+
+## Files
+
+- Entry: `src/main.jsx`
+- App shell: `src/App.jsx`
+- Styles: `src/index.css`, `src/App.css`
