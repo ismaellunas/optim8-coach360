@@ -1,0 +1,83 @@
+# Coach360 — see docs/architecture/tech-stack.md
+# Prototype: React + Vite + Capacitor
+# Planned: Next.js, Expo, Supabase, Sanity, Vercel, EAS
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+.next/
+.vercel/
+
+# Vite
+.vite/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Logs & debug
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test & coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# Package managers
+.pnpm-store/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors (keep .cursor/ prompts if tracked intentionally)
+.idea/
+*.swp
+*.swo
+*~
+
+# Capacitor — platform-specific ignores live in android/ and ios/
+# (synced web assets are ignored there)
+
+# Expo / React Native (planned production mobile)
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+*.orig.*
+
+# EAS
+eas-build-*/
+
+# Supabase
+.branches
+supabase/.temp/
+
+# Sanity
+.sanity/
+
+# Turbo (monorepo)
+.turbo/
+
+# Sentry
+.sentryclirc
+
+# cursor
+.cursor/
