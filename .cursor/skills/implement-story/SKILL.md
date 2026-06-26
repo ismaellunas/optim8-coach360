@@ -21,7 +21,7 @@ You are implementing a single story from the development tracker at `docs/index.
 
 1. **Read the ticket.** Parse `#tracker-data`, find the story, and read its `description`, `requirements`, and `acceptance_criteria`. If you need the original requirement wording, read only the relevant `docs/` section it cites.
 2. **Read stack and integration guidance.** For client work, read `docs/architecture/tech-stack.md` and the relevant section of `docs/architecture/best-practices.md`. Single stack: Vite + React + Capacitor — no Expo/Next.js migration.
-3. **Read UI design system** when the story touches screens or components: `docs/design/ui-reference.md` and primitives in `src/App.jsx` (`C`, `Btn`, `Cd`, `Hero`, etc.). Reuse existing primitives; do not introduce new color systems or UI libraries unless the story explicitly requires it.
+3. **Read UI design system** when the story touches screens or components: `docs/design/ui-reference.md` and primitives from `src/ui/index.js`. Reuse existing primitives; do not introduce new color systems or UI libraries unless the story explicitly requires it.
 4. **Read only what the plan needs.** Inspect existing source files, patterns, and dependencies required to implement this story. Do not scan the wider codebase beyond that.
 
 ### Phase 2 — Plan (no changes)
@@ -36,7 +36,7 @@ You are implementing a single story from the development tracker at `docs/index.
    - **Test command** — the `verify.command` you intend to set (e.g. `npm test -- --reporter=json -t STORY_2_1`)
    - **Risks / blockers** — dependencies on other stories, open questions (`open_questions` in tracker), or criteria that may need `test: null` with justification
    - **Out of scope** — what you will deliberately not touch
-   - **UI approach** (if applicable) — which existing primitives/screens from `App.jsx` will be reused
+   - **UI approach** (if applicable) — which primitives from `src/ui/` and which existing screen to mirror
 
    End with: *"Approve this plan to proceed, or tell me what to change."*
 

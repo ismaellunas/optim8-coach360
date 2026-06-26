@@ -65,9 +65,16 @@ Onboarding (scr = "ob")
 
 ## Component Architecture
 
-All components currently live in a single `App.jsx` file. **This file is the UI source of truth** — see [`../design/ui-reference.md`](../design/ui-reference.md) for the token and primitive catalog.
+All components live under `src/ui/` (design system) and `src/features/` (tab screens). **See [`../design/ui-reference.md`](../design/ui-reference.md) for the token and primitive catalog.**
 
-Stories will extract features into `src/features/` and primitives into `src/ui/` per [`../architecture/best-practices.md`](../architecture/best-practices.md) — by moving existing code, not redesigning.
+```
+src/
+├── app/           # App shell, TabBar, GlobalStyles
+├── ui/            # atoms → molecules → organisms
+├── features/      # Home, Roster, Schedule, Content, Chat, More, Onboarding
+├── data/mocks/    # prototype mock data (replaced by APIs in stories)
+└── assets/images/ # placeholder photos
+```
 
 ### Primitives / Shared Components
 

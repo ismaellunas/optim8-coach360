@@ -1,0 +1,4 @@
+import { C } from '../tokens.js';
+
+export const Sp = ({d,c,h=44})=>{const mn=Math.min(...d),mx=Math.max(...d),rg=mx-mn||1;const pts=d.map((v,i)=>`${4+(i/(d.length-1))*192},${h-4-((v-mn)/rg)*(h-8)}`).join(" ");const la=pts.split(" ").pop().split(",");return <svg viewBox={`0 0 200 ${h}`} style={{width:"100%",height:h,display:"block"}}><defs><linearGradient id={`s${c.slice(1)}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={c} stopOpacity=".18"/><stop offset="100%" stopColor={c} stopOpacity="0"/></linearGradient></defs><polygon points={`4,${h-4} ${pts} 196,${h-4}`} fill={`url(#s${c.slice(1)})`}/><polyline points={pts} fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx={la[0]} cy={la[1]} r="4" fill={c} stroke={C.cd} strokeWidth="2.5"/></svg>;};
+export default Sp;

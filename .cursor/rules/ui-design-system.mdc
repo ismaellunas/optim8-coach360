@@ -6,14 +6,14 @@ alwaysApply: false
 
 # UI Design System
 
-**Source of truth:** `src/App.jsx` (lines 11–28 for tokens/primitives; screen patterns in `Home`, `Roster`, etc.)
+**Source of truth:** `src/ui/` (tokens + primitives) and `src/features/` (screens)
 
 Full catalog: `docs/design/ui-reference.md`  
 Application docs: `docs/prototype/README.md`
 
 ## Before building UI
 
-1. Read existing primitives and color tokens in `src/App.jsx` (`C`, `ff`, `fd`, `Hero`, `Cd`, `Btn`, …).
+1. Read primitives in `src/ui/` (`C`, `ff`, `fd`, `Btn`, `Cd`, `Hero`, … from `src/ui/index.js`).
 2. Reuse them — do not invent parallel button/card/color systems.
 3. Match layout: mobile-first, `maxWidth: 430`, horizontal padding `20px`, bottom safe area `110px` for tab bar.
 
@@ -74,4 +74,4 @@ Never hardcode hex colors that duplicate these tokens.
 
 ## Extraction (when refactoring)
 
-When a story grows beyond `App.jsx`, extract to `src/ui/` or `src/components/ui/` **by moving existing primitives unchanged** — tokens (`C`, `ff`, `fd`) first, then components. Update imports; do not redesign during extraction.
+When a story grows a feature, keep shared UI in `src/ui/` — move existing primitives unchanged; do not redesign during extraction.

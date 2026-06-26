@@ -80,26 +80,26 @@ Use `import.meta.env.VITE_*` — never commit `.env` with secrets.
 
 ## Project structure
 
-**Today:** single-file `src/App.jsx`.
+**Today:** modular `src/ui/` + `src/features/` (refactored from single-file prototype).
 
-**Target** (as stories land — do not big-bang refactor):
+**Target** (as stories land — extend, do not big-bang refactor):
 
 ```
 src/
 ├── main.jsx
-├── App.jsx              # thin shell: providers, nav, tab bar
+├── app/App.jsx            # thin shell: providers, nav, tab bar
+├── ui/                    # shared primitives (atoms / molecules / organisms)
 ├── features/
 │   ├── auth/
 │   ├── roster/
 │   ├── schedule/
 │   ├── content/
 │   ├── chat/
-│   └── admin/           # Flow 7 — role-gated web views
-├── components/ui/       # shared primitives (extract from App.jsx when reused 2+)
+│   └── admin/             # Flow 7 — role-gated web views
 ├── lib/
-│   ├── supabase.ts      # client factory
-│   └── api/             # typed fetch helpers
-└── types/               # shared domain types
+│   ├── supabase.ts        # client factory
+│   └── api/               # typed fetch helpers
+└── types/                 # shared domain types
 ```
 
 **Rules:**

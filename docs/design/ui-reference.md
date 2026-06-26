@@ -1,6 +1,6 @@
 # Coach360 — UI Design Reference
 
-> **Living source:** `src/App.jsx` — this document catalogs what exists today.  
+> **Living source:** `src/ui/` + `src/features/`  
 > **Agent rule:** `.cursor/rules/ui-design-system.mdc`  
 > **Application context:** [`../prototype/README.md`](../prototype/README.md)
 
@@ -73,25 +73,22 @@ Loaded in `src/main.jsx` via `@fontsource/dm-sans` and `@fontsource/nunito`.
 
 ---
 
+Import shared UI from `src/ui/index.js`:
+
+```javascript
+import { C, Btn, Cd, Hero, I } from '../ui/index.js';
+```
+
 ## Primitives
 
-Defined at top of `src/App.jsx` (before screen components).
+Defined under `src/ui/`:
 
-| Name | Props (key) | Purpose |
-|------|-------------|---------|
-| `Hero` | `src`, `children`, `h` | Full-bleed header image + dark gradient |
-| `Strip` | `src`, `label`, `icon`, `h`, `offset` | Narrow section banner |
-| `Pill` | `t`, `c`, `b` | Small uppercase badge |
-| `IA` | `src`, `sz` | Image avatar inner |
-| `Av` | `ch`, `sz`, `g`, `img` | Avatar (initials gradient or photo) |
-| `Cd` | `children`, `sx`, `tap` | Card; `tap` makes it clickable |
-| `Btn` | `children`, `primary`, `full`, `sx` | Button |
-| `SH` | `title`, `act`, `label` | Section header |
-| `PB` | `l`, `v`, `c` | Progress bar with label |
-| `Rg` | `v`, `sz`, `c` | SVG donut gauge |
-| `Sp` | `d`, `c`, `h` | Sparkline |
-| `Bk` | `onClick`, `l` | Back button |
-| `I` | `n`, `s`, `c` | SVG icon (`home`, `users`, `cal`, `chat`, `play`, `brain`, …) |
+| Path | Component |
+|------|-----------|
+| `ui/tokens.js` | `C`, `ff`, `fd`, `tC`, `sC`, `sL`, `skC` |
+| `ui/atoms/` | `Icon` (`I`), `Button` (`Btn`), `Pill` |
+| `ui/molecules/` | `Card` (`Cd`), `Avatar` (`Av`), `SectionHeader` (`SH`), `ProgressBar` (`PB`), `RingGauge` (`Rg`), `Sparkline` (`Sp`), `BackButton` (`Bk`) |
+| `ui/organisms/` | `Hero`, `Strip`, `ScreenLayout` |
 
 ---
 
@@ -125,24 +122,22 @@ When implementing a new story with UI, **find the closest existing screen** and 
 ## Fonts and assets
 
 - Fonts: `src/main.jsx` (`@fontsource/*`)
-- Placeholder images: `PI`, `CI`, `BC`, `BP`, `BD` constants in `App.jsx`
+- Placeholder images: `src/assets/images/` (`PI`, `CI`, `BC`, `BP`, `BD`)
 - Do not use `src/index.css` theme variables for app UI (those are unused Vite defaults)
 
 ---
 
 ## Future extraction
 
-When refactoring out of `App.jsx`, target structure:
+Structure is in place:
 
 ```
-src/ui/
-  tokens.js      # export C, ff, fd, tC, sC, skC
-  Hero.jsx
-  Btn.jsx
-  ...
+src/ui/           # design system (atoms → molecules → organisms)
+src/features/     # tab screens (mock data in src/data/mocks/)
+src/app/          # App shell, TabBar, GlobalStyles
 ```
 
-Extract by **moving** code, not redesigning. Until then, import or duplicate-import from `App.jsx` only if a story requires split files — prefer keeping primitives in one module first.
+Extract by **moving** code, not redesigning.
 
 ---
 
