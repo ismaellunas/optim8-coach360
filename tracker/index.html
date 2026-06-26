@@ -1,0 +1,3259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach360 — Development Tracker</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #161b22;
+      --surface-2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --todo: #6e7681;
+      --in-progress: #d29922;
+      --in-review: #a371f7;
+      --done: #3fb950;
+      --blocked: #f85149;
+      --warning-bg: #3d2e00;
+      --warning-border: #9e6a03;
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 600; }
+    header p { color: var(--muted); font-size: 0.875rem; margin-top: 0.25rem; }
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .stat {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+    }
+    .stat strong { display: block; font-size: 1.125rem; }
+    main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+    .open-questions {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .open-questions h2 {
+      font-size: 0.9375rem;
+      color: #f0c14b;
+      margin-bottom: 0.75rem;
+    }
+    .open-questions ol {
+      padding-left: 1.25rem;
+      font-size: 0.875rem;
+    }
+    .open-questions li { margin-bottom: 0.5rem; }
+    .open-questions .ref {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .epic {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .epic-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      user-select: none;
+    }
+    .epic-header:hover { background: var(--surface-2); }
+    .epic-toggle {
+      color: var(--muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      flex-shrink: 0;
+      width: 1rem;
+    }
+    .epic-meta { flex: 1; min-width: 0; }
+    .epic-id {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .epic-title { font-size: 1rem; font-weight: 600; margin-top: 0.125rem; }
+    .epic-desc {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-top: 0.375rem;
+    }
+    .epic-progress {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+    .stories { padding: 0.5rem; }
+    .story {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 0.5rem;
+      padding: 1rem;
+    }
+    .story-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .story-id {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.125rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+    }
+    .badge-TODO { background: #21262d; color: var(--todo); border-color: #484f58; }
+    .badge-IN_PROGRESS { background: #3d2e00; color: var(--in-progress); border-color: #9e6a03; }
+    .badge-IN_REVIEW { background: #2d1f4e; color: var(--in-review); border-color: #6e40c9; }
+    .badge-DONE { background: #0f2d1a; color: var(--done); border-color: #238636; }
+    .badge-BLOCKED { background: #3d1418; color: var(--blocked); border-color: #da3633; }
+    .story-title { font-size: 0.9375rem; font-weight: 600; width: 100%; margin-top: 0.25rem; }
+    .story-desc {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin: 0.75rem 0 0.375rem;
+    }
+    .req-list, .ac-list {
+      font-size: 0.8125rem;
+      padding-left: 1.125rem;
+    }
+    .req-list li, .ac-list li { margin-bottom: 0.25rem; }
+    .req-list code {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      background: var(--bg);
+      padding: 0.0625rem 0.25rem;
+      border-radius: 3px;
+    }
+    .audit-notes {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border-radius: var(--radius);
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-style: italic;
+      display: none;
+    }
+    .audit-notes.has-content { display: block; }
+    .ac-id {
+      font-family: var(--mono);
+      font-size: 0.6875rem;
+      color: var(--muted);
+      margin-right: 0.25rem;
+    }
+    .ac-no-test {
+      font-size: 0.625rem;
+      color: var(--in-progress);
+      font-weight: 500;
+      margin-left: 0.25rem;
+    }
+    .last-updated {
+      font-size: 0.6875rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.375rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      cursor: pointer;
+    }
+    .filter-btn:hover { border-color: var(--accent); }
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d1117;
+    }
+    .hidden { display: none !important; }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Coach360 Development Tracker</h1>
+    <p>JIRA-style board — canonical data in <code>&lt;script id="tracker-data"&gt;</code></p>
+    <div class="stats" id="stats"></div>
+  </header>
+  <main>
+    <section class="open-questions" id="open-questions"></section>
+    <div class="filters" id="filters"></div>
+    <div id="board"></div>
+  </main>
+  <footer>
+    Coach360 · 172 h planning baseline · Source: <code>docs/</code> · Tracker v1.0
+  </footer>
+
+  <script id="tracker-data" type="application/json">
+  {
+  "project": "Coach360",
+  "version": "1.0.0",
+  "last_generated": "2026-06-26",
+  "planning_baseline_hours": 172,
+  "migration_notes": [
+    "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
+    "Prototype UI lives in src/App.jsx (Vite+Capacitor); production paths marked (inferred) per docs/architecture/tech-stack.md.",
+    "No supabase/, admin/, sanity/, or lib/ directories exist yet — inferred paths are provisional targets."
+  ],
+  "open_questions": [
+    {
+      "id": "OQ-2.1",
+      "question": "What does 'track own progress' mean at Basic tier — drill logs only, completion %, stats, or full profile dashboard?",
+      "source": "docs/product/stakeholder-questions.md#flow-2",
+      "blocks": [
+        "STORY-4.3",
+        "STORY-7.2"
+      ]
+    },
+    {
+      "id": "OQ-2.2",
+      "question": "What exactly is included in 'Full MVP access' at Pro tier beyond what Advanced already gets?",
+      "source": "docs/product/stakeholder-questions.md#flow-2",
+      "blocks": [
+        "STORY-5.4",
+        "STORY-11.3"
+      ]
+    },
+    {
+      "id": "OQ-2.3",
+      "question": "At Advanced, what are the precise boundaries for coach & communicate, distribute content, and plan & schedule vs Pro?",
+      "source": "docs/product/stakeholder-questions.md#flow-2",
+      "blocks": [
+        "STORY-5.2",
+        "STORY-6.1",
+        "STORY-8.1",
+        "STORY-9.2"
+      ]
+    },
+    {
+      "id": "OQ-3.1",
+      "question": "Is a session a calendar event only, or is there an in-session runtime experience (live run-through, timers, check-ins)?",
+      "source": "docs/product/stakeholder-questions.md#flow-3",
+      "blocks": [
+        "STORY-6.1",
+        "STORY-6.2",
+        "STORY-7.1"
+      ]
+    },
+    {
+      "id": "OQ-3.2",
+      "question": "How do coaches schedule sessions — date/time picker only, recurrence, or calendar sync (Google/Apple)?",
+      "source": "docs/product/stakeholder-questions.md#flow-3",
+      "blocks": [
+        "STORY-6.1"
+      ]
+    },
+    {
+      "id": "OQ-4.1",
+      "question": "Who creates marketplace packages — admins only, coaches with approval, or both?",
+      "source": "docs/product/stakeholder-questions.md#flow-4",
+      "blocks": [
+        "STORY-9.4",
+        "STORY-10.1",
+        "STORY-12.3"
+      ]
+    },
+    {
+      "id": "OQ-6.1",
+      "question": "What does 'set objectives' at Pro include — coach-set only, player-visible, team-level, measurable KPIs?",
+      "source": "docs/product/stakeholder-questions.md#flow-6",
+      "blocks": [
+        "STORY-11.1",
+        "STORY-11.2"
+      ]
+    },
+    {
+      "id": "OQ-6.5",
+      "question": "AI features show ○ partial at Advanced in the access matrix but principles say 'AI exclusively at Pro' — which is correct?",
+      "source": "docs/product/stakeholder-questions.md#flow-6",
+      "blocks": [
+        "STORY-5.2",
+        "STORY-11.3",
+        "STORY-11.4"
+      ]
+    },
+    {
+      "id": "OQ-2.8",
+      "question": "Stripe only, or Apple IAP / Google Play Billing for subscriptions and/or content purchases?",
+      "source": "docs/product/stakeholder-questions.md#flow-2",
+      "blocks": [
+        "STORY-4.1",
+        "STORY-4.5",
+        "STORY-10.2"
+      ]
+    },
+    {
+      "id": "OQ-5.1",
+      "question": "Build chat in-house (Supabase Realtime) or use Stream / Sendbird managed SDK?",
+      "source": "docs/product/stakeholder-questions.md#flow-5",
+      "blocks": [
+        "STORY-8.1"
+      ]
+    },
+    {
+      "id": "OQ-12.1",
+      "question": "What is the difference between session, package, and training program in the production data model?",
+      "source": "docs/architecture/content-model.md",
+      "blocks": [
+        "STORY-9.1",
+        "STORY-9.2",
+        "STORY-6.3"
+      ]
+    },
+    {
+      "id": "OQ-D.1",
+      "question": "Video hosting: Mux, Supabase Storage, or other for coach uploads and marketplace playback?",
+      "source": "docs/product/stakeholder-questions.md#dependencies",
+      "blocks": [
+        "STORY-9.3",
+        "STORY-9.5"
+      ]
+    },
+    {
+      "id": "OQ-AC.1",
+      "question": "MVP ships basic RBAC gating only (DEP-06) — which of the ~223 access-matrix rules are must-have for launch?",
+      "source": "docs/delivery/delivery-estimate.md#dep-06",
+      "blocks": [
+        "STORY-5.1",
+        "STORY-5.2"
+      ]
+    },
+    {
+      "id": "OQ-PROTOTYPE",
+      "question": "Production mobile stack is Expo + Supabase per tech-stack.md; existing prototype is React+Vite+Capacitor with mock data — migration path not documented.",
+      "source": "docs/architecture/tech-stack.md#prototype-vs-planned-production",
+      "blocks": [
+        "STORY-1.2",
+        "STORY-1.3"
+      ]
+    }
+  ],
+  "tickets": [
+    {
+      "id": "EPIC-1",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Platform Foundation & DevOps",
+      "description": "Greenfield backend, CI/CD, environments, and integration testing infrastructure required by all flows.",
+      "requirements": [
+        "DEP-08",
+        "DEP-09",
+        "docs/architecture/tech-stack.md",
+        "docs/delivery/delivery-estimate.md#phase-4"
+      ],
+      "acceptance_criteria": [
+        "Supabase project provisioned with dev/staging/prod environments",
+        "CI/CD pipeline runs lint, build, and deploy for mobile (EAS) and admin (Vercel)",
+        "Environment secrets managed without committing credentials",
+        "Integration test checklist covers cross-flow scenarios per DEP-09"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-1.1",
+      "type": "STORY",
+      "parent": "EPIC-1",
+      "title": "Supabase project setup and core schema",
+      "description": "Initialize PostgreSQL schema for users, profiles, teams, subscriptions, and session instances per tech-stack and content-model boundaries.",
+      "requirements": [
+        "DEP-08",
+        "docs/architecture/tech-stack.md#2-backend--supabase",
+        "docs/architecture/content-model.md#what-does-not-live-in-sanity"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Supabase project created with PostgreSQL, Auth, Realtime, and Storage enabled",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Tables exist for profiles, teams, rosters, subscriptions, sessions, purchases, drip progress",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Row Level Security policies enforce coach/player/team isolation",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Generated TypeScript types exported for client use",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "supabase/migrations/ (inferred)",
+          "supabase/config.toml (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-1.2",
+      "type": "STORY",
+      "parent": "EPIC-1",
+      "title": "Expo mobile app shell (production)",
+      "description": "Scaffold production mobile app per tech-stack recommendation (Expo + TypeScript), replacing prototype-only Vite/Capacitor shell.",
+      "requirements": [
+        "docs/architecture/tech-stack.md#1-mobile-application--react-native-expo",
+        "docs/prototype/README.md"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Expo project initializes and runs on iOS simulator and Android emulator",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "TypeScript configured with shared types from Supabase",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "EAS build profile configured for internal distribution",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Prototype UI patterns documented as reference only, not copied as architecture",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "capacitor.config.json",
+          "apps/mobile/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "UI prototype exists at src/App.jsx with mock data — not production stack."
+    },
+    {
+      "id": "STORY-1.3",
+      "type": "STORY",
+      "parent": "EPIC-1",
+      "title": "Next.js admin dashboard shell on Vercel",
+      "description": "Admin web app foundation with auth gate and navigation for Flow 7 four pillars.",
+      "requirements": [
+        "docs/architecture/tech-stack.md#4-admin-dashboard--nextjs-on-vercel",
+        "docs/product/flows.md#flow-7"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Next.js App Router project deploys to Vercel with preview URLs",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin-only route group protected by Supabase auth",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Dashboard layout exposes Users, Subscriptions, Content, Monitor nav sections",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Sanity Studio embed or link accessible from Content section",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-1.4",
+      "type": "STORY",
+      "parent": "EPIC-1",
+      "title": "CI/CD and app store deployment prep",
+      "description": "Build pipelines and store submission readiness per DEP-08.",
+      "requirements": [
+        "DEP-08",
+        "docs/delivery/delivery-estimate.md#dep-08"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "GitHub Actions (or equivalent) runs on PR and main branch",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "EAS Submit configured for TestFlight and internal Android track",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Vercel production and preview deployments automated",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Runbook documents environment promotion steps",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          ".github/workflows/ (inferred)",
+          "eas.json (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-2",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Authentication, Onboarding & Profiles",
+      "description": "User registration, role selection, profile creation, and guided first-time experiences for coaches and players (Flows 1, 15, 16).",
+      "requirements": [
+        "Flow-1",
+        "Flow-15",
+        "Flow-16",
+        "docs/product/flows.md#part-1"
+      ],
+      "acceptance_criteria": [
+        "Self-signup supports Coach, Player, and Team Manager roles only",
+        "Admin accounts are backend-provisioned, not self-registration",
+        "Guided onboarding wizards exist for coach and player first login",
+        "Independent operation without a team is supported for coaches and players"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-2.1",
+      "type": "STORY",
+      "parent": "EPIC-2",
+      "title": "Supabase Auth sign-up and sign-in",
+      "description": "Email and magic-link authentication with session persistence on mobile and admin.",
+      "requirements": [
+        "Flow-1",
+        "docs/architecture/tech-stack.md#authentication",
+        "docs/product/stakeholder-questions.md#1.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "User can create account with email and verify identity",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Magic link sign-in works on mobile deep link",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Auth session persists across app restarts",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Unauthenticated users cannot access main app screens",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-2.2",
+      "type": "STORY",
+      "parent": "EPIC-2",
+      "title": "Role selection and profile creation",
+      "description": "Post-signup role picker and role-specific profile forms per Flow 1.",
+      "requirements": [
+        "Flow-1",
+        "docs/product/flows.md#flow-1",
+        "docs/product/stakeholder-questions.md#1.3",
+        "docs/product/stakeholder-questions.md#1.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "User selects one of Coach, Player, or Team Manager at registration",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Coach profile captures independent vs team context",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Player profile captures age, position, and optional photo",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Team Manager profile requires team setup path (see EPIC-3)",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Profile data persists to Supabase profiles table",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "Prototype has 4 roles including Club Admin — production docs specify 3 self-signup roles."
+    },
+    {
+      "id": "STORY-2.3",
+      "type": "STORY",
+      "parent": "EPIC-2",
+      "title": "Subscription gate after onboarding",
+      "description": "Route new users to trial activation or tier selection after profile completion.",
+      "requirements": [
+        "Flow-1",
+        "Flow-2",
+        "docs/product/flows.md#flow-1",
+        "docs/product/stakeholder-questions.md#15.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "After profile completion user sees trial or subscription choice",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Trial activation grants time-limited Pro-level access per Flow 2",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "User can defer and land on Basic tier if trial not activated",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Subscription state synced from Stripe to Supabase profile",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-2.4",
+      "type": "STORY",
+      "parent": "EPIC-2",
+      "title": "First-time coach guided onboarding (Flow 15)",
+      "description": "Wizard: welcome, profile, marketplace browse, first session creation — team optional.",
+      "requirements": [
+        "Flow-15",
+        "docs/product/flows.md#flow-15",
+        "docs/product/stakeholder-questions.md#15.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Progress indicator shows onboarding steps",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Coach can skip team creation and player invites",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Marketplace browse step surfaces catalog without purchase required",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Create-first-session step links to scheduling flow",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Onboarding completion recorded for analytics",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-2.5",
+      "type": "STORY",
+      "parent": "EPIC-2",
+      "title": "First-time player guided onboarding (Flow 16)",
+      "description": "Wizard: welcome, profile, browse content, first drill, track progress — team join optional.",
+      "requirements": [
+        "Flow-16",
+        "docs/product/flows.md#flow-16",
+        "docs/product/stakeholder-questions.md#16.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Player can complete onboarding without joining a team",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Browse training content step shows marketplace and assigned content",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "First drill completion logs progress to profile",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Onboarding completion analytics event fires",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Invite-to-team option available but not mandatory",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-3",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Team Setup & Roster Management",
+      "description": "Team creation, settings, invites, roster management, and coach assignment (Flow 11).",
+      "requirements": [
+        "Flow-11",
+        "docs/product/flows.md#flow-11"
+      ],
+      "acceptance_criteria": [
+        "Coach and Team Manager can create teams with name, logo, description",
+        "Age range and season dates configurable on team settings",
+        "Players join via shareable link/code or manual add",
+        "Roster view shows all team members with role badges"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-3.1",
+      "type": "STORY",
+      "parent": "EPIC-3",
+      "title": "Create and edit team profile",
+      "description": "Team profile with name, logo, description, age range, and season dates.",
+      "requirements": [
+        "Flow-11",
+        "docs/product/flows.md#flow-11",
+        "docs/product/stakeholder-questions.md#11.5"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Team Manager can create team as part of core workflow",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Coach can optionally create team from roster screen",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Team settings include min/max age range fields",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Team logo uploads to Supabase Storage",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Team profile edits persist and reflect in roster UI",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-3.2",
+      "type": "STORY",
+      "parent": "EPIC-3",
+      "title": "Player invite and roster join flow",
+      "description": "Shareable invite link/code and manual player add per Flow 11 tier rules.",
+      "requirements": [
+        "Flow-11",
+        "docs/product/flows.md#flow-11",
+        "docs/product/stakeholder-questions.md#11.1",
+        "docs/product/stakeholder-questions.md#11.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach at Advanced+ can generate invite link or code",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Team Manager at Basic+ can invite and manually add players",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Player accepting invite joins roster and sees team context",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Invalid or expired invite shows clear error",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Player multi-team membership behavior follows stakeholder decision",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-3.3",
+      "type": "STORY",
+      "parent": "EPIC-3",
+      "title": "Roster management and coach assignment",
+      "description": "Remove players, manage roster, assign coaches to teams per access matrix.",
+      "requirements": [
+        "Flow-11",
+        "docs/product/flows.md#part-3-team-manager",
+        "docs/product/stakeholder-questions.md#11.3",
+        "docs/product/stakeholder-questions.md#11.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach at Advanced+ can remove players from roster",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Team Manager can manage full roster at Basic+",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Assign coach to team available at Pro for coaches (○ partial in matrix)",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Roster changes notify affected players via push (DEP-07)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-4",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Subscriptions, Trials & Paywall",
+      "description": "Stripe billing, trial lifecycle, paywall encounters, and upgrade/downgrade (Flows 2, 9, 10, 17 + DEP-03).",
+      "requirements": [
+        "Flow-2",
+        "Flow-9",
+        "Flow-10",
+        "Flow-17",
+        "DEP-03",
+        "docs/delivery/delivery-estimate.md#phase-1"
+      ],
+      "acceptance_criteria": [
+        "Basic, Advanced, and Pro tiers enforced via Stripe + Supabase sync",
+        "Free trial grants Pro-level access for configured duration",
+        "Paywall screens show required tier without blocking navigation",
+        "Upgrade immediate with proration; downgrade at end of billing cycle"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-4.1",
+      "type": "STORY",
+      "parent": "EPIC-4",
+      "title": "Stripe products, prices, and webhook sync",
+      "description": "Configure Stripe Billing for three subscription tiers and sync status to Supabase.",
+      "requirements": [
+        "DEP-03",
+        "Flow-2",
+        "docs/architecture/tech-stack.md#3-payments--stripe-billing",
+        "docs/product/stakeholder-questions.md#2.6"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Stripe products exist for Basic, Advanced, Pro with monthly prices",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Webhook handler updates subscription tier and status in Supabase",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Failed payment transitions user to appropriate locked state",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Billing history viewable from account settings at Basic+",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "supabase/functions/stripe-webhook/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-4.2",
+      "type": "STORY",
+      "parent": "EPIC-4",
+      "title": "Free trial activation and countdown",
+      "description": "One-time trial with full Pro access, status display, and expiration warnings.",
+      "requirements": [
+        "Flow-2",
+        "Flow-9",
+        "docs/product/flows.md#flow-9",
+        "docs/product/stakeholder-questions.md#2.4",
+        "docs/product/stakeholder-questions.md#2.5"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "New user can activate trial once per account policy",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Trial status and countdown visible during active trial",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Warning notification sent 3 days before expiry (configurable by admin)",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Trial user cannot re-activate after expiry",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-4.3",
+      "type": "STORY",
+      "parent": "EPIC-4",
+      "title": "Trial expiration and downgrade to Basic",
+      "description": "Post-trial behavior: retain Basic profile, lock Advanced/Pro features.",
+      "requirements": [
+        "Flow-9",
+        "docs/product/flows.md#flow-9",
+        "docs/product/stakeholder-questions.md#9.1",
+        "docs/product/stakeholder-questions.md#9.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "On trial expiry without payment user downgrades to Basic tier",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Advanced and Pro features show paywall on access attempt",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Purchased marketplace content retention follows product decision",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Upgrade prompt displayed with tier comparison",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-4.4",
+      "type": "STORY",
+      "parent": "EPIC-4",
+      "title": "Content paywall encounter screens",
+      "description": "Locked feature UX showing required tier, upgrade path, trial option, free alternatives.",
+      "requirements": [
+        "Flow-10",
+        "docs/product/flows.md#flow-10",
+        "docs/product/stakeholder-questions.md#10.1",
+        "docs/product/stakeholder-questions.md#10.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Paywall names the specific tier required and features unlocked",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Trial CTA shown only if user has not used trial",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "User can dismiss paywall and continue browsing elsewhere",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Upgrade flow launches Stripe checkout from paywall",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-4.5",
+      "type": "STORY",
+      "parent": "EPIC-4",
+      "title": "Subscription upgrade and downgrade in account settings",
+      "description": "Tier comparison, immediate upgrade, end-of-cycle downgrade, data retention rules.",
+      "requirements": [
+        "Flow-17",
+        "docs/product/flows.md#flow-17",
+        "docs/product/stakeholder-questions.md#17.1",
+        "docs/product/stakeholder-questions.md#17.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Account settings shows current plan, usage summary, billing info",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Upgrade processes payment and unlocks tier immediately with proration",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Downgrade scheduled for end of current billing period",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Objective and AI history preserved but hidden on downgrade until re-upgrade",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-5",
+      "type": "EPIC",
+      "parent": null,
+      "title": "RBAC & Tier Feature Gating",
+      "description": "Role × tier enforcement in API and UI per access control matrix (DEP-06, Part 3).",
+      "requirements": [
+        "DEP-06",
+        "docs/product/flows.md#part-3",
+        "docs/delivery/delivery-estimate.md#dep-06"
+      ],
+      "acceptance_criteria": [
+        "Server-side checks enforce tier before feature access (not UI-only)",
+        "Basic gating covers launch-critical matrix rules per DEP-06 scope",
+        "Paywall triggered consistently when tier insufficient",
+        "Admin role bypasses tier restrictions for management actions"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-5.1",
+      "type": "STORY",
+      "parent": "EPIC-5",
+      "title": "Core RBAC middleware and policy layer",
+      "description": "Centralized role and tier check utilities used by API routes and mobile guards.",
+      "requirements": [
+        "DEP-06",
+        "docs/product/flows.md#access-control-design-principles"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Utility function accepts role, tier, feature key and returns allow/deny",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Supabase RLS policies align with application RBAC rules",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Deny responses return 403 with tier upgrade hint where applicable",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Unit tests cover Player, Coach, Team Manager, Admin for sample features",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "supabase/migrations/ (inferred)",
+          "lib/rbac/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-5.2",
+      "type": "STORY",
+      "parent": "EPIC-5",
+      "title": "Launch-critical access matrix rules",
+      "description": "Implement must-have gating rules from Part 3 for MVP launch scope.",
+      "requirements": [
+        "docs/product/flows.md#part-3",
+        "docs/product/stakeholder-questions.md#ac.1",
+        "docs/product/stakeholder-questions.md#ac.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Chat features gated at Advanced+ for all roles per matrix",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "AI features gated at Pro per resolved OQ-6.5 decision",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Coach content creation gated at Advanced+",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "◎ read-only and ○ partial behaviors documented and implemented per feature list",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Full 223-rule matrix expansion deferred post-MVP",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/rbac/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "BLOCKED",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "Blocked pending OQ-6.5 (AI tier) and OQ-AC.1 (launch rule subset)."
+    },
+    {
+      "id": "STORY-5.3",
+      "type": "STORY",
+      "parent": "EPIC-5",
+      "title": "Admin-configurable feature gating",
+      "description": "Admin dashboard controls for tier requirements per feature and paywall messaging.",
+      "requirements": [
+        "Flow-7",
+        "docs/product/flows.md#admin-role-access",
+        "docs/product/stakeholder-questions.md#10.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Admin can configure which tier unlocks each feature flag",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Paywall messaging editable from admin Content Paywall section",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Free content catalog definable for Basic tier browsing",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Changes propagate to mobile without app redeploy (remote config or DB)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-6",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Coach Planning & Scheduling",
+      "description": "Session lifecycle from creation through content assignment to player notification (Flow 3).",
+      "requirements": [
+        "Flow-3",
+        "DEP-07",
+        "docs/product/flows.md#flow-3"
+      ],
+      "acceptance_criteria": [
+        "Coach at Advanced+ can create practice sessions with date, time, type",
+        "Content attachable from library and/or marketplace per product decision",
+        "Recipients receive in-app and push notifications",
+        "Team schedule and individual 1-on-1 sessions supported"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-6.1",
+      "type": "STORY",
+      "parent": "EPIC-6",
+      "title": "Create and edit practice sessions",
+      "description": "Session form with date, time, type, and recipient assignment.",
+      "requirements": [
+        "Flow-3",
+        "docs/product/flows.md#flow-3",
+        "docs/product/stakeholder-questions.md#3.2",
+        "docs/product/stakeholder-questions.md#3.5",
+        "docs/product/stakeholder-questions.md#3.6"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach creates session with date, time, and session type",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Team Manager at Advanced+ can create team sessions",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Session types include at minimum: practice, film review, 1-on-1",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Sessions persist to Supabase with team or individual recipient linkage",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Edit and cancel flows update notifications",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "BLOCKED",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "Blocked pending OQ-3.1 (session runtime) and OQ-3.2 (scheduling mechanics)."
+    },
+    {
+      "id": "STORY-6.2",
+      "type": "STORY",
+      "parent": "EPIC-6",
+      "title": "Attach content to sessions",
+      "description": "Add drills, videos, strategies, or packages to a scheduled session.",
+      "requirements": [
+        "Flow-3",
+        "Flow-12",
+        "docs/product/stakeholder-questions.md#3.3",
+        "docs/product/stakeholder-questions.md#3.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach selects content from personal library",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Marketplace-purchased content attachable if OQ-3.3 resolved affirmatively",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Ordered content list displays on session detail screen",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Package can be attached as single unit if product decision allows",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-6.3",
+      "type": "STORY",
+      "parent": "EPIC-6",
+      "title": "Share schedule and notify recipients",
+      "description": "Distribute session to team roster or individual player with notifications.",
+      "requirements": [
+        "Flow-3",
+        "DEP-07",
+        "docs/product/flows.md#flow-3",
+        "docs/product/stakeholder-questions.md#3.7"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Share to full team roster or individual player selectable",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Recipients receive push notification on session create/update",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "In-app schedule view shows upcoming sessions for players at Basic+",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Reminder notifications configurable (timing per stakeholder decision)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-7",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Player Experience & Progress",
+      "description": "End-to-end player journey: view sessions, complete drills, track progress, share with coach/peers (Flows 8, 13).",
+      "requirements": [
+        "Flow-8",
+        "Flow-13",
+        "docs/product/flows.md#flow-8"
+      ],
+      "acceptance_criteria": [
+        "Player receives schedule notification and views session details",
+        "Drill completion logs reps, time, or mark-done per product definition",
+        "Progress visible on player profile at each tier per matrix",
+        "Coach can review progress and provide feedback loop"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-7.1",
+      "type": "STORY",
+      "parent": "EPIC-7",
+      "title": "Player session view and content consumption",
+      "description": "View assigned session drills, videos, and strategies; complete activities.",
+      "requirements": [
+        "Flow-8",
+        "docs/product/flows.md#flow-8",
+        "docs/product/stakeholder-questions.md#8.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Player sees session detail with attached content list",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Video playback works for shared and purchased content",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Content access timing follows session schedule rules (OQ-3.1 dependent)",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Completion state tracked per content item",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-7.2",
+      "type": "STORY",
+      "parent": "EPIC-7",
+      "title": "Drill logging and progress tracking",
+      "description": "Log drill completions, reps, time; update player stats and progress dashboard.",
+      "requirements": [
+        "Flow-8",
+        "Flow-13",
+        "docs/product/stakeholder-questions.md#8.1",
+        "docs/product/stakeholder-questions.md#2.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Player can mark drill complete and optionally log reps/time",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Progress percentage updates on profile and assigned content",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Basic tier progress scope matches OQ-2.1 resolution",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Progress data stored in Supabase for coach dashboard consumption",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-7.3",
+      "type": "STORY",
+      "parent": "EPIC-7",
+      "title": "Coach progress review and feedback loop",
+      "description": "Coach dashboard for player drill completions, feedback via chat and content assignment.",
+      "requirements": [
+        "Flow-13",
+        "docs/product/flows.md#flow-13",
+        "docs/product/stakeholder-questions.md#13.1",
+        "docs/product/stakeholder-questions.md#13.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach at Advanced+ views player progress dashboard",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Drill completion list filterable by player and date range",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Coach provides feedback via direct message",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Coach assigns corrective drills from review screen or via content share",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-7.4",
+      "type": "STORY",
+      "parent": "EPIC-7",
+      "title": "Player profile and dashboard by tier",
+      "description": "Player home and profile tabs scoped per tier (prototype 6-tab profile as reference only).",
+      "requirements": [
+        "Flow-8",
+        "docs/prototype/README.md#player-profile-tabs",
+        "docs/product/stakeholder-questions.md#8.3",
+        "docs/product/stakeholder-questions.md#8.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Player home shows schedule summary and progress at minimum",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Profile tabs for objectives and full dashboard gated per Pro tier",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "◎ partial dashboard at Basic shows limited stats per matrix",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Scope of 6-tab profile confirmed against MVP decision",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-8",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Chat & Communication",
+      "description": "Team group chat, player DMs, coach messaging, and player-to-player sharing (Flows 5, 18).",
+      "requirements": [
+        "Flow-5",
+        "Flow-18",
+        "docs/product/flows.md#flow-5"
+      ],
+      "acceptance_criteria": [
+        "Three channel types: team group, player DM, player-to-player",
+        "Messages support text and rich attachments per scope decision",
+        "Real-time delivery with push notifications",
+        "Peer sharing gated at Advanced+"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-8.1",
+      "type": "STORY",
+      "parent": "EPIC-8",
+      "title": "Chat SDK integration and channel model",
+      "description": "Integrate Stream/Sendbird or Supabase Realtime for messaging infrastructure.",
+      "requirements": [
+        "Flow-5",
+        "DEP-07",
+        "docs/architecture/tech-stack.md#real-time-chat",
+        "docs/product/stakeholder-questions.md#5.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Chat provider selected and integrated per OQ-5.1 decision",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Channels created for team, DM, and P2P conversation types",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Messages deliver in real time with <2s latency on good network",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Unread counts and conversation list persist across sessions",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/chat/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-8.2",
+      "type": "STORY",
+      "parent": "EPIC-8",
+      "title": "Compose and send rich messages",
+      "description": "Text, video, drill links, and feedback attachments in chat.",
+      "requirements": [
+        "Flow-5",
+        "docs/product/flows.md#flow-5",
+        "docs/product/stakeholder-questions.md#5.2"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "User can send text messages in all channel types at Advanced+",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Drill and content links render as tappable cards in thread",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Video attachment upload and playback works in chat if in scope",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Message types not in MVP scope explicitly disabled with tooltip",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/chat/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-8.3",
+      "type": "STORY",
+      "parent": "EPIC-8",
+      "title": "Player-to-player knowledge sharing",
+      "description": "Share progress, achievements, tips to team chat; coach visibility of engagement.",
+      "requirements": [
+        "Flow-18",
+        "docs/product/flows.md#flow-18",
+        "docs/product/stakeholder-questions.md#18.1",
+        "docs/product/stakeholder-questions.md#18.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Player at Advanced+ can share achievements to team chat",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Share insight/tips flow posts formatted message to team channel",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Coach sees peer engagement metrics at Pro tier",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Sharing scope limited per OQ-18.2 (team vs DM)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/chat/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-9",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Content Authoring & CMS",
+      "description": "Sanity schemas, coach content creation, upload pipeline, and private distribution (Flow 12, DEP-04, content-model).",
+      "requirements": [
+        "Flow-12",
+        "DEP-04",
+        "docs/architecture/content-model.md"
+      ],
+      "acceptance_criteria": [
+        "Sanity Studio hosts drill, video, strategy, and package schemas",
+        "Coach at Advanced+ creates and uploads training content",
+        "Path A direct distribution to team/player without marketplace listing",
+        "Video upload pipeline with CDN playback operational"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-9.1",
+      "type": "STORY",
+      "parent": "EPIC-9",
+      "title": "Sanity content schemas and Studio setup",
+      "description": "Define drill, video, strategy, trainingPackage, module schemas per content-model.",
+      "requirements": [
+        "docs/architecture/content-model.md#content-taxonomy",
+        "docs/architecture/content-model.md#proposed-sanity-document-fields"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Sanity schemas deployed for drill, video, strategy, trainingPackage, module",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Studio accessible at /admin/studio or dedicated subdomain",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Content hierarchy supports program → module → lesson → item per proposed model",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Workflow status field supports draft → pending_review → approved → published",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "sanity/ (inferred)",
+          "admin/app/studio/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-9.2",
+      "type": "STORY",
+      "parent": "EPIC-9",
+      "title": "Coach content creation on mobile",
+      "description": "Create drills, upload videos, build strategies; organize into packages or sessions.",
+      "requirements": [
+        "Flow-12",
+        "docs/product/flows.md#flow-12",
+        "docs/architecture/content-model.md#packaging-workflows"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach at Advanced+ creates drill with title, instructions, optional media",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Video upload initiates transcoding pipeline (Mux or equivalent)",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Coach bundles items into package or attaches to session",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Created content appears in coach library immediately",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "sanity/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-9.3",
+      "type": "STORY",
+      "parent": "EPIC-9",
+      "title": "Video upload and playback pipeline",
+      "description": "Upload, transcode, CDN delivery for coach and marketplace video content.",
+      "requirements": [
+        "DEP-04",
+        "docs/architecture/tech-stack.md",
+        "docs/product/stakeholder-questions.md#d.1",
+        "docs/product/stakeholder-questions.md#12.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Video uploads accept files within max size policy",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Transcoding produces streamable formats for mobile playback",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Playback uses adaptive streaming on iOS and Android",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Upload progress and error states shown to coach",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/video/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-9.4",
+      "type": "STORY",
+      "parent": "EPIC-9",
+      "title": "Private content distribution (Path A)",
+      "description": "Share created content to team roster or individual player with in-app assignment.",
+      "requirements": [
+        "Flow-12",
+        "docs/architecture/content-model.md#two-distribution-paths",
+        "docs/product/stakeholder-questions.md#12.6"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach selects recipients: full team or individual player",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Recipients receive notification when content assigned",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Assigned content appears in player content tab",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Independent coach can distribute to non-roster player if allowed",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-9.5",
+      "type": "STORY",
+      "parent": "EPIC-9",
+      "title": "Sanity webhook sync to Supabase",
+      "description": "On publish, sync metadata to Supabase and trigger RAG re-index.",
+      "requirements": [
+        "docs/architecture/content-model.md#recommended-integration",
+        "docs/architecture/ai-integration.md",
+        "DEP-02"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Sanity webhook fires on document publish event",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Edge function upserts package metadata to Supabase",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "RAG embedding job queued for published packages",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Mobile app reads published content via Sanity CDN/API",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "supabase/functions/sanity-webhook/ (inferred)",
+          "sanity/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-10",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Marketplace & Content Dripping",
+      "description": "Browse, purchase, drip unlock, and completion tracking for training packages (Flows 4, 14).",
+      "requirements": [
+        "Flow-4",
+        "Flow-14",
+        "docs/product/flows.md#flow-4"
+      ],
+      "acceptance_criteria": [
+        "Users browse marketplace catalog filtered by age and tier",
+        "Purchase via Stripe creates drip unlock schedule in Supabase",
+        "Modules unlock over time with push notifications",
+        "Coach can purchase and redistribute to team at Advanced+"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-10.1",
+      "type": "STORY",
+      "parent": "EPIC-10",
+      "title": "Marketplace browse and purchase",
+      "description": "Catalog UI, package detail, Stripe checkout for personal or team purchase.",
+      "requirements": [
+        "Flow-4",
+        "docs/product/flows.md#flow-4",
+        "docs/product/stakeholder-questions.md#4.6",
+        "docs/product/stakeholder-questions.md#4.7"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Marketplace lists published packages with title, price, rating, skills tags",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Package detail shows outline and drip schedule preview if OQ-4.6 resolved",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Stripe checkout completes purchase and records in Supabase",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Coach at Advanced+ can purchase for team distribution",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-10.2",
+      "type": "STORY",
+      "parent": "EPIC-10",
+      "title": "Drip schedule engine and unlock notifications",
+      "description": "Gradual module release per package schedule; tier-dependent speed if applicable.",
+      "requirements": [
+        "Flow-14",
+        "docs/product/flows.md#flow-14",
+        "docs/product/stakeholder-questions.md#14.1",
+        "docs/product/stakeholder-questions.md#14.3",
+        "DEP-07"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Initial modules unlock immediately on purchase (e.g. lessons 1–4)",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Subsequent modules unlock per configured cadence (weekly/biweekly)",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Push notification sent when new module available",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Higher tier may accelerate drip per OQ-14.3 resolution",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Upgrade mid-drip unlock behavior per OQ-14.5",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "supabase/ (inferred)",
+          "lib/drip/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-10.3",
+      "type": "STORY",
+      "parent": "EPIC-10",
+      "title": "Drip progress and completion tracking",
+      "description": "User sees unlock timeline, progress bar, and completion state per package.",
+      "requirements": [
+        "Flow-14",
+        "Flow-4",
+        "docs/product/flows.md#flow-14"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Drip schedule and next unlock date visible on package detail",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Progress bar reflects completed lessons vs total",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Locked modules show unlock date or tier requirement",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Completion data available to coach for team purchases",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-10.4",
+      "type": "STORY",
+      "parent": "EPIC-10",
+      "title": "Marketplace supply and approval workflow (Path B)",
+      "description": "Coach-submitted or admin-created packages: review, approve, publish to catalog.",
+      "requirements": [
+        "Flow-4",
+        "Flow-7",
+        "docs/architecture/content-model.md#two-distribution-paths",
+        "docs/product/stakeholder-questions.md#4.1",
+        "docs/product/stakeholder-questions.md#4.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Submission workflow follows draft → pending_review → approved/rejected → published",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin approves or rejects coach-submitted packages from dashboard",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Published packages appear in marketplace with Stripe price ID",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Supply model matches OQ-4.1 resolution (admin-only vs coach with approval)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)",
+          "sanity/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "BLOCKED",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "Blocked pending OQ-4.1 marketplace supply model decision."
+    },
+    {
+      "id": "EPIC-11",
+      "type": "EPIC",
+      "parent": null,
+      "title": "AI Engine & Objectives",
+      "description": "Objectives loop, package recommendations, RAG, and personalization (Flow 6, DEP-01, DEP-02).",
+      "requirements": [
+        "Flow-6",
+        "DEP-01",
+        "DEP-02",
+        "docs/architecture/ai-integration.md"
+      ],
+      "acceptance_criteria": [
+        "Coach sets player and team objectives at Pro tier",
+        "AI suggests marketplace packages matched to objectives",
+        "Recommendations include human-readable 'why' explanation",
+        "Tier gating enforced server-side before model calls"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-11.1",
+      "type": "STORY",
+      "parent": "EPIC-11",
+      "title": "Objectives UI — coach set, player view",
+      "description": "Create and track player/team objectives (shooting, defense, strategy goals).",
+      "requirements": [
+        "Flow-6",
+        "docs/product/flows.md#flow-6",
+        "docs/product/stakeholder-questions.md#6.1"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach at Pro sets objectives for individual players and teams",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Player at Pro views assigned objectives and progress rings",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Objective progress updates when drill completion logged",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Objective schema supports measurable KPIs per OQ-6.1 resolution",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-11.2",
+      "type": "STORY",
+      "parent": "EPIC-11",
+      "title": "Metadata-based package recommendations (Phase 1)",
+      "description": "Filter and rank marketplace packages by objectives, age, progress before full RAG.",
+      "requirements": [
+        "Flow-4",
+        "Flow-6",
+        "docs/architecture/ai-integration.md#do-you-need-rag",
+        "docs/product/stakeholder-questions.md#6.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Recommendation API accepts context: objectives, age, tier, purchase history",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Hard filters exclude owned packages and ineligible tiers",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Top 3 packages returned with match score",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Suggestions surface on marketplace and objectives screens",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "lib/ai/recommendations/ (inferred)",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-11.3",
+      "type": "STORY",
+      "parent": "EPIC-11",
+      "title": "Mistral AI integration via Vercel AI SDK",
+      "description": "LLM re-rank and explain recommendations; chat support for coach/player Q&A.",
+      "requirements": [
+        "DEP-01",
+        "docs/architecture/tech-stack.md#ai--chat",
+        "docs/architecture/ai-integration.md#layer-3--llm-re-rank-and-explain"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Mistral API integrated through Vercel AI SDK",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Recommendation endpoint re-ranks top candidates and generates 'why' copy",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "AI calls blocked for users below Pro tier (per resolved tier policy)",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "PII sent to provider complies with OQ-6.7 privacy decision",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "lib/ai/ (inferred)",
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-11.4",
+      "type": "STORY",
+      "parent": "EPIC-11",
+      "title": "RAG pipeline — embeddings and pgvector retrieval",
+      "description": "Ingest Sanity packages, embed, store in Supabase pgvector, retrieve for recommendations.",
+      "requirements": [
+        "DEP-02",
+        "docs/architecture/ai-integration.md#layer-2--retrieval-rag"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Published packages ingested with title, description, tags, drill metadata",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Embeddings generated via Mistral or dedicated embedding model",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Vectors stored in Supabase pgvector table",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Query returns top 5–10 candidates by similarity to recommendation context",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Re-index triggered on Sanity publish webhook",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "lib/ai/rag/ (inferred)",
+          "supabase/migrations/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-12",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Admin Web Dashboard",
+      "description": "Next.js admin control plane: Users, Subscriptions, Content, Monitor pillars (Flow 7, DEP-05).",
+      "requirements": [
+        "Flow-7",
+        "DEP-05",
+        "docs/product/flows.md#flow-7",
+        "docs/architecture/content-model.md#sanity-vs-admin-dashboard"
+      ],
+      "acceptance_criteria": [
+        "Admin login restricted to backend-provisioned accounts",
+        "Four dashboard pillars operational: Users, Subscriptions, Content, Monitor",
+        "Admin can suspend users, override subscriptions, approve marketplace content",
+        "Analytics and export available on Monitor pillar"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-12.1",
+      "type": "STORY",
+      "parent": "EPIC-12",
+      "title": "User management — profiles, roles, suspend",
+      "description": "View/edit all users, assign roles, suspend or deactivate accounts.",
+      "requirements": [
+        "Flow-7",
+        "docs/product/flows.md#admin-role-access",
+        "docs/product/stakeholder-questions.md#7.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Admin views searchable list of all user profiles",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin edits profile fields and changes user role",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Suspend/deactivate prevents login and shows account-held message",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Admin views all team rosters from user detail",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-12.2",
+      "type": "STORY",
+      "parent": "EPIC-12",
+      "title": "Subscription and trial administration",
+      "description": "Configure tiers, trial duration, warnings, billing view, subscription overrides.",
+      "requirements": [
+        "Flow-7",
+        "Flow-2",
+        "Flow-9",
+        "docs/product/flows.md#admin-role-access",
+        "DEP-05"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Admin configures subscription tier parameters and trial duration",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin sets trial expiration warning schedule",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Billing and revenue summary visible on Subscriptions pillar",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Admin can override individual user subscription tier",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-12.3",
+      "type": "STORY",
+      "parent": "EPIC-12",
+      "title": "Content and marketplace operations",
+      "description": "Approve coach content, publish/unpublish packages, pricing, global drip rules.",
+      "requirements": [
+        "Flow-7",
+        "DEP-05",
+        "docs/architecture/content-model.md#sanity-vs-admin-dashboard",
+        "docs/product/stakeholder-questions.md#7.4"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Pending review queue lists coach-submitted packages",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin approves, rejects with reason, or publishes to marketplace",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Stripe price ID assignable from admin on publish",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Global drip schedule rules configurable per tier",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Link to Sanity Studio for content authoring",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)",
+          "sanity/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-12.4",
+      "type": "STORY",
+      "parent": "EPIC-12",
+      "title": "Monitor — analytics, chat moderation, AI config",
+      "description": "Platform analytics, chat moderation, AI parameter config, health monitoring, exports.",
+      "requirements": [
+        "Flow-7",
+        "docs/product/flows.md#admin-role-access",
+        "docs/product/stakeholder-questions.md#7.5",
+        "docs/product/stakeholder-questions.md#6.8"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Dashboard shows DAU, revenue, content completion, onboarding funnel",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Admin monitors and moderates chat channels",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Admin configures AI recommendation parameters",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Export reports to CSV for revenue and usage",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "App health indicators surfaced (API errors, webhook failures)",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-12.5",
+      "type": "STORY",
+      "parent": "EPIC-12",
+      "title": "Onboarding configuration and team oversight",
+      "description": "Configure wizard steps, welcome copy; view/edit teams and coach assignments.",
+      "requirements": [
+        "Flow-7",
+        "Flow-11",
+        "docs/product/flows.md#admin-role-access",
+        "docs/product/stakeholder-questions.md#7.6"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Admin configures onboarding wizard steps and mandatory vs optional flags",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Welcome messaging editable without code deploy",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Admin views all teams and edits team settings",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Admin manages coach-team assignments and can archive teams",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "admin/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-13",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Steel-Thread MVP (Phase 0)",
+      "description": "Demonstrable end-to-end slice: sign up → schedule → view content → message coach (16 h baseline).",
+      "requirements": [
+        "docs/delivery/delivery-estimate.md#3-steel-thread-mvp",
+        "Flow-1",
+        "Flow-3",
+        "Flow-5",
+        "Flow-8"
+      ],
+      "acceptance_criteria": [
+        "Coach signs up, creates team, schedules session with content",
+        "Player joins via invite, views session, completes drill",
+        "Coach and player exchange real-time messages",
+        "Demo-ready on target mobile platform with data persistence"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": "Prototype provides UI mock only — steel-thread requires production backend per docs."
+    },
+    {
+      "id": "STORY-13.1",
+      "type": "STORY",
+      "parent": "EPIC-13",
+      "title": "Steel-thread auth and team invite",
+      "description": "Minimal auth, role selection, team create, player invite join for demo path.",
+      "requirements": [
+        "docs/delivery/delivery-estimate.md#33-steel-thread-scope--included",
+        "Flow-1",
+        "Flow-11"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach completes email sign-up and role selection",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Coach creates team and generates invite link",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Player joins team via invite link",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Both users land on authenticated home screen",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-13.2",
+      "type": "STORY",
+      "parent": "EPIC-13",
+      "title": "Steel-thread schedule and player session view",
+      "description": "Coach creates session with content; player views and completes drill.",
+      "requirements": [
+        "docs/delivery/delivery-estimate.md#33-steel-thread-scope--included",
+        "Flow-3",
+        "Flow-8"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach creates session with at least one drill attached",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Player receives session in schedule view",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Player opens session detail and marks drill complete",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Completion recorded in Supabase",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "supabase/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-13.3",
+      "type": "STORY",
+      "parent": "EPIC-13",
+      "title": "Steel-thread coach-player chat",
+      "description": "1-on-1 messaging between coach and player for steel-thread demo.",
+      "requirements": [
+        "docs/delivery/delivery-estimate.md#33-steel-thread-scope--included",
+        "Flow-5"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Coach opens DM with player from roster or chat list",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Messages send and receive in real time",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Conversation persists across app restarts",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Push notification fires on new message when app backgrounded",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "src/App.jsx",
+          "lib/chat/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "EPIC-14",
+      "type": "EPIC",
+      "parent": null,
+      "title": "Push Notifications & Cross-Cutting Services",
+      "description": "FCM/APNs notification service for scheduling, chat, drip unlock, and trial warnings (DEP-07).",
+      "requirements": [
+        "DEP-07",
+        "docs/delivery/delivery-estimate.md#dep-07"
+      ],
+      "acceptance_criteria": [
+        "Push tokens registered on mobile app launch",
+        "Notification service sends events for schedule, chat, drip, trial",
+        "User can manage notification preferences",
+        "Critical events optionally mirrored to email per D.3 decision"
+      ],
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    },
+    {
+      "id": "STORY-14.1",
+      "type": "STORY",
+      "parent": "EPIC-14",
+      "title": "Push notification infrastructure",
+      "description": "FCM/APNs integration with Supabase edge function or dedicated service.",
+      "requirements": [
+        "DEP-07",
+        "docs/product/stakeholder-questions.md#d.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "iOS and Android push permissions requested on first relevant action",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "Device tokens stored linked to user profile",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Server can send push to individual user or team topic",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Delivery failures logged for monitoring",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "lib/notifications/ (inferred)",
+          "supabase/functions/push/ (inferred)"
+        ],
+        "command": null
+      },
+      "status": "TODO",
+      "last_updated": "2026-06-26T00:00:00Z",
+      "audit_notes": ""
+    }
+  ]
+}
+  </script>
+
+  <script>
+    (function () {
+      const data = JSON.parse(document.getElementById('tracker-data').textContent);
+      const STATUSES = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'BLOCKED'];
+      let activeFilter = 'ALL';
+
+      function formatDate(iso) {
+        try {
+          return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch { return iso; }
+      }
+
+      function renderStats() {
+        const stories = data.tickets.filter(t => t.type === 'STORY');
+        const counts = {};
+        STATUSES.forEach(s => counts[s] = 0);
+        stories.forEach(s => counts[s.status] = (counts[s.status] || 0) + 1);
+        const epics = data.tickets.filter(t => t.type === 'EPIC').length;
+        document.getElementById('stats').innerHTML = [
+          { label: 'Epics', value: epics },
+          { label: 'Stories', value: stories.length },
+          { label: 'Done', value: counts.DONE },
+          { label: 'In Progress', value: counts.IN_PROGRESS },
+          { label: 'Blocked', value: counts.BLOCKED },
+          { label: 'Open Questions', value: data.open_questions.length }
+        ].map(s => `<div class="stat"><strong>${s.value}</strong>${s.label}</div>`).join('');
+      }
+
+      function renderOpenQuestions() {
+        const el = document.getElementById('open-questions');
+        el.innerHTML = `
+          <h2>⚠ Open Questions (${data.open_questions.length}) — resolve before committing scope</h2>
+          <ol>
+            ${data.open_questions.map(q => `
+              <li>
+                <strong>${q.id}</strong>: ${q.question}
+                <div class="ref">Source: ${q.source}${q.blocks ? ' · Blocks: ' + q.blocks.join(', ') : ''}</div>
+              </li>
+            `).join('')}
+          </ol>
+        `;
+      }
+
+      function renderFilters() {
+        const el = document.getElementById('filters');
+        const buttons = ['ALL', ...STATUSES];
+        el.innerHTML = buttons.map(s =>
+          `<button class="filter-btn${activeFilter === s ? ' active' : ''}" data-filter="${s}">${s === 'ALL' ? 'All' : s.replace('_', ' ')}</button>`
+        ).join('');
+        el.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            activeFilter = btn.dataset.filter;
+            renderFilters();
+            renderBoard();
+          });
+        });
+      }
+
+      function epicProgress(epicId) {
+        const stories = data.tickets.filter(t => t.parent === epicId);
+        const done = stories.filter(s => s.status === 'DONE').length;
+        return `${done}/${stories.length} done`;
+      }
+
+      function renderStory(story) {
+        if (activeFilter !== 'ALL' && story.status !== activeFilter) return '';
+        return `
+          <article class="story" data-id="${story.id}" data-status="${story.status}">
+            <div class="story-header">
+              <span class="story-id">${story.id}</span>
+              <span class="badge badge-${story.status}">${story.status.replace('_', ' ')}</span>
+            </div>
+            <div class="story-title">${story.title}</div>
+            <div class="story-desc">${story.description}</div>
+            <div class="section-label">Requirements</div>
+            <ul class="req-list">
+              ${story.requirements.map(r => `<li><code>${r}</code></li>`).join('')}
+            </ul>
+            <div class="section-label">Acceptance Criteria</div>
+            <ul class="ac-list">
+              ${story.acceptance_criteria.map(ac => {
+                if (typeof ac === 'string') return `<li>${ac}</li>`;
+                const noTest = ac.test === null ? '<span class="ac-no-test">needs test</span>' : '';
+                return `<li><code class="ac-id">${ac.id}</code> ${ac.statement} ${noTest}</li>`;
+              }).join('')}
+            </ul>
+            <div class="audit-notes${story.audit_notes ? ' has-content' : ''}">
+              Audit: ${story.audit_notes || '—'}
+            </div>
+            <div class="last-updated">Updated: ${formatDate(story.last_updated)}</div>
+          </article>
+        `;
+      }
+
+      function renderBoard() {
+        const board = document.getElementById('board');
+        const epics = data.tickets.filter(t => t.type === 'EPIC');
+        board.innerHTML = epics.map(epic => {
+          const stories = data.tickets.filter(t => t.parent === epic.id);
+          const visibleStories = stories.map(renderStory).filter(Boolean).join('');
+          const hidden = activeFilter !== 'ALL' && !visibleStories;
+          if (hidden) return '';
+          return `
+            <section class="epic" data-epic="${epic.id}">
+              <div class="epic-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                <span class="epic-toggle">▼</span>
+                <div class="epic-meta">
+                  <div class="epic-id">${epic.id} · <span class="badge badge-${epic.status}">${epic.status.replace('_', ' ')}</span></div>
+                  <div class="epic-title">${epic.title}</div>
+                  <div class="epic-desc">${epic.description}</div>
+                  <div class="epic-progress">${epicProgress(epic.id)} · Requirements: ${epic.requirements.map(r => `<code>${r}</code>`).join(', ')}</div>
+                </div>
+              </div>
+              <div class="stories">${visibleStories || '<p style="padding:1rem;color:var(--muted);font-size:0.875rem">No stories match filter.</p>'}</div>
+            </section>
+          `;
+        }).join('');
+
+        board.querySelectorAll('.epic.collapsed .stories').forEach(s => s.classList.add('hidden'));
+        board.querySelectorAll('.epic-header').forEach(h => {
+          h.addEventListener('click', () => {
+            const epic = h.parentElement;
+            const stories = epic.querySelector('.stories');
+            const toggle = h.querySelector('.epic-toggle');
+            const collapsed = epic.classList.toggle('collapsed');
+            stories.classList.toggle('hidden', collapsed);
+            toggle.textContent = collapsed ? '▶' : '▼';
+          });
+        });
+      }
+
+      renderStats();
+      renderOpenQuestions();
+      renderFilters();
+      renderBoard();
+    })();
+  </script>
+  <style>
+    .epic.collapsed .stories { display: none; }
+  </style>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "appId": "com.coach360.app",
+  "appName": "Coach360",
+  "webDir": "dist",
+  "plugins": {
+    "Keyboard": {
+      "resize": "body",
+      "resizeOnFullScreen": true
+    },
+    "StatusBar": {
+      "style": "dark",
+      "backgroundColor": "#0C0C10"
+    }
+  },
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": false,
+    "limitsNavigationsToAppBoundDomains": true
+  },
+  "android": {
+    "backgroundColor": "#0C0C10"
+  }
+}
