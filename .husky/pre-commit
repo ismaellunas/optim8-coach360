@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+
+npm run docs:manifest
+git add docs/manifest.json

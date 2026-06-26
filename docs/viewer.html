@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach360 — Documentation</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #161b22;
+      --surface-2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #388bfd66;
+      --radius: 8px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --sidebar-w: 280px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      padding: 1rem 1rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-header h1 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+    }
+    .sidebar-header p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+    .sidebar-links {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.625rem;
+      flex-wrap: wrap;
+    }
+    .sidebar-links a {
+      font-size: 0.6875rem;
+      color: var(--accent);
+      text-decoration: none;
+      padding: 0.2rem 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    .sidebar-links a:hover { background: var(--surface-2); }
+    .tree-wrap {
+      flex: 1;
+      overflow: auto;
+      padding: 0.5rem 0;
+    }
+    .tree { list-style: none; font-size: 0.8125rem; }
+    .tree ul { list-style: none; padding-left: 0.875rem; }
+    .tree-item { user-select: none; }
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.75rem;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 0 0.35rem;
+    }
+    .tree-row:hover { background: var(--surface-2); }
+    .tree-row.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .tree-row.file { padding-left: 1.35rem; }
+    .tree-toggle {
+      width: 1rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.625rem;
+      flex-shrink: 0;
+    }
+    .tree-toggle.empty { visibility: hidden; }
+    .tree-icon { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+    .tree-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .toolbar {
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 0.8125rem;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+    .content-wrap {
+      flex: 1;
+      overflow: auto;
+      padding: 2rem 2.5rem 3rem;
+      max-width: 52rem;
+    }
+    .content-wrap .loading,
+    .content-wrap .error {
+      color: var(--muted);
+      font-size: 0.9375rem;
+    }
+    .content-wrap .error { color: #f85149; }
+  </style>
+  <style>
+    /* Markdown body */
+    .md h1, .md h2, .md h3, .md h4 {
+      margin: 1.5rem 0 0.75rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .md h1 { font-size: 1.75rem; border-bottom: 1px solid var(--border); padding-bottom: 0.35rem; margin-top: 0; }
+    .md h2 { font-size: 1.375rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; }
+    .md h3 { font-size: 1.125rem; }
+    .md h4 { font-size: 1rem; }
+    .md p, .md ul, .md ol, .md blockquote, .md pre { margin: 0 0 1rem; }
+    .md ul, .md ol { padding-left: 1.5rem; }
+    .md li { margin-bottom: 0.35rem; }
+    .md li > ul, .md li > ol { margin-top: 0.35rem; margin-bottom: 0; }
+    .md a { color: var(--accent); text-decoration: none; }
+    .md a:hover { text-decoration: underline; }
+    .md blockquote {
+      border-left: 3px solid var(--border);
+      padding-left: 1rem;
+      color: var(--muted);
+    }
+    .md code {
+      font-family: var(--mono);
+      font-size: 0.875em;
+      background: var(--surface-2);
+      padding: 0.15em 0.35em;
+      border-radius: 4px;
+    }
+    .md pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      overflow: auto;
+    }
+    .md pre code {
+      background: none;
+      padding: 0;
+      font-size: 0.8125rem;
+    }
+    .md table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      display: block;
+      overflow: auto;
+    }
+    .md th, .md td {
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    .md th { background: var(--surface); }
+    .md hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    .md img { max-width: 100%; border-radius: var(--radius); }
+    @media (max-width: 768px) {
+      .layout { flex-direction: column; }
+      .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 40vh;
+        position: relative;
+      }
+      .content-wrap { padding: 1.25rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>Coach360 Docs</h1>
+        <p>Static markdown browser</p>
+        <div class="sidebar-links">
+          <a href="index.html">Tracker</a>
+          <a href="README.md" id="raw-link" target="_blank" rel="noopener">Raw</a>
+        </div>
+      </div>
+      <div class="tree-wrap">
+        <ul class="tree" id="tree"></ul>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="toolbar" id="path-bar">Select a document</div>
+      <div class="content-wrap">
+        <div id="content" class="loading">Loading…</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      const treeEl = document.getElementById('tree');
+      const contentEl = document.getElementById('content');
+      const pathBar = document.getElementById('path-bar');
+      const rawLink = document.getElementById('raw-link');
+
+      let manifest = null;
+      let activePath = null;
+      const expanded = new Set();
+
+      marked.setOptions({
+        gfm: true,
+        breaks: false,
+        headerIds: true,
+        mangle: false,
+      });
+
+      function safePath(path) {
+        if (!path || path.includes('..') || path.startsWith('/') || !path.endsWith('.md')) {
+          return null;
+        }
+        return path;
+      }
+
+      function renderTreeNode(node) {
+        if (node.type === 'file') {
+          const active = node.path === activePath ? ' active' : '';
+          return `
+            <li class="tree-item">
+              <div class="tree-row file${active}" data-path="${node.path}" role="button" tabindex="0">
+                <span class="tree-toggle empty">·</span>
+                <span class="tree-icon">📄</span>
+                <span class="tree-label">${node.name}</span>
+              </div>
+            </li>`;
+        }
+
+        const isOpen = expanded.has(node.path);
+        const children = (node.children || []).map(renderTreeNode).join('');
+        return `
+          <li class="tree-item">
+            <div class="tree-row" data-dir="${node.path}" role="button" tabindex="0">
+              <span class="tree-toggle">${isOpen ? '▼' : '▶'}</span>
+              <span class="tree-icon">📁</span>
+              <span class="tree-label">${node.name}</span>
+            </div>
+            <ul class="${isOpen ? '' : 'hidden'}" style="${isOpen ? '' : 'display:none'}">${children}</ul>
+          </li>`;
+      }
+
+      function renderTree() {
+        if (!manifest) return;
+        treeEl.innerHTML = manifest.tree.map(renderTreeNode).join('');
+        bindTreeEvents();
+      }
+
+      function bindTreeEvents() {
+        treeEl.querySelectorAll('.tree-row.file').forEach(row => {
+          row.addEventListener('click', () => loadDoc(row.dataset.path));
+          row.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); loadDoc(row.dataset.path); }
+          });
+        });
+        treeEl.querySelectorAll('.tree-row[data-dir]').forEach(row => {
+          row.addEventListener('click', () => {
+            const dir = row.dataset.dir;
+            if (expanded.has(dir)) expanded.delete(dir);
+            else expanded.add(dir);
+            renderTree();
+          });
+        });
+      }
+
+      function expandParents(path) {
+        const parts = path.split('/');
+        let acc = '';
+        for (let i = 0; i < parts.length - 1; i++) {
+          acc = acc ? acc + '/' + parts[i] : parts[i];
+          expanded.add(acc);
+        }
+      }
+
+      function rewriteMdLinks(html, currentPath) {
+        const baseParts = currentPath.split('/');
+        baseParts.pop();
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        div.querySelectorAll('a[href]').forEach(a => {
+          const href = a.getAttribute('href');
+          if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:')) return;
+          try {
+            const resolved = new URL(href, 'https://x/' + (baseParts.length ? baseParts.join('/') + '/' : '')).pathname.slice(1);
+            if (resolved.endsWith('.md')) {
+              a.href = '#';
+              a.dataset.md = resolved;
+              a.addEventListener('click', e => {
+                e.preventDefault();
+                loadDoc(resolved);
+              });
+            }
+          } catch { /* keep original */ }
+        });
+        return div.innerHTML;
+      }
+
+      async function loadDoc(path) {
+        const safe = safePath(path);
+        if (!safe) return;
+
+        activePath = safe;
+        location.hash = safe;
+        pathBar.textContent = safe;
+        rawLink.href = safe;
+        renderTree();
+        contentEl.className = 'loading';
+        contentEl.textContent = 'Loading…';
+
+        try {
+          const res = await fetch(safe);
+          if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+          const md = await res.text();
+          const html = marked.parse(md);
+          contentEl.className = 'md';
+          contentEl.innerHTML = rewriteMdLinks(html, safe);
+          contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (err) {
+          contentEl.className = 'error';
+          contentEl.textContent = 'Failed to load ' + safe + ': ' + err.message;
+        }
+      }
+
+      function defaultDoc() {
+        const hash = safePath(decodeURIComponent(location.hash.replace(/^#/, '')));
+        if (hash) return hash;
+        return 'README.md';
+      }
+
+      async function init() {
+        try {
+          const res = await fetch('manifest.json');
+          if (!res.ok) throw new Error('manifest.json not found — run npm run docs:manifest');
+          manifest = await res.json();
+          manifest.tree.forEach(walkExpand);
+          function walkExpand(node) {
+            if (node.type === 'dir') {
+              expanded.add(node.path);
+              (node.children || []).forEach(walkExpand);
+            }
+          }
+          const start = defaultDoc();
+          expandParents(start);
+          renderTree();
+          await loadDoc(start);
+        } catch (err) {
+          contentEl.className = 'error';
+          contentEl.textContent = err.message;
+        }
+      }
+
+      window.addEventListener('hashchange', () => {
+        const path = safePath(decodeURIComponent(location.hash.replace(/^#/, '')));
+        if (path && path !== activePath) loadDoc(path);
+      });
+
+      init();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{
+  "generated": "2026-06-26T16:22:02.930Z",
+  "root": "docs",
+  "tree": [
+    {
+      "type": "dir",
+      "name": "architecture",
+      "path": "architecture",
+      "children": [
+        {
+          "type": "file",
+          "name": "ai-integration.md",
+          "path": "architecture/ai-integration.md"
+        },
+        {
+          "type": "file",
+          "name": "content-model.md",
+          "path": "architecture/content-model.md"
+        },
+        {
+          "type": "file",
+          "name": "tech-stack.md",
+          "path": "architecture/tech-stack.md"
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "commercial",
+      "path": "commercial",
+      "children": [
+        {
+          "type": "file",
+          "name": "pricing-philippines.md",
+          "path": "commercial/pricing-philippines.md"
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "delivery",
+      "path": "delivery",
+      "children": [
+        {
+          "type": "file",
+          "name": "delivery-estimate.md",
+          "path": "delivery/delivery-estimate.md"
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "product",
+      "path": "product",
+      "children": [
+        {
+          "type": "file",
+          "name": "flows.md",
+          "path": "product/flows.md"
+        },
+        {
+          "type": "file",
+          "name": "stakeholder-questions.md",
+          "path": "product/stakeholder-questions.md"
+        }
+      ]
+    },
+    {
+      "type": "dir",
+      "name": "prototype",
+      "path": "prototype",
+      "children": [
+        {
+          "type": "file",
+          "name": "README.md",
+          "path": "prototype/README.md"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "path": "README.md"
+    }
+  ]
+}

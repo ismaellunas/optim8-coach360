@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "docs:manifest": "node scripts/generate-docs-manifest.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.0",
@@ -30,6 +32,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "husky": "^9.1.7",
     "vite": "^8.0.1"
   }
 }
