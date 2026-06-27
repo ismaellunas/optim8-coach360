@@ -1,0 +1,5 @@
+-- STORY-1.1 — Optional dev seed. Loaded by `supabase db reset` unless
+-- `--no-seed` is passed (which is the default for AC tests).
+--
+-- This file intentionally stays empty so automated tests start with a clean
+-- slate. Local developers can extend it with fixtures as later stories land.

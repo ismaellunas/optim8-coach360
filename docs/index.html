@@ -392,35 +392,47 @@
         {
           "id": "AC-1",
           "statement": "Supabase project created with PostgreSQL, Auth, Realtime, and Storage enabled",
-          "test": null
+          "test": "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC1_supabase_services_configured"
         },
         {
           "id": "AC-2",
           "statement": "Tables exist for profiles, teams, rosters, subscriptions, sessions, purchases, drip progress",
-          "test": null
+          "test": "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC2_core_tables_exist"
         },
         {
           "id": "AC-3",
           "statement": "Row Level Security policies enforce coach/player/team isolation",
-          "test": null
+          "test": "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC3_rls_coach_player_team_isolation"
         },
         {
           "id": "AC-4",
           "statement": "Generated TypeScript types exported for client use",
-          "test": null
+          "test": "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC4_database_types_exported"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "supabase/migrations/ (inferred)",
-          "supabase/config.toml (inferred)"
+        "tests": [
+          "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC1_supabase_services_configured",
+          "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC2_core_tables_exist",
+          "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC3_rls_coach_player_team_isolation",
+          "tests/supabase/story-1.1.test.js::test_STORY_1_1_AC4_database_types_exported"
         ],
-        "command": null
+        "files": [
+          "supabase/config.toml",
+          "supabase/migrations/20260627100000_core_schema.sql",
+          "supabase/migrations/20260627100001_rls_policies.sql",
+          "supabase/seed.sql",
+          "src/types/database.ts",
+          "tests/supabase/story-1.1.test.js",
+          "vitest.config.js",
+          "package.json",
+          ".env.example"
+        ],
+        "command": "supabase db reset --no-seed && npm test -- --reporter=json -t STORY_1_1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-06-27T00:00:00Z",
+      "audit_notes": "Supabase initialized; core schema (profiles, teams, rosters, subscriptions, sessions, purchases, drip_progress) and RLS for tenant isolation applied via two migrations. Generated TypeScript types committed to src/types/database.ts. All 4 acceptance tests pass against the local Docker stack."
     },
     {
       "id": "STORY-1.2",

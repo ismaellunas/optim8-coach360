@@ -1,2 +1,0 @@
-export const Hero = ({src,children,h=180})=><div style={{position:"relative",margin:"0 -20px",height:h,overflow:"hidden"}}><img src={src} alt="" style={{width:"100%",height:"100%",objectFit:"cover",position:"absolute",inset:0}}/><div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(12,12,16,.5) 0%,rgba(12,12,16,.88) 75%,#0C0C10 100%)"}}/><div style={{position:"relative",zIndex:1,padding:"0 20px",height:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>{children}</div></div>;
-export default Hero;

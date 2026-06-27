@@ -8,6 +8,11 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:story-1.1": "vitest run -t STORY_1_1",
+    "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
+    "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",
     "docs:manifest": "node scripts/generate-docs-manifest.mjs",
     "prepare": "husky"
   },
@@ -25,6 +30,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@supabase/supabase-js": "^2.108.2",
+    "@tailwindcss/vite": "^4.3.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -33,6 +40,10 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "husky": "^9.1.7",
-    "vite": "^8.0.1"
+    "pg": "^8.22.0",
+    "tailwindcss": "^4.3.1",
+    "vite": "^8.0.1",
+    "vitest": "^4.1.9",
+    "ws": "^8.21.0"
   }
 }
