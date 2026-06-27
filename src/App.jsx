@@ -1097,7 +1097,7 @@ export default function Coach360() {
     document.head.appendChild(link);
   }, []);
 
-  useEffect(function() { if (!user) setScreen("login"); }, [user]);
+  useEffect(function() { if (!user) setScreen("login"); }, [user, setScreen]);
 
   function go(s) { setScreen(s); }
 

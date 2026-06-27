@@ -6,20 +6,30 @@ alwaysApply: false
 
 # React Conventions
 
-**Single stack (prototype + production):** Vite + React 19 + Capacitor — `src/App.jsx`.
+**Single stack (prototype + production):** Vite + React 19 + Capacitor.
 
 Canonical architecture: `docs/architecture/tech-stack.md`  
 Integration patterns: `docs/architecture/best-practices.md`  
+Prototype / mock workflow: `docs/prototype/README.md`  
 UI design system: `docs/design/ui-reference.md` + `.cursor/rules/ui-design-system.mdc`
 
-The UI hardens into production on this stack. There is no migration to Expo, Next.js, or React Native.
+`src/App.jsx` is a **UI mock** (hardcoded data, no Supabase/Capacitor runtime). Production code lands in extracted `src/features/` + `src/ui/`. There is no migration to Expo, Next.js, or React Native.
+
+## Story workflow (mandatory)
+
+**Refactoring a slice is always the first action** for any tracker story:
+
+1. Extract the story's screens/primitives from `App.jsx` into `src/features/<domain>/` and `src/ui/`
+2. Wire real data (Supabase, etc.) inside the extracted module
+3. Leave `App.jsx` as a thin shell that imports the feature
+
+Do not bolt APIs onto the monolithic mock.
 
 ## Components
 
 - Functional components with hooks (`useState`, `useEffect`, `useRef`)
-- Match existing patterns: inline styles, compact component names, co-located data constants
+- Match existing patterns in `App.jsx` until extracted: Tailwind classes, compact names, co-located mock data
 - Minimize scope — change only what the story requires
-- Extract to `src/features/` when a story grows beyond a single screen
 
 ## Code quality
 
@@ -30,8 +40,8 @@ The UI hardens into production on this stack. There is no migration to Expo, Nex
 
 ## Capacitor
 
-- Use `@capacitor/core` platform checks when branching native vs web behavior
-- Status bar and keyboard plugins are integrated in `App.jsx` — follow existing usage
+- Native scaffold (`ios/`, `android/`, `capacitor.config.json`) exists; the mock `App.jsx` does **not** include Capacitor runtime hooks
+- Add platform checks and plugins in the thin production shell when native stories require them
 - Run `npm run build && npx cap sync` before native testing
 
 ## Tests

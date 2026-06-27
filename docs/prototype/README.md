@@ -17,6 +17,37 @@ See [`../architecture/tech-stack.md`](../architecture/tech-stack.md#single-stack
 
 ---
 
+## Mock application (current state)
+
+`src/App.jsx` is a **UI mock**, not the production app:
+
+| Aspect | Mock (`src/App.jsx` today) | Production (per story) |
+|--------|---------------------------|------------------------|
+| Data | Hardcoded constants, `useState` | Supabase + SaaS APIs |
+| Structure | Single monolithic file (~1k lines) | Thin shell + `src/features/` + `src/ui/` |
+| Capacitor | **Not wired** (intentional) | Native shell when STORY-1.2+ requires it |
+| Styling | Tailwind (`src/index.css` tokens) | Same tokens, extracted components |
+
+`ios/`, `android/`, and `capacitor.config.json` are **platform scaffolding** for later native work — they are not exercised by the mock.
+
+---
+
+## Story implementation workflow
+
+**Rule: refactoring a slice is always the first action.**
+
+When implementing any tracker story, do **not** start by bolting APIs onto `App.jsx`. Follow this order:
+
+1. **Refactor a slice** — extract the screens, primitives, and mock data for that story into `src/features/<domain>/` and shared `src/ui/` (or `src/lib/` for hooks/clients). Leave `App.jsx` as a thin shell that imports the extracted module.
+2. **Wire real data** — replace mock constants with Supabase (or other SaaS) calls inside the extracted feature module.
+3. **Verify** — run story acceptance tests and update the tracker.
+
+A “slice” is the smallest vertical cut that matches the story scope (e.g. roster list + player profile for a roster story, auth screens for STORY-2.x).
+
+See also [`../architecture/best-practices.md`](../architecture/best-practices.md#story-implementation-workflow).
+
+---
+
 ## Overview
 
 Coach360 is a **basketball coaching platform** designed as a mobile app (Capacitor on iOS/Android, web for admin). It targets coaches, players, team admins, and club admins. The app provides a unified interface for roster management, session scheduling, player development tracking, content distribution, and team communication — all with an AI insights layer.
@@ -65,16 +96,22 @@ Onboarding (scr = "ob")
 
 ## Component Architecture
 
-All components live under `src/ui/` (design system) and `src/features/` (tab screens). **See [`../design/ui-reference.md`](../design/ui-reference.md) for the token and primitive catalog.**
+**Today:** all UI lives in the monolithic mock at `src/App.jsx`.
+
+**Target** (built incrementally — one slice per story):
 
 ```
 src/
-├── app/           # App shell, TabBar, GlobalStyles
-├── ui/            # atoms → molecules → organisms
-├── features/      # Home, Roster, Schedule, Content, Chat, More, Onboarding
-├── data/mocks/    # prototype mock data (replaced by APIs in stories)
-└── assets/images/ # placeholder photos
+├── main.jsx
+├── App.jsx              # thin shell: providers, nav, tab bar (imports features)
+├── index.css            # Tailwind theme tokens (coach-*)
+├── ui/                  # shared primitives extracted from App.jsx
+├── features/            # tab screens + domain logic (auth, roster, schedule, …)
+├── lib/                 # supabase client, API helpers
+└── types/               # generated + shared domain types
 ```
+
+**See [`../design/ui-reference.md`](../design/ui-reference.md) for the token and primitive catalog** (source: `src/App.jsx` until extracted).
 
 ### Primitives / Shared Components
 
@@ -250,8 +287,9 @@ The file embeds base64-encoded JPEG images inline as constants:
 
 - Data is **static mock** until Supabase stories land (no API calls yet)
 - No routing library — navigation via `useState` (`scr`, `tab`, `sel`)
-- No external component libraries — hand-built inline styles
-- Single-file architecture — refactor into `src/features/` per story scope
+- Styling via **Tailwind** (`src/index.css` `@theme` tokens); a few dynamic values still use inline `style`
+- **Single-file mock** — each story must **refactor its slice first**, then wire backends (see [Story implementation workflow](#story-implementation-workflow))
+- Capacitor runtime hooks are **not** in the mock; native scaffold exists for later stories
 - Chat does not persist — messages reset on unmount
 - Several "More" menu items are stubs
 

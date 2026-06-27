@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:story-1.1": "vitest run -t STORY_1_1",
-    "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
+    "db:types": "mkdir -p src/types && supabase gen types typescript --local --schema public > src/types/database.ts",
     "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",
     "docs:manifest": "node scripts/generate-docs-manifest.mjs",
     "prepare": "husky"

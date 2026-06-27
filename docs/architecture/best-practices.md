@@ -27,7 +27,8 @@
 | Principle | Why it matters for Coach360 |
 |-----------|----------------------------|
 | **Single client codebase** | Mobile and admin web share Vite + React; no parallel Expo/Next.js apps |
-| **Harden, don't rewrite** | Evolve `src/App.jsx` incrementally; match existing patterns until a story requires extraction |
+| **Slice first, then wire** | Every story starts by refactoring its UI slice out of `src/App.jsx` — never bolt APIs onto the monolith |
+| **Harden, don't rewrite** | Evolve incrementally; the mock shrinks as `src/features/` grows |
 | **Single source of truth per domain** | Stripe owns billing; Sanity owns catalog; Supabase mirrors transactional state |
 | **Enforce access server-side** | Tier gates and team isolation via RLS and Edge Functions — not UI-only |
 | **Never expose privileged keys** | `service_role`, Stripe secret, Mux token, Mistral API key stay in Edge Functions only |
@@ -45,9 +46,9 @@ These match the live codebase and [`.cursor/rules/react-conventions.mdc`](../../
 | Topic | Convention |
 |-------|--------------|
 | **Components** | Functional + hooks (`useState`, `useEffect`, `useRef`) |
-| **Styles** | Inline styles + `src/index.css`; brand tokens in `App.jsx` `C` object |
+| **Styles** | Tailwind (`src/index.css` `@theme` coach-* tokens); `App.jsx` is the visual reference until extracted |
 | **Navigation** | `useState` screen/tab state today; introduce React Router only when a story requires it |
-| **Native** | `@capacitor/core` platform checks; Status Bar + Keyboard plugins per `App.jsx` |
+| **Native** | Capacitor scaffold (`ios/`, `android/`) exists; runtime hooks land in the thin shell when native stories require them — not in the mock |
 | **Lint** | `npm run lint` must pass |
 | **Tests** | Name `test_STORY_X_Y_AC1_*`; traceable to tracker acceptance criteria |
 
@@ -78,11 +79,25 @@ Use `import.meta.env.VITE_*` — never commit `.env` with secrets.
 
 ---
 
+## Story implementation workflow
+
+**Refactoring a slice is always the first action** when picking up a tracker story.
+
+```
+1. Refactor slice   →  extract screens + primitives from App.jsx into features/ui
+2. Wire real data   →  Supabase / SaaS inside the extracted module
+3. Verify           →  story tests + tracker audit
+```
+
+Do not add Supabase calls, auth, or Capacitor hooks directly into the monolithic mock. Shrink `App.jsx` to a thin shell that composes extracted features.
+
+---
+
 ## Project structure
 
-**Today:** modular `src/ui/` + `src/features/` (refactored from single-file prototype).
+**Today:** monolithic mock at `src/App.jsx` (hardcoded data, local state).
 
-**Target** (as stories land — extend, do not big-bang refactor):
+**Target** (as stories land — one slice per story, no big-bang refactor):
 
 ```
 src/
@@ -104,8 +119,9 @@ src/
 
 **Rules:**
 
+- **Slice first** — extract before integrating backends (see [Story implementation workflow](#story-implementation-workflow)).
 - Keep route/screen files thin; business logic in `features/`.
-- Promote to `components/ui/` only when two or more features need the same primitive.
+- Promote to `src/ui/` only when two or more features need the same primitive.
 - Admin views live under `features/admin/` — same repo, web deployment, admin role gate.
 
 ---
