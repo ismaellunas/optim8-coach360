@@ -35,7 +35,7 @@ docs/
 ├── delivery/
 │   └── delivery-estimate.md  # 172 h plan + quick reference (Appendix C)
 └── prototype/
-    └── README.md             # UI mock only (non-canonical)
+    └── README.md             # UI mock (src/App.jsx) + slice-first story workflow
 ```
 
 ---
@@ -58,7 +58,7 @@ docs/
 
 | Document | Description |
 | --- | --- |
-| [`prototype/README.md`](./prototype/README.md) | Application UI (`src/App.jsx`) — hardens into production |
+| [`prototype/README.md`](./prototype/README.md) | UI mock (`src/App.jsx`) — slice-first workflow, hardens into production |
 
 **Active planning baseline:** **172 hours** (~22 working days, solo). See [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md).
 
@@ -85,7 +85,7 @@ docs/
 1. **Product changes** → update `product/flows.md` first, then architecture docs.
 2. **Resolved questions** → Decision Log in `stakeholder-questions.md`, then update flows/architecture.
 3. **Estimate changes** → update `delivery/delivery-estimate.md` (including Appendix C).
-4. **UI / component changes** → update `prototype/README.md` when data models or screens change.
+4. **UI / component changes** → update `prototype/README.md` when data models or screens change; new stories follow slice-first workflow there.
 5. **Stack changes** → update `architecture/tech-stack.md` first, then `best-practices.md`.
 
 ---

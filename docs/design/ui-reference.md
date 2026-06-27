@@ -1,10 +1,10 @@
 # Coach360 — UI Design Reference
 
-> **Living source:** `src/ui/` + `src/features/`  
+> **Living source:** `src/App.jsx` (mock; primitives migrate to `src/ui/` per story)  
 > **Agent rule:** `.cursor/rules/ui-design-system.mdc`  
-> **Application context:** [`../prototype/README.md`](../prototype/README.md)
+> **Application context:** [`../prototype/README.md`](../prototype/README.md) — **slice-first workflow**
 
-The dummy app in `src/App.jsx` is the **canonical UI** for Coach360. All new screens and components must reuse its tokens, primitives, and patterns.
+The mock in `src/App.jsx` is the **canonical UI reference** for Coach360. New production screens must reuse its tokens, primitives, and patterns — extracted into `src/features/` + `src/ui/` before wiring real data.
 
 ---
 
@@ -121,23 +121,23 @@ When implementing a new story with UI, **find the closest existing screen** and 
 
 ## Fonts and assets
 
-- Fonts: `src/main.jsx` (`@fontsource/*`)
-- Placeholder images: `src/assets/images/` (`PI`, `CI`, `BC`, `BP`, `BD`)
-- Do not use `src/index.css` theme variables for app UI (those are unused Vite defaults)
+- Fonts: `src/index.css` `@theme` (`--font-display`, `--font-body`)
+- Placeholder images: inline in `App.jsx` until extracted to `src/assets/`
 
 ---
 
-## Future extraction
+## Extraction (per story)
 
-Structure is in place:
+**Refactoring a slice is always the first action.** See [`../prototype/README.md#story-implementation-workflow`](../prototype/README.md#story-implementation-workflow).
 
 ```
-src/ui/           # design system (atoms → molecules → organisms)
-src/features/     # tab screens (mock data in src/data/mocks/)
-src/app/          # App shell, TabBar, GlobalStyles
+src/App.jsx       → thin shell (shrinks over time)
+src/ui/           # shared primitives extracted from App.jsx
+src/features/     # domain screens + hooks (mock data → Supabase per story)
+src/lib/          # supabase client, API helpers
 ```
 
-Extract by **moving** code, not redesigning.
+Extract by **moving** code from `App.jsx`, not redesigning.
 
 ---
 

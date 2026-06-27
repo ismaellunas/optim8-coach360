@@ -31,10 +31,10 @@
 
 | | Stack |
 |---|---|
-| **Prototype (today)** | Vite + React + Capacitor — `src/App.jsx` |
-| **Production (planned)** | Vite + React + Capacitor — `src/App.jsx` |
+| **Prototype (today)** | Vite + React — `src/App.jsx` UI mock (hardcoded data) |
+| **Production (planned)** | Vite + React + Capacitor — thin shell + `src/features/` with real backends |
 
-**Rationale:** Delivery time is the critical factor. Maintaining or migrating to a second client stack (e.g. React Native / Expo plus a separate admin framework) is not justified. The current UI in `src/App.jsx` is intended to **harden into production** — wiring real backends, splitting modules, and adding native builds — rather than being rewritten on a different framework.
+**Rationale:** Delivery time is the critical factor. Maintaining or migrating to a second client stack (e.g. React Native / Expo plus a separate admin framework) is not justified. The mock in `src/App.jsx` is the **visual reference**; each story **refactors a slice first** (see [`../prototype/README.md`](../prototype/README.md#story-implementation-workflow)), then wires Supabase and native builds — rather than rewriting on a different framework.
 
 Backend services (Supabase, Sanity, Stripe, etc.) remain managed SaaS integrations called from this single client. There is **no migration to a separate production client stack**.
 
@@ -65,8 +65,8 @@ Coach360 is a **TypeScript/JavaScript-centric** product optimized for AI-assiste
 | **Build tool** | Vite 8 | Dev server, production bundles |
 | **Native shell** | Capacitor 8 | iOS and Android from same web codebase |
 | **Entry** | `src/main.jsx` | App bootstrap |
-| **App shell** | `src/App.jsx` | Mobile-first UI (max-width ~430px); refactor into `src/features/` as stories land |
-| **Styling** | Inline styles + CSS | DM Sans / Nunito via `@fontsource` |
+| **App shell** | `src/App.jsx` → thin shell | Mobile-first UI mock today; **slice-first refactor** per story into `src/features/` |
+| **Styling** | Tailwind 4 (`src/index.css`) | DM Sans / Oswald via `@theme` coach-* tokens |
 | **Lint** | ESLint 9 (flat config) | `npm run lint` |
 | **Package manager** | npm | Lockfile at repo root |
 

@@ -6,16 +6,17 @@ alwaysApply: false
 
 # UI Design System
 
-**Source of truth:** `src/ui/` (tokens + primitives) and `src/features/` (screens)
+**Source of truth:** `src/App.jsx` (mock) — primitives migrate to `src/ui/` as stories extract slices
 
 Full catalog: `docs/design/ui-reference.md`  
-Application docs: `docs/prototype/README.md`
+Application docs: `docs/prototype/README.md` (slice-first workflow)
 
 ## Before building UI
 
-1. Read primitives in `src/ui/` (`C`, `ff`, `fd`, `Btn`, `Cd`, `Hero`, … from `src/ui/index.js`).
+1. Read primitives in `src/App.jsx` (or `src/ui/` once extracted).
 2. Reuse them — do not invent parallel button/card/color systems.
-3. Match layout: mobile-first, `maxWidth: 430`, horizontal padding `20px`, bottom safe area `110px` for tab bar.
+3. Match layout: mobile-first, `max-w-[430px]`, horizontal padding `20px`, bottom safe area `110px` for tab bar.
+4. **Slice first** — extract the story's UI from `App.jsx` before wiring backends.
 
 ## Color tokens (`C`)
 
