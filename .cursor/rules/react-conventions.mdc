@@ -53,4 +53,4 @@ Do not bolt APIs onto the monolithic mock.
 
 - Entry: `src/main.jsx`
 - App shell: `src/App.jsx`
-- Styles: `src/index.css`, `src/App.css`
+- Styles: `src/index.css` (Tailwind v4 `@theme` coach-* tokens); `App.jsx` is the visual reference until extracted

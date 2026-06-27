@@ -12,94 +12,133 @@ The mock in `src/App.jsx` is the **canonical UI reference** for Coach360. New pr
 
 | Constraint | Value |
 |------------|-------|
-| Max width | `430px` (centered) |
-| Horizontal padding | `20px` |
-| Bottom padding (tab screens) | `110px` (clears tab bar) |
-| Card border radius | `18px` |
-| Button border radius | `16px` |
-| Avatar border radius | `14px` |
-| Touch target minimum | `44px` height |
+| Max width | `max-w-[430px]` (centered, `mx-auto`) |
+| Horizontal padding | `px-5` (20px) |
+| Bottom padding (tab screens) | `h-[100px]` spacer (clears tab bar) |
+| Card border radius | `rounded-[14px]` |
+| Button border radius | `rounded-xl` |
+| Input border radius | `rounded-[10px]` – `rounded-xl` |
+| Touch target minimum | `h-12` / `min-h-11` for icon buttons |
 
 ---
 
-## Color palette (`C`)
+## Color palette
+
+### Tailwind theme (`src/index.css` `@theme`)
+
+```css
+--color-coach-bg: #0b0e14;
+--color-coach-surface: #141821;
+--color-coach-card: #1a1f2b;
+--color-coach-border: #2a3040;
+--color-coach-orange: #ff6b2c;
+--color-coach-orange-light: #ff8f5e;
+--color-coach-orange-glow: rgba(255, 107, 44, 0.15);
+--color-coach-green: #34d399;
+--color-coach-blue: #60a5fa;
+--color-coach-purple: #a78bfa;
+--color-coach-red: #f87171;
+--color-coach-yellow: #fbbf24;
+--color-coach-t1: #f1f3f7;
+--color-coach-t2: #8b93a7;
+--color-coach-t3: #5a6278;
+```
+
+Use as Tailwind utilities: `bg-coach-card`, `text-coach-t1`, `border-coach-border`, etc.
+
+### `COLORS` object (`App.jsx`)
+
+Mirrors the theme for inline `style` when Tailwind cannot express a dynamic value (progress width, per-item accent color):
 
 ```javascript
-const C = {
-  bg: "#0C0C10",   // app background
-  sf: "#16161C",   // surfaces (nav, headers)
-  cd: "#1C1C24",   // cards
-  el: "#22222C",   // elevated / progress track
-  ink: "#F2F2F5",  // primary text
-  sub: "#9494A8",  // secondary text
-  dim: "#5C5C72",  // muted / inactive
-  ln: "#2A2A36",   // borders
-  br: "#F07A3A",   // brand orange
-  br2: "#FF9D5C",  // brand gradient end
-  brG: "rgba(240,122,58,.25)",  // brand glow
-  brS: "rgba(240,122,58,.10)",  // brand subtle bg
-  gn: "#3AE8B0",   // success
-  gnS: "rgba(58,232,176,.10)",
-  gT: "#2BC895",   // positive trend text
-  bl: "#6EA8FF",   // info
-  blS: "rgba(110,168,255,.10)",
-  vi: "#A88BFF",   // AI
-  viS: "rgba(168,139,255,.10)",
-  am: "#FFD04A",   // warning / drip
-  amS: "rgba(255,208,74,.10)",
-  ro: "#FF6060",   // error / injury
-  roS: "rgba(255,96,96,.10)",
+const COLORS = {
+  bg: "#0B0E14",
+  surface: "#141821",
+  card: "#1A1F2B",
+  border: "#2A3040",
+  orange: "#FF6B2C",
+  orangeGlow: "rgba(255,107,44,0.15)",
+  orangeLight: "#FF8F5E",
+  green: "#34D399",
+  blue: "#60A5FA",
+  purple: "#A78BFA",
+  red: "#F87171",
+  yellow: "#FBBF24",
+  t1: "#F1F3F7",
+  t2: "#8B93A7",
+  t3: "#5A6278",
 };
 ```
 
-### Semantic color maps
+### Color helpers
 
 ```javascript
-const tC = { practice: C.br, film: C.bl, individual: C.vi, game: C.am, fitness: C.gn };
-const sC = { done: C.gn, wip: C.am, todo: C.dim };
-const skC = { Shooting: C.br, Passing: C.bl, Defense: C.gn, Speed: C.am, "Basketball IQ": C.vi };
+const CV = { /* maps COLORS hex → semantic name */ };
+const tcx = (c) => /* text-coach-* */;
+const bgcx = (c) => /* bg-coach-*/20 */;
+const bdcx = (c) => /* border-coach-* */;
 ```
+
+Pass `COLORS.orange`, `COLORS.blue`, etc. to `Badge`, progress bars, and accent borders.
 
 ---
 
 ## Typography
 
-| Token | Font | Weights loaded | Use |
-|-------|------|----------------|-----|
-| `ff` | DM Sans | 400–700 | Body, labels, inputs, tab labels |
-| `fd` | Nunito | 600–900 | Headings, stats, ratings, buttons |
+| Token | Font | CSS variable / class | Use |
+|-------|------|----------------------|-----|
+| Display | Oswald | `font-display` | Headings, buttons, stats, uppercase labels |
+| Body | DM Sans | `font-body` | Body text, inputs, tab labels |
+| Mono | JetBrains Mono | `font-mono` | Percentages, numeric stats |
 
-Loaded in `src/main.jsx` via `@fontsource/dm-sans` and `@fontsource/nunito`.
+Defined in `src/index.css` `@theme`. Oswald + JetBrains Mono load via Google Fonts `<link>` in `App.jsx`; DM Sans also loads via `@fontsource/dm-sans` in `main.jsx`.
 
 ---
 
-Import shared UI from `src/ui/index.js`:
+## Primitives (in `App.jsx`)
+
+| Component | Props / notes |
+|-----------|---------------|
+| `Btn` | `primary`, `small`, `full`, `disabled`, `onClick` |
+| `Badge` | `color` — accepts `COLORS.*` hex |
+| `Card` | `onClick`, `className` — base card shell |
+| `Field` | `label`, `placeholder` |
+| `PageHeader` | `title`, `subtitle`, `user`, `onBack`, `onSettings` |
+| `TrialBanner` | `user`, `onUpgrade` |
+| `PaywallModal` | `feature`, `user`, `onClose`, `onUpgrade` |
+| `DashedBtn` | `onClick` — dashed "+ Add" pattern |
+| `PackageThumb` | `tag`, `color`, `size` (`full` \| `small`) |
+
+### Icons
+
+Individual SVG functions (not a dictionary): `IconHome`, `IconUsers`, `IconCal`, `IconChat`, `IconStore`, `IconChev`, `IconBack`, `IconLock`, `IconCheck`, `IconSpark`, `IconTarget`, `IconSend`, `IconChart`, `IconTrophy`, `IconSettings`, `IconStar`, `IconPlus`.
+
+---
+
+## Access control (tier gating)
 
 ```javascript
-import { C, Btn, Cd, Hero, I } from '../ui/index.js';
+const FEATURE_REQS = {
+  chat: { coach: "advanced", player: "advanced" },
+  createSession: { coach: "advanced" },
+  objectives: { coach: "pro", player: "pro" },
+  ai: { coach: "pro", player: "pro" },
+  // …
+};
 ```
 
-## Primitives
-
-Defined under `src/ui/`:
-
-| Path | Component |
-|------|-----------|
-| `ui/tokens.js` | `C`, `ff`, `fd`, `tC`, `sC`, `sL`, `skC` |
-| `ui/atoms/` | `Icon` (`I`), `Button` (`Btn`), `Pill` |
-| `ui/molecules/` | `Card` (`Cd`), `Avatar` (`Av`), `SectionHeader` (`SH`), `ProgressBar` (`PB`), `RingGauge` (`Rg`), `Sparkline` (`Sp`), `BackButton` (`Bk`) |
-| `ui/organisms/` | `Hero`, `Strip`, `ScreenLayout` |
+- `canAccess(user, feature)` — tier + role check
+- `tryA(feature, action)` — runs action or opens `PaywallModal`
+- Tiers: `trial` → `basic` → `advanced` → `pro`
 
 ---
 
-## Global styles (in `App` component)
+## Global styles (`src/index.css`)
 
-Injected via `<style>` tag in `App`:
-
-- `@keyframes fu` — fade-up on screen enter
-- `body { background: C.bg }`
-- `input::placeholder { color: C.dim }`
-- Tab bar safe area: `env(safe-area-inset-bottom)`
+- Tailwind v4 `@import "tailwindcss"` + `@theme` coach tokens
+- `body { margin: 0; overscroll-behavior: none }`
+- `input::placeholder { color: var(--color-coach-t3) }`
+- Scrollbars hidden (`::-webkit-scrollbar { width: 0 }`)
 
 ---
 
@@ -107,13 +146,17 @@ Injected via `<style>` tag in `App`:
 
 | Screen | Component | Patterns to copy |
 |--------|-----------|------------------|
-| Dashboard | `Home` | `Hero` + AI insight card + stat grid + `Strip` + `SH` + horizontal scroll cards |
-| List + detail | `Roster` / `Prof` | Search in `Cd`, filter chips, list rows, profile tabs |
-| Calendar | `SchedTab` | Day selector row, session cards with left color border |
-| Library / shop | `ContTab` | Segmented control, drip banner, marketplace cards |
-| Messaging | `ChatTab` | Thread list, full-screen chat, bubble styles |
-| Settings hub | `MoreTab` | Profile card + menu rows |
-| Onboarding | `Onboard` | Step progress, role cards, form inputs, plan cards |
+| Login / onboarding | `LoginScreen`, `OnboardingScreen` | Multi-step flow, role cards, tier selection |
+| Home | `HomeScreen` | `PageHeader`, stat grid, AI card, upcoming list, objectives |
+| Roster | `RosterScreen` | Segmented teams/players tabs, invite flow, `DashedBtn` |
+| Schedule | `ScheduleScreen` | Day selector row, session cards with left accent |
+| Store | `StoreScreen` | Filter chips, `PackageThumb`, owned/locked states |
+| Chat | `ChatScreen` | Thread list, bubble styles, tier lock screen |
+| Progress | `ProgressScreen` | Stat cards, coach feedback |
+| Profile / billing | `ProfileScreen`, `SubscriptionScreen` | Avatar gradient, tier cards |
+| Content creation | `CreateContentScreen` | Type picker, `Field`, upload placeholder |
+| Objectives | `ObjectivesScreen` | Progress bars with color thresholds |
+| Admin | `AdminDetailScreen` | Role-specific dashboard tiles |
 
 When implementing a new story with UI, **find the closest existing screen** and match its structure.
 
@@ -121,8 +164,8 @@ When implementing a new story with UI, **find the closest existing screen** and 
 
 ## Fonts and assets
 
-- Fonts: `src/index.css` `@theme` (`--font-display`, `--font-body`)
-- Placeholder images: inline in `App.jsx` until extracted to `src/assets/`
+- Theme fonts: `src/index.css` (`--font-display`, `--font-body`, `--font-mono`)
+- Package thumbnails: base64 JPEG constants (`IMG_SHOOTING`, `IMG_DEFENSE`, `IMG_CONDITIONING`) in `App.jsx`
 
 ---
 
@@ -141,4 +184,4 @@ Extract by **moving** code from `App.jsx`, not redesigning.
 
 ---
 
-*Catalog version: 1.0 · June 2026*
+*Catalog version: 2.0 · June 2026*

@@ -195,7 +195,7 @@ draft → pending_review → approved | rejected → published (boolean)
 
 ## App data model evolution
 
-[`../prototype/README.md`](../prototype/README.md) documents the current flat `cLb[]` library and `sch[]` session mocks in `src/App.jsx`. As backends wire in, data shapes should follow this document and [`../product/flows.md`](../product/flows.md) — the same Vite + Capacitor codebase hardens into production; there is no separate production client stack.
+[`../prototype/README.md`](../prototype/README.md) documents the current inline mock data in `src/App.jsx` (user session, store packages, schedule sessions, roster, chat). As backends wire in, data shapes should follow this document and [`../product/flows.md`](../product/flows.md) — the same Vite + Capacitor codebase hardens into production; there is no separate production client stack.
 
 ---
 
