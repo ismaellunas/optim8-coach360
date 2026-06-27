@@ -1,4 +1,0 @@
-import { I } from '../atoms/Icon.jsx';
-
-export const Strip = ({src,label,icon,h=64,offset="-50%"})=><div style={{position:"relative",margin:"8px -20px",height:h,overflow:"hidden",borderRadius:0}}><img src={src} alt="" style={{width:"100%",height:"200%",objectFit:"cover",objectPosition:`center ${offset}`,position:"absolute",top:0,left:0,filter:"brightness(.7)"}}/><div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,rgba(12,12,16,.85) 0%,rgba(12,12,16,.5) 50%,rgba(12,12,16,.85) 100%)"}}/>{label&&<div style={{position:"relative",zIndex:1,height:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>{icon&&<I n={icon} s={16} c="rgba(255,255,255,.5)"/>}<span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,.4)",letterSpacing:3,textTransform:"uppercase"}}>{label}</span></div>}</div>;
-export default Strip;
