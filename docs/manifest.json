@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-27T02:32:23.142Z",
+  "generated": "2026-06-29T16:15:27.888Z",
   "root": "docs",
   "tree": [
     {
@@ -21,6 +21,11 @@
           "type": "file",
           "name": "content-model.md",
           "path": "architecture/content-model.md"
+        },
+        {
+          "type": "file",
+          "name": "native-release.md",
+          "path": "architecture/native-release.md"
         },
         {
           "type": "file",

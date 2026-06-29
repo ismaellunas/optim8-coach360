@@ -448,37 +448,50 @@
         {
           "id": "AC-1",
           "statement": "Capacitor sync runs after Vite build and app launches on iOS simulator and Android emulator",
-          "test": null
+          "test": "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC1_cap_sync_after_vite_build"
         },
         {
           "id": "AC-2",
           "statement": "TypeScript or JSDoc types configured for Supabase client when schema exists",
-          "test": null
+          "test": "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC2_supabase_client_typed"
         },
         {
           "id": "AC-3",
           "statement": "Release signing and versioning documented for App Store and Play Store",
-          "test": null
+          "test": "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC3_release_signing_documented"
         },
         {
           "id": "AC-4",
           "statement": "Native plugins (status bar, keyboard) verified on device builds",
-          "test": null
+          "test": "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC4_native_plugins_configured"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "capacitor.config.json",
-          "ios/ (inferred)",
-          "android/ (inferred)"
+        "tests": [
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC1_cap_sync_scripts_configured",
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output",
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC1_cap_sync_after_vite_build",
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC2_supabase_client_typed",
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC3_release_signing_documented",
+          "tests/capacitor/story-1.2.test.js::test_STORY_1_2_AC4_native_plugins_configured"
         ],
-        "command": null
+        "files": [
+          "package.json",
+          "capacitor.config.json",
+          "src/main.jsx",
+          "src/lib/capacitor.js",
+          "src/lib/supabase.js",
+          "src/types/database.ts",
+          "docs/architecture/native-release.md",
+          "tests/capacitor/story-1.2.test.js",
+          "ios/App/App/public",
+          "android/app/src/main/assets/public"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_1_2"
       },
-      "status": "IN_PROGRESS",
-      "last_updated": "2026-06-27T09:30:00Z",
-      "audit_notes": "Inspected verify.files (no tests): capacitor.config.json and ios/ + android/ native projects present; src/App.jsx is UI mock without Capacitor runtime hooks (intentional). src/types/database.ts committed (AC-2 partial). AC-1/AC-3/AC-4 require device or CI verification not performed in this audit."
+      "status": "IN_REVIEW",
+      "last_updated": "2026-06-29T23:30:00Z",
+      "audit_notes": "AC1 build+cap copy automated (6/6 tests pass); simulator/emulator launch and AC4 on-device plugin behavior documented in native-release.md for manual verify. Capacitor init, typed Supabase client, and release docs added."
     },
     {
       "id": "STORY-1.3",
