@@ -15,63 +15,84 @@ Application docs: `docs/prototype/README.md` (slice-first workflow)
 
 1. Read primitives in `src/App.jsx` (or `src/ui/` once extracted).
 2. Reuse them — do not invent parallel button/card/color systems.
-3. Match layout: mobile-first, `max-w-[430px]`, horizontal padding `20px`, bottom safe area `110px` for tab bar.
+3. Match layout: mobile-first, `max-w-[430px]`, horizontal padding `px-5` (20px), bottom safe area `h-[100px]` on tab screens.
 4. **Slice first** — extract the story's UI from `App.jsx` before wiring backends.
 
-## Color tokens (`C`)
+## Styling approach
 
-| Token | Use |
+**Tailwind CSS v4** with theme tokens in `src/index.css` (`@theme`). Use utility classes — not inline `style` objects — except for dynamic values (progress bar width, accent borders from `COLORS`).
+
+## Color tokens
+
+### Tailwind classes (preferred)
+
+| Class | Use |
 |-------|-----|
-| `bg`, `sf`, `cd`, `el` | Background layers (app → surface → card → elevated) |
-| `ink`, `sub`, `dim` | Primary, secondary, muted text |
-| `ln` | Borders and dividers |
-| `br`, `br2`, `brG`, `brS` | Brand orange (primary actions, active tab) |
-| `gn`, `gnS`, `gT` | Success / positive |
-| `bl`, `blS` | Info / links |
-| `vi`, `viS` | AI features |
-| `am`, `amS` | Warning / drip / locked |
-| `ro`, `roS` | Error / injury / loss |
+| `coach-bg` | App background |
+| `coach-surface` | Tab bar, modals |
+| `coach-card` | Cards, inputs |
+| `coach-border` | Borders and dividers |
+| `coach-orange`, `coach-orange-light`, `coach-orange-glow` | Brand / primary actions / active tab |
+| `coach-green` | Success / owned / positive |
+| `coach-blue` | Info / player accents |
+| `coach-purple` | AI / secondary accent |
+| `coach-yellow` | Warning / trial |
+| `coach-red` | Error / sign out |
+| `coach-t1`, `coach-t2`, `coach-t3` | Primary, secondary, muted text |
 
-Never hardcode hex colors that duplicate these tokens.
+### `COLORS` object (dynamic inline styles)
+
+Defined in `App.jsx` for progress bars, left-border accents, and gradient overlays. Mirror values in `src/index.css` `@theme` — never hardcode duplicate hex elsewhere.
+
+Helpers `tcx()`, `bgcx()`, `bdcx()` map `COLORS.*` hex values to Tailwind text/bg/border classes.
 
 ## Typography
 
-- **Body / UI:** `ff` → DM Sans (`@fontsource/dm-sans` in `main.jsx`)
-- **Headings / stats:** `fd` → Nunito (`@fontsource/nunito`)
-- Screen titles on `Hero`: Nunito 28px/800, white + text shadow
-- Section headers: `SH` component or `fd` 18px/800 `C.ink`
+| Token | Font | Tailwind | Use |
+|-------|------|----------|-----|
+| Display | Oswald | `font-display` | Headings, buttons, stats, screen titles |
+| Body | DM Sans | `font-body` | Labels, body text, inputs, tab labels |
+| Mono | JetBrains Mono | `font-mono` | Percentages, numeric stats |
+
+Fonts load via Google Fonts in `App.jsx` `useEffect`; theme aliases live in `src/index.css`. `main.jsx` also loads `@fontsource/dm-sans` as a fallback.
+
+Screen titles: `PageHeader` — `font-display text-[26px] font-bold text-coach-t1`  
+Section headers: `font-display text-base font-semibold uppercase text-coach-t1`
 
 ## Primitives — use these, don't recreate
 
 | Component | When to use |
 |-----------|-------------|
-| `Hero` | Screen header with image + gradient |
-| `Strip` | Section divider banner |
-| `Cd` | Card container (`tap` for pressable rows) |
-| `Btn` | Actions (`primary` = orange gradient) |
-| `Pill` | Status / position badges |
-| `Av` / `IA` | Avatars |
-| `SH` | Section title + optional "View All" |
-| `PB` | Labeled progress bar |
-| `Rg` | Donut percentage gauge |
-| `Sp` | Sparkline chart |
-| `Bk` | Back navigation |
-| `I` | Icons (30+ names in dictionary) |
+| `PageHeader` | Screen header with title, optional subtitle, back, settings, trial badge |
+| `Card` | Card container (`onClick` for pressable rows) |
+| `Btn` | Actions (`primary` = orange fill; default = orange glow) |
+| `Badge` | Status / tier / tag labels |
+| `Field` | Labeled form input |
+| `TrialBanner` | Trial countdown CTA on home |
+| `PaywallModal` | Tier-gated feature overlay |
+| `DashedBtn` | "+ Add …" dashed-border actions |
+| `PackageThumb` | Store package image with gradient overlay |
+| `Icon*` | SVG icons (`IconHome`, `IconBack`, `IconLock`, etc.) |
 
 ## Patterns
 
-- Screen mount: `animation: "fu .3s ease"` on root container
-- Primary CTA: `<Btn primary full>` with optional `<I n="..." />`
-- List rows: `<Cd tap={...} sx={{ display:"flex", minHeight:64|72, ... }}>`
-- Filter chips: pill buttons with `background: selected ? C.br : C.cd`
-- Inputs: `background: C.cd`, `border: 1px solid C.ln`, `borderRadius: 14`, `fontFamily: ff`
-- Touch targets: `minHeight: 44` minimum
+- App shell: `max-w-[430px] bg-coach-bg font-body text-coach-t1`
+- Primary CTA: `<Btn primary full>`
+- List rows: `<Card onClick={...} className="flex items-center gap-3.5">`
+- Filter chips: `rounded-full` pills — selected: `border-coach-orange bg-coach-orange-glow text-coach-orange`
+- Segmented tabs: `rounded-xl bg-coach-card p-1` with active segment `bg-coach-orange text-white`
+- Inputs: `rounded-[10px] border border-coach-border bg-coach-card font-body text-coach-t1`
+- Progress bars: `h-1.5 rounded-sm bg-coach-border` + inner div with `width` and `backgroundColor` from `COLORS`
+- Left accent cards: `border-l-[3px]` with `borderLeftColor` or `border-l-coach-orange`
+- Tier gating: `canAccess(user, feature)` + `tryA(feature, action)` + `PaywallModal`
+- Touch targets: `min-h-11` / `h-12` for icon buttons
 
 ## Do not
 
-- Add Tailwind, MUI, shadcn, or other UI libraries without an explicit story requirement
-- Use colors from `index.css` / `App.css` (Vite boilerplate — not the app theme)
-- Create new one-off `<button>` or card styles when `Btn` / `Cd` suffice
+- Hardcode hex colors that duplicate `coach-*` tokens or `COLORS`
+- Use colors from `App.css` (Vite boilerplate — not the app theme)
+- Create new one-off `<button>` or card styles when `Btn` / `Card` suffice
+- Reintroduce the legacy inline-style `C` token object or old component names (`Cd`, `Hero`, `Pill`, `I`)
 
 ## Extraction (when refactoring)
 

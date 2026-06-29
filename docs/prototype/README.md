@@ -56,40 +56,56 @@ Coach360 is a **basketball coaching platform** designed as a mobile app (Capacit
 
 ## Features
 
-| Module         | Description |
-|----------------|-------------|
-| **Onboarding** | Role selection (Coach / Player / Team Admin / Club Admin), profile setup, and plan selection (Basic / Advanced / Pro) |
-| **Home**       | Dashboard with AI insights, team stats summary, goal ring charts, today's schedule, and top performers |
-| **Roster**     | Full player list with search and position filters; tapping a player opens a detailed profile |
-| **Player Profile** | 6-tab deep-dive per player: Overview, Objectives, Stats, Games, Content, Notes |
-| **Schedule**   | Weekly calendar view of training sessions, film reviews, individual work, scrimmages, and conditioning |
-| **Content**    | My Library (uploaded videos, drills, articles with drip scheduling) + Marketplace for purchasing training packages |
-| **Chat**       | Conversation list view + inline DM thread with real-time-style message input |
-| **More**       | Settings, Analytics, AI Coach, subscription, film room, club management — all accessible from a menu |
+| Module | Description |
+|--------|-------------|
+| **Login** | Welcome → role selection (Coach / Player / Team Manager) → profile (name, email) → plan (Trial / Basic / Advanced / Pro) |
+| **Onboarding** | Role-specific 4-step walkthrough after first login |
+| **Home** | Dashboard with stat grid, AI insights (Pro), upcoming sessions, objectives, create-content CTA |
+| **Roster** | Teams / players segmented tabs, invite flow, create team |
+| **Schedule** | Week day selector, session cards, create session (Advanced+) |
+| **Store** | Training packages with filters, drip progress, purchase flow |
+| **Chat** | Thread list + DM view (Advanced+); locked state for lower tiers |
+| **Progress** | Player drill stats and coach feedback (player role) |
+| **Profile** | Avatar, subscription management, sign out |
+| **Admin** | Dashboard tiles for users, revenue, content, analytics |
 
 ---
 
 ## Navigation
 
-The app uses a **tab bar** with 6 tabs at the bottom:
+Tab bar is **role-dependent** (5 tabs for coach/player/team; 4 for admin). Active tab shows an orange top indicator.
 
+**Coach / Team Manager:**
 ```
-Home | Roster | Schedule | Content | Chat | More
+Home | Roster | Schedule | Chat | Store
 ```
 
-An orange indicator pill appears above the active tab icon. Chat has a persistent badge dot.
+**Player:**
+```
+Home | Progress | Schedule | Chat | Store
+```
+
+**Admin:**
+```
+Dashboard | Users | Content | Analytics
+```
+
+Screen routing uses `useState("screen")` — no router library yet. Profile, subscription, objectives, create-content, and admin detail screens push via `go(screen)`.
 
 ---
 
 ## App States
 
 ```
-Onboarding (scr = "ob")
-    └── Step 0: Welcome / splash
-    └── Step 1: Role selection (4 roles)
-    └── Step 2: Profile setup (name, team, age)
-    └── Step 3: Plan selection (Basic / Advanced / Pro)
-        └── "Start Coaching" → Main App (scr = "app")
+Login (screen = "login")
+    └── welcome → role → name/email → tier
+        └── onLogin → Onboarding (if isNew) or Home
+
+Onboarding
+    └── 4 role-specific steps → Home
+
+Main app (screen = "home" | "teams" | …)
+    └── PaywallModal when tryA() hits tier gate
 ```
 
 ---
@@ -117,136 +133,98 @@ src/
 
 | Component | Purpose |
 |-----------|---------|
-| `Hero`    | Full-bleed image banner with gradient overlay and slot for children |
-| `Strip`   | Narrower image banner used as section dividers with optional label |
-| `Pill`    | Small colored label badge (e.g. position, status) |
-| `Av`      | Avatar — either gradient initials or photo |
-| `IA`      | Inner image avatar (used by `Av`) |
-| `Cd`      | Card container with dark background, rounded corners, optional tap handler |
-| `Btn`     | Button — primary (orange gradient) or secondary (outlined) |
-| `SH`      | Section header with title and optional "View All" action |
-| `PB`      | Progress bar (label, percentage, color) |
-| `Rg`      | Ring/donut gauge chart (SVG-based) |
-| `Sp`      | Sparkline chart (SVG polyline with gradient fill) |
-| `Bk`      | Back button with left arrow icon |
-| `I`       | SVG icon component — renders from a 30+ icon path dictionary |
+| `Btn` | Primary (orange) or secondary (orange glow) button |
+| `Badge` | Small colored label (tier, tag, status) |
+| `Card` | Card container with optional `onClick` |
+| `Field` | Labeled form input |
+| `PageHeader` | Screen title, subtitle, back, settings, trial badge |
+| `TrialBanner` | Trial countdown CTA |
+| `PaywallModal` | Tier-gated feature overlay |
+| `DashedBtn` | Dashed-border "+ Add …" action |
+| `PackageThumb` | Store package image with gradient overlay |
+| `Icon*` | Individual SVG icon functions (`IconHome`, `IconBack`, …) |
 
 ### Screen Components
 
-| Component | Tab |
-|-----------|-----|
-| `Onboard` | Pre-login flow |
-| `Home`    | Tab 0 |
-| `Roster` + `Prof` | Tab 1 |
-| `SchedTab` | Tab 2 |
-| `ContTab` | Tab 3 |
-| `ChatTab` | Tab 4 |
-| `MoreTab` | Tab 5 |
-
----
-
-## Player Profile Tabs
-
-Each player profile (`Prof`) consists of 6 tabs:
-
-| Tab         | Content |
-|-------------|---------|
-| `overview`  | Bio, injury status, rating trend sparkline, skill breakdown bars, player milestone updates |
-| `objectives`| Goal rings + AI-suggested content from marketplace |
-| `stats`     | Season averages grid (PPG, APG, RPG, etc.) + scoring trend sparkline |
-| `games`     | Game log cards per opponent with PTS / AST / REB breakdown |
-| `content`   | Assigned drills, videos, articles with status (Done / In Progress / Not Started) |
-| `notes`     | Coach notes with date, add note button |
+| Component | Screen / tab |
+|-----------|--------------|
+| `LoginScreen` | Pre-auth flow |
+| `OnboardingScreen` | Post-signup walkthrough |
+| `HomeScreen` | `home` |
+| `RosterScreen` | `teams` |
+| `ScheduleScreen` | `schedule` |
+| `ChatScreen` | `chat` |
+| `StoreScreen` | `marketplace` |
+| `ProgressScreen` | `progress` (player) |
+| `ProfileScreen` | `profile` |
+| `SubscriptionScreen` | `subscription` |
+| `CreateContentScreen` | `create-content` |
+| `ObjectivesScreen` | `objectives` |
+| `AdminDetailScreen` | `admin-*` |
 
 ---
 
 ## Data Models
 
-### Player (`PL[]`)
+### User (session state)
 
 ```js
-{
-  id, nm, pos, num, rt, av, tr, st, img,
-  ht, wt, age, yr, ag, bio,
-  sk: { Shooting, Passing, Defense, Speed, "Basketball IQ" },
-  ss: { PPG, APG, RPG, SPG, "FG%", "3P%", "FT%" },
-  wk: [...],           // weekly rating array (sparkline)
-  log: [{ vs, d, p, a, r, w }],       // game log
-  goals: [{ t, p, c }],               // objectives
-  asgn: [{ t, ty, s }],               // assigned content
-  notes: [{ d, x }],                  // coach notes
-  prog: [{ d, x, ty }],               // player updates/milestones
-  injury?: { type, since, ret, note } // optional
-}
+{ role, name, email, tier, trialDays, isNew }
+// role: "coach" | "player" | "team" | "admin"
+// tier: "trial" | "basic" | "advanced" | "pro"
 ```
 
-### Session (`sch[]`)
+### Store packages (inline in `StoreScreen`)
 
 ```js
-{ id, ti, tm, dt, ty, n, dur, ct }
-// ty: "practice" | "film" | "individual" | "game" | "fitness"
+{ id, t, l, r, rv, p, tag, own, c, dr, pr }
+// tag: "shooting" | "defense" | "conditioning"
+// own: purchased; pr: drip progress %
 ```
 
-### Content Library (`cLb[]`)
+### Schedule sessions (inline in `ScheduleScreen`)
 
 ```js
-{ id, ti, ty, dur, vw, lk, tg, dp }
-// ty: "video" | "drill" | "article"
-// lk: locked (drip scheduling)
-// dp: unlock date
+{ ti, t, tm }  // time, title, team — keyed by day index
 ```
 
-### Marketplace (`mkt[]`)
+### Chat (inline in `ChatScreen`)
 
 ```js
-{ id, ti, by, pr, rt, rv, n, em, ai, why }
-// ai: AI-recommended flag
+// Threads: { id, n, ty, m, ti, u }
+// Messages: { f: "me" | "other", t, ti }
 ```
 
-### Chat (`chL[]`, `dms[]`)
+### Roster (inline in `RosterScreen`)
 
 ```js
-// Conversation list
-{ id, nm, ty, last, tm, ur, av, img }
-// ty: "team" | "dm"
-
-// Messages
-{ id, t, tm, me }
-// me: 1 = sent by coach, 0 = received
+// Teams: { n, p, r, c }
+// Players: { n, tm, pos, g }
 ```
 
 ---
 
 ## Design System
 
-### Color Palette (`C`)
+Tailwind v4 with `coach-*` theme tokens in `src/index.css`. See [`../design/ui-reference.md`](../design/ui-reference.md) for the full catalog.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `bg`  | `#0C0C10` | App background |
-| `sf`  | `#16161C` | Surface (nav bars) |
-| `cd`  | `#1C1C24` | Card background |
-| `el`  | `#22222C` | Elevated elements |
-| `ink` | `#F2F2F5` | Primary text |
-| `sub` | `#9494A8` | Secondary text |
-| `dim` | `#5C5C72` | Muted / inactive |
-| `ln`  | `#2A2A36` | Borders / dividers |
-| `br`  | `#F07A3A` | Primary brand (orange) |
-| `br2` | `#FF9D5C` | Brand gradient end |
-| `gn`  | `#3AE8B0` | Success / green |
-| `bl`  | `#6EA8FF` | Info / blue |
-| `vi`  | `#A88BFF` | AI / violet |
-| `am`  | `#FFD04A` | Warning / amber |
-| `ro`  | `#FF6060` | Error / red |
+### Color tokens (summary)
+
+| Tailwind class | Usage |
+|----------------|-------|
+| `coach-bg`, `coach-surface`, `coach-card` | Background layers |
+| `coach-border` | Borders / dividers |
+| `coach-orange` (+ glow, light) | Brand / primary actions |
+| `coach-green`, `coach-blue`, `coach-purple`, `coach-yellow`, `coach-red` | Semantic accents |
+| `coach-t1`, `coach-t2`, `coach-t3` | Text hierarchy |
+
+`COLORS` in `App.jsx` mirrors these for dynamic inline styles. Helpers: `tcx()`, `bgcx()`, `bdcx()`.
 
 ### Typography
 
-- **UI font (`ff`):** `DM Sans` — used for body text, labels, inputs
-- **Display font (`fd`):** `Nunito` — used for headings, numbers, player stats
-
-### Animations
-
-- Fade-up on screen mount: `@keyframes fu { opacity 0→1, translateY 8px→0 }`
+- **Display (`font-display`):** Oswald — headings, buttons, stats
+- **Body (`font-body`):** DM Sans — labels, body, inputs
+- **Mono (`font-mono`):** JetBrains Mono — percentages, numeric stats
 
 ---
 
@@ -261,36 +239,37 @@ Each player profile (`Prof`) consists of 6 tabs:
 
 ## Subscription Plans
 
-| Plan     | Price        | Key Features |
-|----------|--------------|--------------| 
-| Basic    | Free         | Profile, purchase content, track progress |
-| Advanced | $9.99/mo     | + Coaching, communication, scheduling |
-| Pro      | $19.99/mo    | + AI insights, drip scheduling, objectives, club management |
+| Plan | Price | Key Features |
+|------|-------|--------------|
+| Trial | Free (14 days) | Full Pro access during trial |
+| Basic | $9/mo | Profile, purchase content, track progress |
+| Advanced | $29/mo | + Coach tools, chat, distribute, schedule |
+| Pro | $49/mo | + AI insights, objectives, full MVP |
+
+Tier gating uses `FEATURE_REQS` + `canAccess()` — see `App.jsx`.
 
 ---
 
 ## Images
 
-The file embeds base64-encoded JPEG images inline as constants:
+Base64 JPEG constants for store package thumbnails:
 
 | Constant | Usage |
 |----------|-------|
-| `PI`     | Player profile images |
-| `CI`     | Coach avatar (Coach Mike) |
-| `BC`     | Background — court image (warm) |
-| `BP`     | Background — court image (cool) |
-| `BD`     | Background — dark detail shot |
+| `IMG_SHOOTING` | Shooting package thumb |
+| `IMG_DEFENSE` | Defense package thumb |
+| `IMG_CONDITIONING` | Conditioning package thumb |
 
 ---
 
 ## Current constraints / MVP notes
 
 - Data is **static mock** until Supabase stories land (no API calls yet)
-- No routing library — navigation via `useState` (`scr`, `tab`, `sel`)
-- Styling via **Tailwind** (`src/index.css` `@theme` tokens); a few dynamic values still use inline `style`
-- **Single-file mock** — each story must **refactor its slice first**, then wire backends (see [Story implementation workflow](#story-implementation-workflow))
+- No routing library — navigation via `useState` (`screen`, `onboarding`, `paywall`)
+- Styling via **Tailwind** (`src/index.css` `@theme` tokens); dynamic progress/accent colors use inline `style` with `COLORS`
+- **Single-file mock** (~1.2k lines) — each story must **refactor its slice first**, then wire backends (see [Story implementation workflow](#story-implementation-workflow))
 - Capacitor runtime hooks are **not** in the mock; native scaffold exists for later stories
-- Chat does not persist — messages reset on unmount
-- Several "More" menu items are stubs
+- Chat does not persist — messages are static mock data
+- Player profile deep-dive (6-tab) not yet in mock — roster shows list only
 
 **Production gaps** (native release, CI, admin web deploy): see [`../architecture/tech-stack.md`](../architecture/tech-stack.md#production-readiness-gaps).
