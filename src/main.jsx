@@ -10,9 +10,16 @@ import '@fontsource/nunito/700.css'
 import '@fontsource/nunito/800.css'
 import '@fontsource/nunito/900.css'
 import App from './App.jsx'
+import { initNativeShell } from './lib/capacitor.js'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+async function bootstrap() {
+  await initNativeShell()
+
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  )
+}
+
+bootstrap()
