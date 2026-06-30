@@ -13,14 +13,14 @@ Integration patterns: `docs/architecture/best-practices.md`
 Prototype / mock workflow: `docs/prototype/README.md`  
 UI design system: `docs/design/ui-reference.md` + `.cursor/rules/ui-design-system.mdc`
 
-`src/App.jsx` is a **UI mock** (hardcoded data, no Supabase/Capacitor runtime). Production code lands in extracted `src/features/` + `src/ui/`. There is no migration to Expo, Next.js, or React Native.
+`apps/mobile/src/App.jsx` is a **UI mock** (hardcoded data, no Supabase/Capacitor runtime). Production code lands in extracted `apps/mobile/src/features/` and `packages/ui/`. Admin code lives in `apps/admin/` per `docs/architecture/frontend-architecture.md`. There is no migration to Expo, Next.js, or React Native.
 
 ## Story workflow (mandatory)
 
 **Refactoring a slice is always the first action** for any tracker story:
 
-1. Extract the story's screens/primitives from `App.jsx` into `src/features/<domain>/` and `src/ui/`
-2. Wire real data (Supabase, etc.) inside the extracted module
+1. Extract the story's screens/primitives from `App.jsx` into `apps/mobile/src/features/<domain>/` and `packages/ui/`
+2. Wire real data through `@coach360/api` repository ports inside the extracted module
 3. Leave `App.jsx` as a thin shell that imports the feature
 
 Do not bolt APIs onto the monolithic mock.
@@ -51,6 +51,7 @@ Do not bolt APIs onto the monolithic mock.
 
 ## Files
 
-- Entry: `src/main.jsx`
-- App shell: `src/App.jsx`
-- Styles: `src/index.css` (Tailwind v4 `@theme` coach-* tokens); `App.jsx` is the visual reference until extracted
+- Mobile entry: `apps/mobile/src/main.jsx`
+- Mobile app shell: `apps/mobile/src/App.jsx`
+- Admin entry: `apps/admin/src/app/main.tsx`
+- Styles: `apps/mobile/src/index.css`, `apps/admin/src/index.css` (Tailwind v4 `@theme` coach-* tokens)

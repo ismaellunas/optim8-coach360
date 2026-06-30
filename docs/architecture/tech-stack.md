@@ -72,9 +72,19 @@ Coach360 is a **TypeScript/JavaScript-centric** product optimized for AI-assiste
 
 ### Admin (Flow 7)
 
-Platform admin (Users, Subscriptions, Content, Monitor) ships as **role-gated views in the same Vite app**, deployed as a **web build** (browser) alongside the Capacitor mobile build. Sanity Studio remains the content **authoring** UI; admin views handle **operations** (approve, publish, pricing). See [`content-model.md`](./content-model.md).
+Platform admin (Users, Subscriptions, Content, Monitor) ships as a **separate web app** at `apps/admin` (React 19 + TypeScript + Vite), deployed to a static host (e.g. Vercel). The Capacitor mobile app in `apps/mobile` does **not** bundle admin code. Sanity Studio remains the content **authoring** UI; admin handles **operations** (approve, publish, pricing). See [`content-model.md`](./content-model.md) and [`frontend-architecture.md`](./frontend-architecture.md).
 
-> **Not in scope:** A separate Next.js or React Native admin app.
+> **Not in scope:** Next.js or a separate React Native admin app.
+
+### Monorepo layout
+
+| Package | Role |
+|---|---|
+| `apps/mobile` | Vite + React + Capacitor — coaches, players, teams |
+| `apps/admin` | Vite + React 19 + TS — Flow 7 admin (web only) |
+| `packages/domain` | Branded types, Zod schemas, pure business rules |
+| `packages/api` | Repository ports + Supabase/REST adapters |
+| `packages/ui` | Shared design primitives |
 
 ### Vibe coding considerations
 
@@ -236,7 +246,7 @@ The following guidance **does not yet exist** in this repo and must be written f
 |-------|--------|-------|
 | **Capacitor native release** | ⚠️ Not documented | App Store / Play Store signing, `cap sync`, versioning, splash/icons |
 | **CI/CD for Capacitor** | ⚠️ Not documented | GitHub Actions: lint, `vite build`, Android APK; macOS runner for iOS |
-| **Admin web deployment** | ⚠️ Not documented | Hosting static Vite web build (e.g. subdomain); auth for admin-only routes |
+| **Admin web deployment** | ✅ Documented | [`admin-deploy.md`](./admin-deploy.md) — Vercel static deploy for `apps/admin` |
 | **Supabase client in Capacitor** | ⚠️ Partial | Session persistence (`@capacitor/preferences` or secure storage pattern) — see [`best-practices.md`](./best-practices.md) |
 | **Webhook / Edge Function layout** | ⚠️ Not documented | Where Stripe/Sanity/Mux handlers live relative to monorepo |
 | **Code splitting / `src/features/`** | ⚠️ Not documented | Migration plan from single-file `App.jsx` |

@@ -15,17 +15,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
 const PACKAGE_JSON = path.join(REPO_ROOT, 'package.json');
+const MOBILE_PACKAGE_JSON = path.join(REPO_ROOT, 'apps', 'mobile', 'package.json');
 const CAPACITOR_CONFIG = path.join(REPO_ROOT, 'capacitor.config.json');
-const SUPABASE_CLIENT = path.join(REPO_ROOT, 'src', 'lib', 'supabase.js');
-const CAPACITOR_INIT = path.join(REPO_ROOT, 'src', 'lib', 'capacitor.js');
-const MAIN_ENTRY = path.join(REPO_ROOT, 'src', 'main.jsx');
+const SUPABASE_CLIENT = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'lib', 'supabase.js');
+const CAPACITOR_INIT = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'lib', 'capacitor.js');
+const MAIN_ENTRY = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'main.jsx');
 const NATIVE_RELEASE_DOC = path.join(
   REPO_ROOT,
   'docs',
   'architecture',
   'native-release.md',
 );
-const DATABASE_TYPES = path.join(REPO_ROOT, 'src', 'types', 'database.ts');
+const DATABASE_TYPES = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'types', 'database.ts');
 const IOS_PUBLIC = path.join(REPO_ROOT, 'ios', 'App', 'App', 'public', 'index.html');
 const ANDROID_PUBLIC = path.join(
   REPO_ROOT,
@@ -62,14 +63,14 @@ describe('STORY_1_2 AC1 — cap sync after vite build', () => {
     expect(pkg.scripts['cap:android'], 'cap:android script').toBeTruthy();
   });
 
-  it('test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output: webDir is dist', () => {
+  it('test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output: webDir is apps/mobile/dist', () => {
     const config = JSON.parse(readFileSync(CAPACITOR_CONFIG, 'utf8'));
-    expect(config.webDir).toBe('dist');
+    expect(config.webDir).toBe('apps/mobile/dist');
   });
 
   describeCapSync('cap sync integration', () => {
     it('test_STORY_1_2_AC1_cap_sync_after_vite_build: build and copy web assets to native projects', () => {
-      execSync('npm run build', {
+      execSync('npm run build:mobile', {
         cwd: REPO_ROOT,
         stdio: ['ignore', 'pipe', 'pipe'],
         timeout: 120_000,
@@ -81,7 +82,7 @@ describe('STORY_1_2 AC1 — cap sync after vite build', () => {
         timeout: 120_000,
       });
 
-      expect(existsSync(path.join(REPO_ROOT, 'dist', 'index.html'))).toBe(true);
+      expect(existsSync(path.join(REPO_ROOT, 'apps', 'mobile', 'dist', 'index.html'))).toBe(true);
       expect(existsSync(IOS_PUBLIC), 'iOS public/index.html').toBe(true);
       expect(existsSync(ANDROID_PUBLIC), 'Android public/index.html').toBe(true);
     }, 180_000);
@@ -101,7 +102,7 @@ describe('STORY_1_2 AC2 — Supabase client typed', () => {
     expect(source).toMatch(/import\.meta\.env\.VITE_SUPABASE_ANON_KEY/);
     expect(source).toMatch(/export const supabase/);
 
-    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    const pkg = JSON.parse(readFileSync(MOBILE_PACKAGE_JSON, 'utf8'));
     expect(pkg.dependencies['@supabase/supabase-js']).toBeTruthy();
   });
 });
@@ -122,7 +123,7 @@ describe('STORY_1_2 AC3 — release signing documented', () => {
 
 describe('STORY_1_2 AC4 — native plugins configured', () => {
   it('test_STORY_1_2_AC4_native_plugins_configured: StatusBar and Keyboard wired in config, init, and main', () => {
-    const pkg = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8'));
+    const pkg = JSON.parse(readFileSync(MOBILE_PACKAGE_JSON, 'utf8'));
     expect(pkg.dependencies['@capacitor/status-bar']).toBeTruthy();
     expect(pkg.dependencies['@capacitor/keyboard']).toBeTruthy();
 

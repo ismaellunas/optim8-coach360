@@ -1,0 +1,30 @@
+{
+  "name": "@coach360/mobile",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/ios": "^8.4.0",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/status-bar": "^8.0.2",
+    "@fontsource/dm-sans": "^5.2.8",
+    "@fontsource/nunito": "^5.2.7",
+    "@supabase/supabase-js": "^2.108.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "tailwindcss": "^4.3.1",
+    "vite": "^8.0.1"
+  }
+}
