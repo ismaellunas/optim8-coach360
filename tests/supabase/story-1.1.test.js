@@ -19,7 +19,7 @@ if (!globalThis.WebSocket) globalThis.WebSocket = ws;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const CONFIG_PATH = path.join(REPO_ROOT, 'supabase', 'config.toml');
-const TYPES_PATH = path.join(REPO_ROOT, 'src', 'types', 'database.ts');
+const TYPES_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'types', 'database.ts');
 
 const REQUIRED_TABLES = [
   'profiles',
@@ -222,7 +222,7 @@ describeIntegration('STORY_1_1 AC3 — RLS enforces coach/player/team isolation'
 });
 
 describe('STORY_1_1 AC4 — generated database types exported', () => {
-  it('test_STORY_1_1_AC4_database_types_exported: src/types/database.ts contains all required tables', () => {
+  it('test_STORY_1_1_AC4_database_types_exported: apps/mobile/src/types/database.ts contains all required tables', () => {
     expect(existsSync(TYPES_PATH)).toBe(true);
     const types = readFileSync(TYPES_PATH, 'utf8');
     expect(types).toMatch(/export\s+(type|interface)\s+Database\b/);

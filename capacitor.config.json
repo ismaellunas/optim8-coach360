@@ -1,7 +1,7 @@
 {
   "appId": "com.coach360.app",
   "appName": "Coach360",
-  "webDir": "dist",
+  "webDir": "apps/mobile/dist",
   "plugins": {
     "Keyboard": {
       "resize": "body",

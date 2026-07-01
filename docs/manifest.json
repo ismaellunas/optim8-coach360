@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-29T16:15:27.888Z",
+  "generated": "2026-06-30T14:48:00.075Z",
   "root": "docs",
   "tree": [
     {
@@ -7,6 +7,11 @@
       "name": "architecture",
       "path": "architecture",
       "children": [
+        {
+          "type": "file",
+          "name": "admin-deploy.md",
+          "path": "architecture/admin-deploy.md"
+        },
         {
           "type": "file",
           "name": "ai-integration.md",
@@ -21,6 +26,11 @@
           "type": "file",
           "name": "content-model.md",
           "path": "architecture/content-model.md"
+        },
+        {
+          "type": "file",
+          "name": "frontend-architecture.md",
+          "path": "architecture/frontend-architecture.md"
         },
         {
           "type": "file",

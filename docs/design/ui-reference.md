@@ -1,10 +1,10 @@
 # Coach360 — UI Design Reference
 
-> **Living source:** `src/App.jsx` (mock; primitives migrate to `src/ui/` per story)  
+> **Living source:** `apps/mobile/src/App.jsx` (mock; primitives migrate to `packages/ui/` per story)  
 > **Agent rule:** `.cursor/rules/ui-design-system.mdc`  
 > **Application context:** [`../prototype/README.md`](../prototype/README.md) — **slice-first workflow**
 
-The mock in `src/App.jsx` is the **canonical UI reference** for Coach360. New production screens must reuse its tokens, primitives, and patterns — extracted into `src/features/` + `src/ui/` before wiring real data.
+The mock in `apps/mobile/src/App.jsx` is the **canonical UI reference** for Coach360. New production screens must reuse its tokens, primitives, and patterns — extracted into `apps/mobile/src/features/` + `packages/ui/` before wiring real data.
 
 ---
 

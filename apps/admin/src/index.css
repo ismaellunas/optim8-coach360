@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-coach-bg: #0b0e14;
+  --color-coach-surface: #141821;
+  --color-coach-card: #1a1f2b;
+  --color-coach-border: #2a3040;
+  --color-coach-orange: #ff6b2c;
+  --color-coach-orange-light: #ff8f5e;
+  --color-coach-orange-glow: rgba(255, 107, 44, 0.15);
+  --color-coach-green: #34d399;
+  --color-coach-blue: #60a5fa;
+  --color-coach-purple: #a78bfa;
+  --color-coach-red: #f87171;
+  --color-coach-yellow: #fbbf24;
+  --color-coach-t1: #f1f3f7;
+  --color-coach-t2: #8b93a7;
+  --color-coach-t3: #5a6278;
+
+  --font-display: "Oswald", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-coach-bg);
+    color: var(--color-coach-t1);
+    font-family: var(--font-body);
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+}

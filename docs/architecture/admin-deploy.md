@@ -1,0 +1,73 @@
+# Coach360 — Admin web deployment
+
+> **App:** `apps/admin`  
+> **Stack:** Vite static build on Vercel (or any static host)  
+> **Related:** [`frontend-architecture.md`](./frontend-architecture.md)
+
+---
+
+## Build
+
+```bash
+npm install
+npm run build:admin
+```
+
+Output: `apps/admin/dist/`
+
+Local preview:
+
+```bash
+npm run dev:admin    # http://localhost:5174
+```
+
+---
+
+## Vercel setup
+
+1. Create a Vercel project pointing at this repository
+2. Set **Root Directory** to `apps/admin` (or use monorepo project settings)
+3. **Build command:** `npm run build` (from `apps/admin` workspace) or `npm run build:admin` from repo root
+4. **Output directory:** `dist`
+5. `vercel.json` in `apps/admin/` configures SPA rewrites and security headers
+
+Recommended hostname: `admin.coach360.com` (staging: `admin-staging.coach360.com`)
+
+---
+
+## Environment variables (Vercel)
+
+| Variable | Required | Notes |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Public anon key (RLS enforced) |
+| `VITE_API_ADAPTER` | No | `supabase` (default) or `rest` |
+| `VITE_SANITY_STUDIO_URL` | Yes | External Sanity Studio URL for Content pillar |
+| `VITE_ADMIN_STAGING_URL` | No | Canonical staging URL for smoke tests |
+| `VITE_REST_API_BASE_URL` | When `rest` | Future REST API base URL |
+
+Copy from [`.env.example`](../../.env.example). Never set `SUPABASE_SERVICE_ROLE_KEY` on the admin static deploy.
+
+---
+
+## Security
+
+- Admin auth is enforced by **Supabase RLS** + `canAccessAdmin` domain rule
+- `profiles` trigger blocks non-admin role/suspension self-escalation (migration `20260630100000`)
+- Response headers configured in `apps/admin/vercel.json`:
+  - `X-Frame-Options: DENY`
+  - `X-Content-Type-Options: nosniff`
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+
+Optional: add a staging gate (HTTP basic or Vercel password protection) on preview deployments only.
+
+---
+
+## Promotion checklist
+
+1. `supabase db push` — migrations applied to target project
+2. Admin user provisioned in `profiles` with `role = 'admin'`
+3. `npm run test:story-1.3` passes
+4. `npm run build:admin` succeeds in CI
+5. Deploy preview → verify login, four nav pillars, Sanity Studio link
+6. Promote to production domain

@@ -12,8 +12,9 @@ When docs conflict, resolve in this order:
 4. **AI** → [`architecture/ai-integration.md`](./architecture/ai-integration.md)
 5. **Tech stack** → [`architecture/tech-stack.md`](./architecture/tech-stack.md)
 6. **Development best practices** → [`architecture/best-practices.md`](./architecture/best-practices.md)
-7. **UI design reference** → [`design/ui-reference.md`](./design/ui-reference.md)
-8. **Delivery** → [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md)
+7. **Frontend architecture** → [`architecture/frontend-architecture.md`](./architecture/frontend-architecture.md)
+8. **UI design reference** → [`design/ui-reference.md`](./design/ui-reference.md)
+9. **Delivery** → [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md)
 
 ---
 
@@ -27,15 +28,17 @@ docs/
 │   └── stakeholder-questions.md
 ├── architecture/
 │   ├── tech-stack.md         # Single-stack architecture (Vite + Capacitor + SaaS)
+│   ├── frontend-architecture.md  # Monorepo, FSD layers, repository pattern
+│   ├── admin-deploy.md       # Admin web staging/production deploy
 │   ├── best-practices.md     # Client patterns & integration rules
 │   ├── content-model.md      # CMS, packaging, uploads
 │   └── ai-integration.md     # RAG, recommendations
 ├── design/
-│   └── ui-reference.md       # UI tokens, primitives (source: src/App.jsx)
+│   └── ui-reference.md       # UI tokens, primitives (source: packages/ui, App.jsx mock)
 ├── delivery/
 │   └── delivery-estimate.md  # 172 h plan + quick reference (Appendix C)
 └── prototype/
-    └── README.md             # UI mock (src/App.jsx) + slice-first story workflow
+    └── README.md             # UI mock (apps/mobile) + slice-first story workflow
 ```
 
 ---

@@ -1,0 +1,23 @@
+{
+  "name": "@coach360/api",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@coach360/domain": "*",
+    "@supabase/supabase-js": "^2.108.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
+    "typescript": "^5.9.3"
+  }
+}

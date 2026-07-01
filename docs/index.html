@@ -374,8 +374,8 @@
         "Integration test checklist covers cross-flow scenarios per DEP-09"
       ],
       "status": "IN_PROGRESS",
-      "last_updated": "2026-06-27T09:30:00Z",
-      "audit_notes": "EPIC child rollup: STORY-1.1 DONE (4/4 AC tests pass); STORY-1.2 IN_PROGRESS (partial native scaffold); STORY-1.3–1.4 TODO. Epic-level acceptance criteria (multi-env Supabase, CI/CD, integration checklist) not yet met."
+      "last_updated": "2026-06-30T00:00:00Z",
+      "audit_notes": "EPIC child rollup: STORY-1.1 DONE (4/4 AC tests pass via npm run db:verify). STORY-1.2 DONE (6/6). STORY-1.3 DONE (8/8). STORY-1.4 TODO. Epic-level acceptance criteria (multi-env Supabase, CI/CD, integration checklist) not yet met."
     },
     {
       "id": "STORY-1.1",
@@ -431,8 +431,8 @@
         "command": "supabase db reset --no-seed && npm test -- --reporter=json -t STORY_1_1"
       },
       "status": "DONE",
-      "last_updated": "2026-06-27T09:30:00Z",
-      "audit_notes": "AC1 test_STORY_1_1_AC1_supabase_services_configured: PASS. AC2 test_STORY_1_1_AC2_core_tables_exist: PASS. AC3 test_STORY_1_1_AC3_rls_coach_player_team_isolation: PASS. AC4 test_STORY_1_1_AC4_database_types_exported: PASS. All 4/4 criteria met via npm run test:story-1.1."
+      "last_updated": "2026-06-30T00:00:00Z",
+      "audit_notes": "npm run db:verify: 4/4 PASS. AC1 test_STORY_1_1_AC1_supabase_services_configured PASS. AC2 test_STORY_1_1_AC2_core_tables_exist PASS. AC3 test_STORY_1_1_AC3_rls_coach_player_team_isolation PASS. AC4 test_STORY_1_1_AC4_database_types_exported PASS. Migrations include 20260630100000_prevent_profile_escalation.sql."
     },
     {
       "id": "STORY-1.2",
@@ -489,9 +489,9 @@
         ],
         "command": "npm test -- --reporter=json -t STORY_1_2"
       },
-      "status": "IN_REVIEW",
-      "last_updated": "2026-06-29T23:30:00Z",
-      "audit_notes": "AC1 build+cap copy automated (6/6 tests pass); simulator/emulator launch and AC4 on-device plugin behavior documented in native-release.md for manual verify. Capacitor init, typed Supabase client, and release docs added."
+      "status": "DONE",
+      "last_updated": "2026-06-30T00:00:00Z",
+      "audit_notes": "npm run test:story-1.2: 6/6 PASS (AC1 cap_sync_scripts, AC1 webDir apps/mobile/dist, AC1 cap_sync_after_vite_build, AC2 supabase_client_typed, AC3 release_signing_documented, AC4 native_plugins_configured). Monorepo path updates verified."
     },
     {
       "id": "STORY-1.3",
@@ -507,34 +507,51 @@
         {
           "id": "AC-1",
           "statement": "Admin route group protected by Supabase auth and admin role check",
-          "test": null
+          "test": "tests/admin/story-1.3.test.js::test_STORY_1_3_AC1_admin_routes_require_admin_role"
         },
         {
           "id": "AC-2",
           "statement": "Dashboard layout exposes Users, Subscriptions, Content, Monitor nav sections",
-          "test": null
+          "test": "tests/admin/story-1.3.test.js::test_STORY_1_3_AC2_dashboard_nav_four_pillars"
         },
         {
           "id": "AC-3",
           "statement": "Web build deploys to staging URL for admin access",
-          "test": null
+          "test": "tests/admin/story-1.3.test.js::test_STORY_1_3_AC3_staging_deploy_configured"
         },
         {
           "id": "AC-4",
           "statement": "Sanity Studio embed or link accessible from Content section",
-          "test": null
+          "test": "tests/admin/story-1.3.test.js::test_STORY_1_3_AC4_content_links_sanity_studio"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_AC0_prevent_profile_escalation_migration_exists",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_AC1_admin_routes_require_admin_role",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_AC2_dashboard_nav_four_pillars",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_AC3_staging_deploy_configured",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_AC4_content_links_sanity_studio",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_structure_repository_ports_exist",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_structure_ui_has_no_direct_supabase",
+          "tests/admin/story-1.3.test.js::test_STORY_1_3_structure_branded_domain_types"
         ],
-        "command": null
+        "files": [
+          "apps/admin/",
+          "packages/domain/",
+          "packages/api/",
+          "packages/ui/",
+          "supabase/migrations/20260630100000_prevent_profile_escalation.sql",
+          "docs/architecture/frontend-architecture.md",
+          "docs/architecture/admin-deploy.md",
+          "capacitor.config.json",
+          "package.json"
+        ],
+        "command": "npm run test:story-1.3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-06-30T00:00:00Z",
+      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC0 escalation migration, AC1 admin route guard, AC2 four pillars nav, AC3 vercel.json+admin-deploy.md, AC4 Sanity Studio link. Structure tests (repository ports, no direct supabase in UI, branded types) PASS."
     },
     {
       "id": "STORY-1.4",

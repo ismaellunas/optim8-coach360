@@ -95,34 +95,29 @@ Do not add Supabase calls, auth, or Capacitor hooks directly into the monolithic
 
 ## Project structure
 
-**Today:** monolithic mock at `src/App.jsx` (hardcoded data, local state).
+**Today:** npm workspaces monorepo — `apps/mobile` (Capacitor mock), `apps/admin` (Flow 7 web), shared `packages/`.
 
-**Target** (as stories land — one slice per story, no big-bang refactor):
+**Canonical reference:** [`frontend-architecture.md`](./frontend-architecture.md)
 
 ```
-src/
-├── main.jsx
-├── app/App.jsx            # thin shell: providers, nav, tab bar
-├── ui/                    # shared primitives (atoms / molecules / organisms)
-├── features/
-│   ├── auth/
-│   ├── roster/
-│   ├── schedule/
-│   ├── content/
-│   ├── chat/
-│   └── admin/             # Flow 7 — role-gated web views
-├── lib/
-│   ├── supabase.ts        # client factory
-│   └── api/               # typed fetch helpers
-└── types/                 # shared domain types
+coach360/
+├── apps/
+│   ├── mobile/                # Capacitor client (JS today)
+│   └── admin/                 # FSD layers: app → pages → widgets → features → entities
+├── packages/
+│   ├── domain/                # Branded types, Zod, pure rules (no React/HTTP)
+│   ├── api/                   # Ports + Supabase/REST adapters + DI
+│   └── ui/                    # Shared primitives
+└── supabase/
 ```
 
 **Rules:**
 
 - **Slice first** — extract before integrating backends (see [Story implementation workflow](#story-implementation-workflow)).
-- Keep route/screen files thin; business logic in `features/`.
-- Promote to `src/ui/` only when two or more features need the same primitive.
-- Admin views live under `features/admin/` — same repo, web deployment, admin role gate.
+- **UI never calls Supabase directly** — use repository ports from `@coach360/api`.
+- Keep route/screen files thin; business logic in `packages/domain` and `features/*/model`.
+- Admin is **web-only** — not bundled in Capacitor.
+- Data access goes through ports; swap `VITE_API_ADAPTER=rest` when REST API is ready.
 
 ---
 
