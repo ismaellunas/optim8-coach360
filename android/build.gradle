@@ -24,6 +24,14 @@ allprojects {
     }
 }
 
+subprojects {
+    configurations.configureEach {
+        // kotlin-stdlib 1.8+ already includes JDK7/8 APIs; legacy artifacts duplicate classes.
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

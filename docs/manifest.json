@@ -1,5 +1,5 @@
 {
-  "generated": "2026-06-30T14:48:00.075Z",
+  "generated": "2026-07-02T11:12:26.665Z",
   "root": "docs",
   "tree": [
     {
@@ -53,6 +53,11 @@
           "type": "file",
           "name": "delivery-estimate.md",
           "path": "delivery/delivery-estimate.md"
+        },
+        {
+          "type": "file",
+          "name": "environment-promotion.md",
+          "path": "delivery/environment-promotion.md"
         }
       ]
     },

@@ -4,11 +4,14 @@ import type { PaginatedResult } from '../../client/types.js';
 import type { UserRepository } from '../../ports/user-repository.js';
 
 export class RestUserRepository implements UserRepository {
-  async list(_page?: number, _pageSize?: number): Promise<PaginatedResult<User>> {
+  async list(page?: number, pageSize?: number): Promise<PaginatedResult<User>> {
+    void page;
+    void pageSize;
     throw new NotImplementedAdapterError('rest', 'listUsers');
   }
 
-  async getById(_id: string): Promise<User | null> {
+  async getById(id: string): Promise<User | null> {
+    void id;
     throw new NotImplementedAdapterError('rest', 'getUserById');
   }
 }

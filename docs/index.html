@@ -550,8 +550,8 @@
         "command": "npm run test:story-1.3"
       },
       "status": "DONE",
-      "last_updated": "2026-06-30T00:00:00Z",
-      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC0 escalation migration, AC1 admin route guard, AC2 four pillars nav, AC3 vercel.json+admin-deploy.md, AC4 Sanity Studio link. Structure tests (repository ports, no direct supabase in UI, branded types) PASS."
+      "last_updated": "2026-06-30T12:00:00Z",
+      "audit_notes": "PR test plan complete. npm run test:story-1.3: 8/8 PASS; test:story-1.1 and test:story-1.2 PASS; typecheck and build:admin/build:mobile PASS. Manual: admin login (role=admin), four nav pillars, Sanity Studio link on Content, Vercel staging deploy for apps/admin confirmed (AC-3)."
     },
     {
       "id": "STORY-1.4",
@@ -567,35 +567,46 @@
         {
           "id": "AC-1",
           "statement": "GitHub Actions (or equivalent) runs on PR and main branch",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC1_github_actions_pr_and_main"
         },
         {
           "id": "AC-2",
           "statement": "Capacitor Android release build succeeds in CI",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC2_android_release_ci_configured"
         },
         {
           "id": "AC-3",
           "statement": "Admin web build deploys on merge to main",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC3_admin_deploy_on_main_merge"
         },
         {
           "id": "AC-4",
           "statement": "Runbook documents environment promotion steps",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC4_environment_promotion_runbook"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          ".github/workflows/ (inferred)",
-          "capacitor.config.json"
+        "tests": [
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC1_github_actions_pr_and_main",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC2_android_release_ci_configured",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC3_admin_deploy_on_main_merge",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC4_environment_promotion_runbook"
         ],
-        "command": null
+        "files": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/deploy-admin.yml",
+          "android/app/build.gradle",
+          "docs/delivery/environment-promotion.md",
+          "docs/architecture/native-release.md",
+          "docs/architecture/tech-stack.md",
+          "tests/cicd/story-1.4.test.js",
+          "package.json"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_1_4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-01T00:00:00Z",
+      "audit_notes": "npm run test:story-1.4: 4/4 PASS. AC1 test_STORY_1_4_AC1_github_actions_pr_and_main PASS. AC2 test_STORY_1_4_AC2_android_release_ci_configured PASS (optional assembleRelease integration skips without local Android SDK). AC3 test_STORY_1_4_AC3_admin_deploy_on_main_merge PASS. AC4 test_STORY_1_4_AC4_environment_promotion_runbook PASS."
     },
     {
       "id": "EPIC-2",
