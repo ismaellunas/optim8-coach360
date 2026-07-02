@@ -158,16 +158,21 @@ Configured in `capacitor.config.json` and initialized in `src/lib/capacitor.js` 
 
 ---
 
-## CI/CD (future)
+## CI/CD
 
-Not in scope for STORY-1.2. Planned pipeline:
+Pipelines live in [`.github/workflows/`](../../.github/workflows/):
 
-- Lint + `npm test` on every PR.
-- `vite build` + Android debug APK on Linux runner.
-- iOS archive on macOS runner (requires signing secrets).
+| Workflow | Trigger | Jobs |
+|----------|---------|------|
+| `ci.yml` | PR + push to `main` | Lint, typecheck, story tests, Android `assembleRelease` |
+| `deploy-admin.yml` | Push to `main` | `build:admin` → Vercel production deploy |
 
-See [`tech-stack.md` § Production-readiness gaps](./tech-stack.md#production-readiness-gaps).
+Environment promotion (dev → staging → prod), secrets, and rollback: [`environment-promotion.md`](../delivery/environment-promotion.md).
+
+**CI Android note:** `assembleRelease` uses the debug keystore when `GITHUB_ACTIONS=true` so the pipeline validates the build without production signing secrets. Store uploads still require the release keystore documented above.
+
+**iOS (future):** Archive and TestFlight upload require a macOS runner and Apple signing secrets — not in STORY-1.4 scope.
 
 ---
 
-*Document version: 1.0 · STORY-1.2 · June 2026*
+*Document version: 1.1 · STORY-1.4 · July 2026*

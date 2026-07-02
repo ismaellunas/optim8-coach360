@@ -78,3 +78,5 @@ supabase/.temp/
 
 # Sentry
 .sentryclirc
+.vercel
+.env*
