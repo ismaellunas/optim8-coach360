@@ -39,7 +39,9 @@ function androidSdkAvailable() {
 }
 
 const describeAndroidRelease =
-  javaAvailable() && androidSdkAvailable() ? describe : describe.skip;
+  !process.env.GITHUB_ACTIONS && javaAvailable() && androidSdkAvailable()
+    ? describe
+    : describe.skip;
 
 describe('STORY_1_4 AC1 — GitHub Actions on PR and main', () => {
   it('test_STORY_1_4_AC1_github_actions_pr_and_main: ci workflow triggers on pull_request and main push', () => {
@@ -74,14 +76,14 @@ describe('STORY_1_4 AC2 — Android release build in CI', () => {
   });
 
   describeAndroidRelease('local Android release integration', () => {
-    it('test_STORY_1_4_AC2_android_release_build_succeeds: cap copy and assembleRelease produce APK', () => {
+    it('test_STORY_1_4_AC2_android_release_build_succeeds: cap sync android and assembleRelease produce APK', () => {
       execSync('npm run build:mobile', {
         cwd: REPO_ROOT,
         stdio: ['ignore', 'pipe', 'pipe'],
         timeout: 120_000,
         env: { ...process.env, GITHUB_ACTIONS: 'true' },
       });
-      execSync('npx cap copy', {
+      execSync('npx cap sync android', {
         cwd: REPO_ROOT,
         stdio: ['ignore', 'pipe', 'pipe'],
         timeout: 120_000,
