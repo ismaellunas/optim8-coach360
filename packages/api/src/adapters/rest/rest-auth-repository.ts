@@ -3,7 +3,8 @@ import { NotImplementedAdapterError } from '../../client/types.js';
 import type { AuthRepository, SignInInput } from '../../ports/auth-repository.js';
 
 export class RestAuthRepository implements AuthRepository {
-  async signIn(_input: SignInInput): Promise<AdminSession> {
+  async signIn(input: SignInInput): Promise<AdminSession> {
+    void input;
     throw new NotImplementedAdapterError('rest', 'signIn');
   }
 

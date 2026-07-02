@@ -3,6 +3,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 

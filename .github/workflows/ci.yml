@@ -67,8 +67,8 @@ jobs:
       - name: Build mobile web bundle
         run: npm run build:mobile
 
-      - name: Copy web assets to Android project
-        run: npx cap copy
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
 
       - name: Assemble Android release APK
         working-directory: android
