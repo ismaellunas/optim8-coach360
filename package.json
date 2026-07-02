@@ -16,6 +16,7 @@
     "build:mobile": "npm run build -w @coach360/mobile",
     "build:admin": "npm run build -w @coach360/admin",
     "build:cap": "npm run build:mobile && cap sync",
+    "build:android:release": "npm run build:mobile && npx cap sync android && bash scripts/build-android-release.sh",
     "cap:sync": "cap sync",
     "cap:ios": "cap open ios",
     "cap:android": "cap open android",
