@@ -108,7 +108,7 @@ describe('STORY_1_4 AC3 — admin deploy on merge to main', () => {
 
     expect(workflow).toMatch(/push:/);
     expect(workflow).toMatch(/branches:\s*\n\s*-\s*main/);
-    expect(workflow).toMatch(/npm run build:admin/);
+    expect(workflow).toMatch(/vercel@latest build/);
     expect(workflow).toMatch(/vercel/);
     expect(workflow).toMatch(/VERCEL_TOKEN/);
     expect(workflow).toMatch(/VERCEL_ORG_ID/);

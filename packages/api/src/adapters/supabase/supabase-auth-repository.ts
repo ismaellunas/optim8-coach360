@@ -5,6 +5,7 @@ import {
   type AdminSession,
   type User,
 } from '@coach360/domain';
+import { normalizeSupabaseUrl } from '../../client/normalize-supabase-url.js';
 import type { AuthRepository, SignInInput } from '../../ports/auth-repository.js';
 import { mapProfileToUser } from './mappers/user-mapper.js';
 
@@ -14,7 +15,7 @@ export type SupabaseEnv = {
 };
 
 export function createSupabaseClient(env: SupabaseEnv): SupabaseClient {
-  return createClient(env.url, env.anonKey, {
+  return createClient(normalizeSupabaseUrl(env.url), env.anonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,

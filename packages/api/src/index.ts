@@ -1,3 +1,4 @@
+export { normalizeSupabaseUrl } from './client/normalize-supabase-url.js';
 export { ApiError, NotImplementedAdapterError } from './client/types.js';
 export type { PaginatedResult, ApiAdapterMode } from './client/types.js';
 export { HttpClient } from './client/http-client.js';

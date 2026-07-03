@@ -48,6 +48,27 @@ Recommended hostname: `admin.coach360.com` (staging: `admin-staging.coach360.com
 
 Copy from [`.env.example`](../../.env.example). Never set `SUPABASE_SERVICE_ROLE_KEY` on the admin static deploy.
 
+`VITE_SUPABASE_URL` must be the **bare project URL** only:
+
+```
+https://<project-ref>.supabase.co
+```
+
+Do **not** include `/rest/v1`, `/auth/v1`, or a trailing path. A wrong value bakes into the static bundle and login fails with `Invalid path specified in request URL` (PostgREST `PGRST125`).
+
+In Supabase Dashboard → **Authentication** → **URL Configuration**, set **Site URL** to your admin origin (e.g. `https://admin.coach360.com`) with no hash or path suffix.
+
+---
+
+## Troubleshooting login
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `Invalid path specified in request URL` | `VITE_SUPABASE_URL` includes `/rest/v1` or points at the Vercel app URL | Set bare `https://<ref>.supabase.co` in Vercel Production env, redeploy |
+| `missing_env:VITE_SUPABASE_URL` | Env vars missing at Vite build time | Add vars in Vercel Production; CI uses `vercel pull` + `vercel build` |
+| `admin_access_denied:*` | User exists but `profiles.role` is not `admin` | Run `npm run seed:admin` against the target project |
+| `Invalid login credentials` | Wrong email/password | Reset credentials in Supabase Auth |
+
 ---
 
 ## Security
