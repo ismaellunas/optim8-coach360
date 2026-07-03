@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def isCiBuild = System.getenv("GITHUB_ACTIONS") == "true"
+
 android {
     namespace "com.coach360.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -19,7 +21,11 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // CI validates assembleRelease without a production keystore (see environment-promotion.md).
+            if (isCiBuild) {
+                signingConfig signingConfigs.debug
+            }
         }
     }
 }

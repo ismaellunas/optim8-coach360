@@ -373,9 +373,9 @@
         "Environment secrets managed without committing credentials",
         "Integration test checklist covers cross-flow scenarios per DEP-09"
       ],
-      "status": "IN_PROGRESS",
-      "last_updated": "2026-06-30T00:00:00Z",
-      "audit_notes": "EPIC child rollup: STORY-1.1 DONE (4/4 AC tests pass via npm run db:verify). STORY-1.2 DONE (6/6). STORY-1.3 DONE (8/8). STORY-1.4 TODO. Epic-level acceptance criteria (multi-env Supabase, CI/CD, integration checklist) not yet met."
+      "status": "DONE",
+      "last_updated": "2026-07-03T00:00:00Z",
+      "audit_notes": "Child rollup: STORY-1.1 DONE (4/4 via npm run db:verify). STORY-1.2 DONE (6/6 via npm run test:story-1.2). STORY-1.3 DONE (8/8 via npm run test:story-1.3). STORY-1.4 DONE (4/4 via npm run test:story-1.4). Epic-level acceptance criteria (multi-env Supabase, DEP-09 integration checklist) lack automated tests; not gating child rollup."
     },
     {
       "id": "STORY-1.1",
@@ -490,8 +490,8 @@
         "command": "npm test -- --reporter=json -t STORY_1_2"
       },
       "status": "DONE",
-      "last_updated": "2026-06-30T00:00:00Z",
-      "audit_notes": "npm run test:story-1.2: 6/6 PASS (AC1 cap_sync_scripts, AC1 webDir apps/mobile/dist, AC1 cap_sync_after_vite_build, AC2 supabase_client_typed, AC3 release_signing_documented, AC4 native_plugins_configured). Monorepo path updates verified."
+      "last_updated": "2026-07-03T00:00:00Z",
+      "audit_notes": "npm run test:story-1.2: 6/6 PASS. AC1 test_STORY_1_2_AC1_cap_sync_scripts_configured PASS. AC1 test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output PASS. AC1 test_STORY_1_2_AC1_cap_sync_after_vite_build PASS. AC2 test_STORY_1_2_AC2_supabase_client_typed PASS. AC3 test_STORY_1_2_AC3_release_signing_documented PASS. AC4 test_STORY_1_2_AC4_native_plugins_configured PASS. Re-audited after native-release.md and package.json changes."
     },
     {
       "id": "STORY-1.3",
@@ -550,8 +550,8 @@
         "command": "npm run test:story-1.3"
       },
       "status": "DONE",
-      "last_updated": "2026-06-30T00:00:00Z",
-      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC0 escalation migration, AC1 admin route guard, AC2 four pillars nav, AC3 vercel.json+admin-deploy.md, AC4 Sanity Studio link. Structure tests (repository ports, no direct supabase in UI, branded types) PASS."
+      "last_updated": "2026-07-03T00:00:00Z",
+      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC1 test_STORY_1_3_AC1_admin_routes_require_admin_role PASS. AC2 test_STORY_1_3_AC2_dashboard_nav_four_pillars PASS. AC3 test_STORY_1_3_AC3_staging_deploy_configured PASS. AC4 test_STORY_1_3_AC4_content_links_sanity_studio PASS. Re-audited after apps/admin/ and admin-deploy.md changes."
     },
     {
       "id": "STORY-1.4",
@@ -567,35 +567,46 @@
         {
           "id": "AC-1",
           "statement": "GitHub Actions (or equivalent) runs on PR and main branch",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC1_github_actions_pr_and_main"
         },
         {
           "id": "AC-2",
           "statement": "Capacitor Android release build succeeds in CI",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC2_android_release_ci_configured"
         },
         {
           "id": "AC-3",
           "statement": "Admin web build deploys on merge to main",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC3_admin_deploy_on_main_merge"
         },
         {
           "id": "AC-4",
           "statement": "Runbook documents environment promotion steps",
-          "test": null
+          "test": "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC4_environment_promotion_runbook"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          ".github/workflows/ (inferred)",
-          "capacitor.config.json"
+        "tests": [
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC1_github_actions_pr_and_main",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC2_android_release_ci_configured",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC3_admin_deploy_on_main_merge",
+          "tests/cicd/story-1.4.test.js::test_STORY_1_4_AC4_environment_promotion_runbook"
         ],
-        "command": null
+        "files": [
+          ".github/workflows/ci.yml",
+          ".github/workflows/deploy-admin.yml",
+          "android/app/build.gradle",
+          "docs/delivery/environment-promotion.md",
+          "docs/architecture/native-release.md",
+          "docs/architecture/tech-stack.md",
+          "tests/cicd/story-1.4.test.js",
+          "package.json"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_1_4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-03T00:00:00Z",
+      "audit_notes": "npm run test:story-1.4: 4/4 PASS. AC1 test_STORY_1_4_AC1_github_actions_pr_and_main PASS. AC2 test_STORY_1_4_AC2_android_release_ci_configured PASS. AC3 test_STORY_1_4_AC3_admin_deploy_on_main_merge PASS. AC4 test_STORY_1_4_AC4_environment_promotion_runbook PASS. Re-audited after deploy-admin.yml and story-1.4.test.js changes."
     },
     {
       "id": "EPIC-2",
