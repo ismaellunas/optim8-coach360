@@ -26,10 +26,14 @@ npm run dev:admin    # http://localhost:5174
 ## Vercel setup
 
 1. Create a Vercel project pointing at this repository
-2. Set **Root Directory** to `apps/admin` (or use monorepo project settings)
-3. **Build command:** `npm run build` (from `apps/admin` workspace) or `npm run build:admin` from repo root
-4. **Output directory:** `dist`
-5. `vercel.json` in `apps/admin/` configures SPA rewrites and security headers
+2. Set **Root Directory** to `apps/admin`
+3. **Install command:** `cd ../.. && npm ci` (installs the full npm workspace from repo root)
+4. **Build command:** `cd ../.. && npm run build:admin` (runs `build` in `@coach360/admin` via workspace)
+5. **Output directory:** `dist`
+
+These commands are also declared in `apps/admin/vercel.json` so CI (`vercel build`) and the dashboard stay aligned.
+
+Do **not** set the build command to `npm run build:admin` with root directory `apps/admin` — that script exists only at the repo root.
 
 Recommended hostname: `admin.coach360.com` (staging: `admin-staging.coach360.com`)
 
