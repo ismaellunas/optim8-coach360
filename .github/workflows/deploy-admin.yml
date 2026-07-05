@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: deploy-admin-${{ github.ref }}
@@ -37,8 +38,7 @@ jobs:
         working-directory: apps/admin
         run: |
           if [ ! -f .vercel/.env.production.local ]; then
-            echo "Missing .vercel/.env.production.local after vercel pull."
-            echo "Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set for Production in Vercel."
+            echo "::error::Missing .vercel/.env.production.local after vercel pull."
             exit 1
           fi
           cp .vercel/.env.production.local ../../.env.production.local
@@ -48,7 +48,30 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -a
+          if [ -f ../../.env.production.local ]; then
+            # shellcheck disable=SC1091
+            . ../../.env.production.local
+          fi
+          set +a
+
+          # Optional override when vercel pull omits Build-scoped vars
+          if [ -n "${{ secrets.VITE_SUPABASE_URL }}" ]; then
+            export VITE_SUPABASE_URL="${{ secrets.VITE_SUPABASE_URL }}"
+          fi
+          if [ -n "${{ secrets.VITE_SUPABASE_ANON_KEY }}" ]; then
+            export VITE_SUPABASE_ANON_KEY="${{ secrets.VITE_SUPABASE_ANON_KEY }}"
+          fi
+
+          if [ -z "${VITE_SUPABASE_URL:-}" ] || [ -z "${VITE_SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY at build time."
+            echo "In Vercel: set both for Production and enable them for Build (not Runtime only)."
+            echo "Or add GitHub repo secrets VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY."
+            exit 1
+          fi
+
+          npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel production
         working-directory: apps/admin
