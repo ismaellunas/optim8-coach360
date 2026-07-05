@@ -35,6 +35,8 @@ These commands are also declared in `apps/admin/vercel.json` so CI (`vercel buil
 
 Do **not** set the build command to `npm run build:admin` with root directory `apps/admin` — that script exists only at the repo root.
 
+**CI note:** GitHub Actions builds on the runner, not on Vercel's servers. `vercel pull` writes Production env to `apps/admin/.vercel/.env.production.local`; the deploy workflow copies that file to the repo root as `.env.production.local` because Vite reads env from the monorepo root (`envDir` in `apps/admin/vite.config.ts`).
+
 Recommended hostname: `admin.coach360.com` (staging: `admin-staging.coach360.com`)
 
 ---
