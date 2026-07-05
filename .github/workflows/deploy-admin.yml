@@ -33,19 +33,22 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: npx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
+      - name: Materialize Vite env for monorepo build
+        working-directory: apps/admin
+        run: |
+          if [ ! -f .vercel/.env.production.local ]; then
+            echo "Missing .vercel/.env.production.local after vercel pull."
+            echo "Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set for Production in Vercel."
+            exit 1
+          fi
+          cp .vercel/.env.production.local ../../.env.production.local
+
       - name: Build admin web app for Vercel
         working-directory: apps/admin
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ -f .vercel/.env.production.local ]; then
-            set -a
-            # shellcheck disable=SC1091
-            source .vercel/.env.production.local
-            set +a
-          fi
-          npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel production
         working-directory: apps/admin
