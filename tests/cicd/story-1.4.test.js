@@ -11,7 +11,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
 const CI_WORKFLOW = path.join(REPO_ROOT, '.github', 'workflows', 'ci.yml');
-const DEPLOY_WORKFLOW = path.join(REPO_ROOT, '.github', 'workflows', 'deploy-admin.yml');
+const ADMIN_VERCEL_JSON = path.join(REPO_ROOT, 'apps', 'admin', 'vercel.json');
+const ADMIN_DEPLOY_DOC = path.join(REPO_ROOT, 'docs', 'architecture', 'admin-deploy.md');
 const ANDROID_BUILD_GRADLE = path.join(REPO_ROOT, 'android', 'app', 'build.gradle');
 const RUNBOOK = path.join(REPO_ROOT, 'docs', 'delivery', 'environment-promotion.md');
 const RELEASE_APK = path.join(
@@ -101,19 +102,18 @@ describe('STORY_1_4 AC2 — Android release build in CI', () => {
 });
 
 describe('STORY_1_4 AC3 — admin deploy on merge to main', () => {
-  it('test_STORY_1_4_AC3_admin_deploy_on_main_merge: deploy workflow builds admin and deploys via Vercel', () => {
-    expect(existsSync(DEPLOY_WORKFLOW)).toBe(true);
-    const workflow = readFileSync(DEPLOY_WORKFLOW, 'utf8');
-    const vercelJson = path.join(REPO_ROOT, 'apps', 'admin', 'vercel.json');
+  it('test_STORY_1_4_AC3_admin_deploy_on_main_merge: vercel config deploys admin on merge to main', () => {
+    expect(existsSync(ADMIN_VERCEL_JSON)).toBe(true);
+    expect(existsSync(ADMIN_DEPLOY_DOC)).toBe(true);
 
-    expect(workflow).toMatch(/push:/);
-    expect(workflow).toMatch(/branches:\s*\n\s*-\s*main/);
-    expect(workflow).toMatch(/vercel@latest build/);
-    expect(workflow).toMatch(/vercel/);
-    expect(workflow).toMatch(/VERCEL_TOKEN/);
-    expect(workflow).toMatch(/VERCEL_ORG_ID/);
-    expect(workflow).toMatch(/VERCEL_PROJECT_ID/);
-    expect(existsSync(vercelJson)).toBe(true);
+    const vercelJson = readFileSync(ADMIN_VERCEL_JSON, 'utf8');
+    const adminDeploy = readFileSync(ADMIN_DEPLOY_DOC, 'utf8');
+
+    expect(vercelJson).toMatch(/buildCommand/);
+    expect(vercelJson).toMatch(/npm run build:admin/);
+    expect(adminDeploy).toMatch(/merge to `main`/i);
+    expect(adminDeploy).toMatch(/Vercel/i);
+    expect(adminDeploy).toMatch(/vercel\.json/);
   });
 });
 
@@ -130,7 +130,7 @@ describe('STORY_1_4 AC4 — environment promotion runbook', () => {
     expect(doc).toMatch(/secrets/i);
     expect(doc).toMatch(/rollback/i);
     expect(doc).toMatch(/ci\.yml/);
-    expect(doc).toMatch(/deploy-admin\.yml/);
+    expect(doc).toMatch(/Vercel Git integration/i);
     expect(doc).toMatch(/admin-deploy\.md/);
     expect(doc).toMatch(/native-release\.md/);
   });

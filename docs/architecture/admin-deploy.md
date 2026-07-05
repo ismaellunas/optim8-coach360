@@ -31,13 +31,20 @@ npm run dev:admin    # http://localhost:5174
 4. **Build command:** `cd ../.. && npm run build:admin` (runs `build` in `@coach360/admin` via workspace)
 5. **Output directory:** `dist`
 
-These commands are also declared in `apps/admin/vercel.json` so CI (`vercel build`) and the dashboard stay aligned.
+These commands are also declared in `apps/admin/vercel.json` so the Vercel dashboard and CLI stay aligned.
 
 Do **not** set the build command to `npm run build:admin` with root directory `apps/admin` — that script exists only at the repo root.
 
-**CI note:** GitHub Actions builds on the runner, not on Vercel's servers. The deploy workflow pulls Production env via `vercel pull`, copies it to the repo root, then **exports `VITE_*` into the shell** before `vercel build` (Vite reads `process.env` at config load time).
+### Deploy on merge to `main`
 
-Ensure each `VITE_*` variable is enabled for **Build** in Vercel (not Runtime only). If `vercel pull` still omits them, add GitHub repository secrets `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` as a fallback.
+Connect the Vercel project to this GitHub repository (Vercel → Project → Settings → Git):
+
+- **Production branch:** `main`
+- **Root directory:** `apps/admin`
+
+Vercel builds on its own infrastructure when code is merged to `main`. Env vars from the Vercel dashboard are injected at build time — no GitHub Actions deploy workflow is required.
+
+Ensure each `VITE_*` variable is enabled for **Build** in Vercel (not Runtime only).
 
 Recommended hostname: `admin.coach360.com` (staging: `admin-staging.coach360.com`)
 
@@ -73,7 +80,7 @@ In Supabase Dashboard → **Authentication** → **URL Configuration**, set **Si
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | `Invalid path specified in request URL` | `VITE_SUPABASE_URL` includes `/rest/v1` or points at the Vercel app URL | Set bare `https://<ref>.supabase.co` in Vercel Production env, redeploy |
-| `Missing VITE_SUPABASE_* at build time` | Vars not exported before `vercel build` in CI | Enable **Build** on Vercel env vars; or add GitHub secrets `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` |
+| `Missing VITE_SUPABASE_* at build time` | Env vars missing or Runtime-only in Vercel | Enable **Build** on Production env vars in Vercel; redeploy |
 | `admin_access_denied:*` | User exists but `profiles.role` is not `admin` | Run `npm run seed:admin` against the target project |
 | `Invalid login credentials` | Wrong email/password | Reset credentials in Supabase Auth |
 

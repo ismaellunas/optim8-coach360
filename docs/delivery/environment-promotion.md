@@ -13,19 +13,11 @@
 | **Staging** | Dedicated Supabase project | Vercel preview or `admin-staging.coach360.com` | Internal testing track / debug builds |
 | **Production** | Production Supabase project | `admin.coach360.com` (Vercel) | App Store / Play Store |
 
-Never commit credentials. Use GitHub Actions secrets for CI/CD and Vercel env vars for admin deploys.
+Never commit credentials. Use Vercel env vars for admin deploys; GitHub Actions runs CI only (lint, tests, Android build).
 
 ---
 
 ## Secrets management
-
-### GitHub Actions (repository → Settings → Secrets)
-
-| Secret | Used by | Notes |
-|--------|---------|-------|
-| `VERCEL_TOKEN` | `deploy-admin.yml` | Vercel account token |
-| `VERCEL_ORG_ID` | `deploy-admin.yml` | Team or personal org ID |
-| `VERCEL_PROJECT_ID` | `deploy-admin.yml` | Admin project ID (`apps/admin`) |
 
 ### Vercel (admin app)
 
@@ -60,7 +52,7 @@ Store keystore path and passwords in a password manager or CI secrets — **neve
 
 ## Promotion: Admin web
 
-Automated on merge to `main` via [`.github/workflows/deploy-admin.yml`](../../.github/workflows/deploy-admin.yml).
+Automated on merge to `main` via **Vercel Git integration** — see [`admin-deploy.md`](../architecture/admin-deploy.md#deploy-on-merge-to-main).
 
 ### Manual promotion checklist
 
@@ -98,7 +90,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | PR + push to `main` | Lint, typecheck, story tests 1.2–1.4, Android `assembleRelease` |
-| [`.github/workflows/deploy-admin.yml`](../../.github/workflows/deploy-admin.yml) | Push to `main` | `build:admin` + Vercel production deploy |
+| Vercel Git integration (`apps/admin`) | Push to `main` | `build:admin` on Vercel → production deploy |
 
 **Note:** STORY-1.1 database tests (`db:verify`) require local Supabase Docker and are not run in default CI. Run manually before schema promotions.
 
@@ -107,7 +99,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 ## First-time setup
 
 1. Create Supabase projects for staging and production.
-2. Create Vercel project for `apps/admin`; add GitHub secrets (`VERCEL_*`).
+2. Create Vercel project for `apps/admin`; connect GitHub repo with Production branch `main`.
 3. Register `com.coach360.app` in Apple Developer and Google Play Console.
 4. Generate Android release keystore; configure signing in `android/app/build.gradle` for local/store builds (not CI).
 
