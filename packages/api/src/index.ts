@@ -7,6 +7,7 @@ export {
 export { createMemoryAuthStorage } from './adapters/supabase/memory-auth-storage.js';
 export { SupabaseAppAuthRepository } from './adapters/supabase/supabase-app-auth-repository.js';
 export { SupabaseProfileRepository } from './adapters/supabase/supabase-profile-repository.js';
+export { SupabaseSubscriptionRepository } from './adapters/supabase/supabase-subscription-repository.js';
 export { ApiError, NotImplementedAdapterError } from './client/types.js';
 export type { PaginatedResult, ApiAdapterMode } from './client/types.js';
 export { HttpClient } from './client/http-client.js';

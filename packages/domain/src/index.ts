@@ -39,3 +39,19 @@ export {
   type TeamManagerProfileInput,
 } from './profile/schema.js';
 export { isProfileComplete } from './profile/rules.js';
+export {
+  subscriptionTierSchema,
+  subscriptionStatusSchema,
+  subscriptionSchema,
+  type SubscriptionTier,
+  type SubscriptionStatus,
+  type Subscription,
+} from './subscription/schema.js';
+export {
+  TRIAL_DURATION_DAYS,
+  needsSubscriptionGate,
+  trialGrantsProAccess,
+  effectiveTierForAccess,
+  legacyDisplayTier,
+  trialDaysRemaining,
+} from './subscription/rules.js';
