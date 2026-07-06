@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
 import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
+import { CoachOnboardingGate } from "./features/onboarding/ui/CoachOnboardingGate.jsx";
+import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
@@ -982,6 +984,7 @@ function AdminDetailScreen({ screen, onBack }) {
 function Coach360App() {
   var auth = useAuth();
   var subscriptionState = useSubscription();
+  var onboardingNav = useOnboardingNavigation();
   var session = auth.session;
   var user = session
     ? mapAppUserToLegacy(session.user, {
@@ -1001,11 +1004,18 @@ function Coach360App() {
   }, []);
 
   useEffect(function() {
-    if (auth.justRegistered && session) {
+    if (auth.justRegistered && session && session.user.role !== 'coach') {
       setOnboarding(true);
       auth.clearJustRegistered();
     }
   }, [auth, session, setOnboarding]);
+
+  useEffect(function() {
+    if (onboardingNav.redirectToSchedule) {
+      setScreen("schedule");
+      onboardingNav.clearRedirectToSchedule();
+    }
+  }, [onboardingNav, setScreen]);
 
   useEffect(function() {
     if (subscriptionState.redirectToSubscription) {
@@ -1103,7 +1113,9 @@ export default function Coach360() {
     <AuthGate>
       <ProfileGate>
         <SubscriptionGate>
-          <Coach360App />
+          <CoachOnboardingGate>
+            <Coach360App />
+          </CoachOnboardingGate>
         </SubscriptionGate>
       </ProfileGate>
     </AuthGate>

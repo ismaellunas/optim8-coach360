@@ -40,6 +40,11 @@ export class RestProfileRepository implements ProfileRepository {
     throw new NotImplementedAdapterError('rest', 'enterTeamSetupPath');
   }
 
+  async completeCoachOnboarding(id: string): Promise<Profile> {
+    void id;
+    throw new NotImplementedAdapterError('rest', 'completeCoachOnboarding');
+  }
+
   async uploadAvatar(id: string, file: Blob, fileName: string): Promise<string> {
     void id;
     void file;

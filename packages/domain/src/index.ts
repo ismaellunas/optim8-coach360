@@ -40,6 +40,11 @@ export {
 } from './profile/schema.js';
 export { isProfileComplete } from './profile/rules.js';
 export {
+  COACH_ONBOARDING_COMPLETED_EVENT,
+  COACH_ONBOARDING_STEP_COUNT,
+  needsCoachOnboarding,
+} from './onboarding/rules.js';
+export {
   subscriptionTierSchema,
   subscriptionStatusSchema,
   subscriptionSchema,

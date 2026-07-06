@@ -6,12 +6,14 @@ import type { UserRepository } from '../ports/user-repository.js';
 import type { SubscriptionRepository } from '../ports/subscription-repository.js';
 import type { ContentRepository } from '../ports/content-repository.js';
 import type { ProfileRepository } from '../ports/profile-repository.js';
+import type { AnalyticsRepository } from '../ports/analytics-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
 import { RestContentRepository } from '../adapters/rest/rest-content-repository.js';
 import { RestProfileRepository } from '../adapters/rest/rest-profile-repository.js';
+import { RestAnalyticsRepository } from '../adapters/rest/rest-analytics-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -23,6 +25,7 @@ import { SupabaseUserRepository } from '../adapters/supabase/supabase-user-repos
 import { SupabaseSubscriptionRepository } from '../adapters/supabase/supabase-subscription-repository.js';
 import { SupabaseContentRepository } from '../adapters/supabase/supabase-content-repository.js';
 import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile-repository.js';
+import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
 
 export type RepositoryBundle = {
   auth: AuthRepository;
@@ -31,6 +34,7 @@ export type RepositoryBundle = {
   profiles: ProfileRepository;
   subscriptions: SubscriptionRepository;
   content: ContentRepository;
+  analytics: AnalyticsRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -55,6 +59,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       profiles: new RestProfileRepository(),
       subscriptions: new RestSubscriptionRepository(),
       content: new RestContentRepository(),
+      analytics: new RestAnalyticsRepository(),
     };
   }
 
@@ -79,6 +84,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     profiles: new SupabaseProfileRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     content: new SupabaseContentRepository(),
+    analytics: new ConsoleAnalyticsRepository(),
   };
 }
 

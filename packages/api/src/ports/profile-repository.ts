@@ -11,5 +11,6 @@ export type ProfileRepository = {
   updatePlayerProfile(id: string, input: PlayerProfileInput): Promise<Profile>;
   updateTeamManagerProfile(id: string, input: TeamManagerProfileInput): Promise<Profile>;
   enterTeamSetupPath(id: string, input?: TeamManagerProfileInput): Promise<Profile>;
+  completeCoachOnboarding(id: string): Promise<Profile>;
   uploadAvatar(id: string, file: Blob, fileName: string): Promise<string>;
 };

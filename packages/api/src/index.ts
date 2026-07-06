@@ -15,6 +15,7 @@ export type { AuthRepository, SignInInput } from './ports/auth-repository.js';
 export type { AppAuthRepository } from './ports/app-auth-repository.js';
 export type { UserRepository } from './ports/user-repository.js';
 export type { ProfileRepository } from './ports/profile-repository.js';
+export type { AnalyticsRepository } from './ports/analytics-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type { ContentRepository, ContentItem } from './ports/content-repository.js';
 export {

@@ -374,8 +374,8 @@
         "Integration test checklist covers cross-flow scenarios per DEP-09"
       ],
       "status": "DONE",
-      "last_updated": "2026-07-03T00:00:00Z",
-      "audit_notes": "Child rollup: STORY-1.1 DONE (4/4 via npm run db:verify). STORY-1.2 DONE (6/6 via npm run test:story-1.2). STORY-1.3 DONE (8/8 via npm run test:story-1.3). STORY-1.4 DONE (4/4 via npm run test:story-1.4). Epic-level acceptance criteria (multi-env Supabase, DEP-09 integration checklist) lack automated tests; not gating child rollup."
+      "last_updated": "2026-07-06T06:27:00Z",
+      "audit_notes": "Child rollup: STORY-1.1 DONE (4/4 AC tests PASS with local Supabase). STORY-1.2 DONE (6/6 PASS). STORY-1.3 DONE (8/8 PASS). STORY-1.4 DONE (4/4 PASS). Re-audited 2026-07-06 after EPIC-2 auth/subscription changes. Epic-level criteria (multi-env, DEP-09 checklist) still lack automated tests."
     },
     {
       "id": "STORY-1.1",
@@ -431,8 +431,8 @@
         "command": "supabase db reset --no-seed && npm test -- --reporter=json -t STORY_1_1"
       },
       "status": "DONE",
-      "last_updated": "2026-06-30T00:00:00Z",
-      "audit_notes": "npm run db:verify: 4/4 PASS. AC1 test_STORY_1_1_AC1_supabase_services_configured PASS. AC2 test_STORY_1_1_AC2_core_tables_exist PASS. AC3 test_STORY_1_1_AC3_rls_coach_player_team_isolation PASS. AC4 test_STORY_1_1_AC4_database_types_exported PASS. Migrations include 20260630100000_prevent_profile_escalation.sql."
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (test file touched). npm run test:story-1.1: 4/4 PASS. AC1 test_STORY_1_1_AC1_supabase_services_configured PASS. AC2 test_STORY_1_1_AC2_core_tables_exist PASS. AC3 test_STORY_1_1_AC3_rls_coach_player_team_isolation PASS. AC4 test_STORY_1_1_AC4_database_types_exported PASS."
     },
     {
       "id": "STORY-1.2",
@@ -490,8 +490,8 @@
         "command": "npm test -- --reporter=json -t STORY_1_2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-03T00:00:00Z",
-      "audit_notes": "npm run test:story-1.2: 6/6 PASS. AC1 test_STORY_1_2_AC1_cap_sync_scripts_configured PASS. AC1 test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output PASS. AC1 test_STORY_1_2_AC1_cap_sync_after_vite_build PASS. AC2 test_STORY_1_2_AC2_supabase_client_typed PASS. AC3 test_STORY_1_2_AC3_release_signing_documented PASS. AC4 test_STORY_1_2_AC4_native_plugins_configured PASS. Re-audited after native-release.md and package.json changes."
+      "last_updated": "2026-07-06T06:27:00Z",
+      "audit_notes": "npm test -t STORY_1_2: 6/6 PASS. AC1 test_STORY_1_2_AC1_cap_sync_scripts_configured PASS. AC1 test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output PASS. AC1 test_STORY_1_2_AC1_cap_sync_after_vite_build PASS. AC2 test_STORY_1_2_AC2_supabase_client_typed PASS. AC3 test_STORY_1_2_AC3_release_signing_documented PASS. AC4 test_STORY_1_2_AC4_native_plugins_configured PASS."
     },
     {
       "id": "STORY-1.3",
@@ -550,8 +550,8 @@
         "command": "npm run test:story-1.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-03T00:00:00Z",
-      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC1 test_STORY_1_3_AC1_admin_routes_require_admin_role PASS. AC2 test_STORY_1_3_AC2_dashboard_nav_four_pillars PASS. AC3 test_STORY_1_3_AC3_staging_deploy_configured PASS. AC4 test_STORY_1_3_AC4_content_links_sanity_studio PASS. Re-audited after apps/admin/ and admin-deploy.md changes."
+      "last_updated": "2026-07-06T06:27:00Z",
+      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC1 test_STORY_1_3_AC1_admin_routes_require_admin_role PASS. AC2 test_STORY_1_3_AC2_dashboard_nav_four_pillars PASS. AC3 test_STORY_1_3_AC3_staging_deploy_configured PASS. AC4 test_STORY_1_3_AC4_content_links_sanity_studio PASS."
     },
     {
       "id": "STORY-1.4",
@@ -606,8 +606,8 @@
         "command": "npm test -- --reporter=json -t STORY_1_4"
       },
       "status": "DONE",
-      "last_updated": "2026-07-03T00:00:00Z",
-      "audit_notes": "npm run test:story-1.4: 4/4 PASS. AC1 test_STORY_1_4_AC1_github_actions_pr_and_main PASS. AC2 test_STORY_1_4_AC2_android_release_ci_configured PASS. AC3 test_STORY_1_4_AC3_admin_deploy_on_main_merge PASS. AC4 test_STORY_1_4_AC4_environment_promotion_runbook PASS. Re-audited after deploy-admin.yml and story-1.4.test.js changes."
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (test file touched). npm run test:story-1.4: 4/4 PASS. AC1 test_STORY_1_4_AC1_github_actions_pr_and_main PASS. AC2 test_STORY_1_4_AC2_android_release_ci_configured PASS. AC3 test_STORY_1_4_AC3_admin_deploy_on_main_merge PASS. AC4 test_STORY_1_4_AC4_environment_promotion_runbook PASS."
     },
     {
       "id": "EPIC-2",
@@ -627,9 +627,9 @@
         "Guided onboarding wizards exist for coach and player first login",
         "Independent operation without a team is supported for coaches and players"
       ],
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "IN_PROGRESS",
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Child rollup (60ebf21..HEAD): STORY-2.1 DONE (6/6 PASS). STORY-2.2 DONE (5/5 PASS). STORY-2.3 DONE (4/4 PASS). STORY-2.4 DONE (5/5 PASS). STORY-2.5 TODO."
     },
     {
       "id": "STORY-2.1",
@@ -692,8 +692,8 @@
         "command": "npm run test:story-2.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T00:09:00Z",
-      "audit_notes": "Mobile email sign-up/sign-in via AppAuthRepository; role required at signup (Coach/Player/Team Manager) persisted via auth metadata; AuthGate blocks main app; Capacitor Preferences session storage on native. Unit tests cover all ACs; optional cloud integration via SUPABASE_RUN_INTEGRATION=1."
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (auth/App.jsx touched). npm run test:story-2.1: 6/6 PASS. AC1 test_STORY_2_1_AC1_email_signup_and_profile PASS. AC2 test_STORY_2_1_AC2_session_persists_across_restarts PASS. AC2 test_STORY_2_1_AC2_capacitor_storage_adapter PASS. AC3 test_STORY_2_1_AC3_unauthenticated_blocked_from_app PASS. AC3 test_STORY_2_1_AC3_authenticated_allowed PASS. AC3 test_STORY_2_1_AC3_auth_gate_blocks_unauthenticated PASS."
     },
     {
       "id": "STORY-2.2",
@@ -762,8 +762,8 @@
         "command": "npm run test:story-2.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T00:00:00Z",
-      "audit_notes": "ProfileGate blocks main app until role-specific profile setup completes; coach context, player age/position/optional photo, and team-manager team-setup path persist to profiles via ProfileRepository. Role selection at registration retained from STORY-2.1. All AC unit tests pass."
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (profile schema/App.jsx touched for STORY-2.4). npm run test:story-2.2: 5/5 PASS. AC1 test_STORY_2_2_AC1_registration_role_selection PASS. AC2 test_STORY_2_2_AC2_coach_profile_captures_context PASS. AC3 test_STORY_2_2_AC3_player_profile_fields PASS. AC4 test_STORY_2_2_AC4_team_manager_requires_team_setup_path PASS. AC5 test_STORY_2_2_AC5_profile_persists_to_supabase PASS."
     },
     {
       "id": "STORY-2.3",
@@ -830,8 +830,8 @@
         "command": "npm run test:story-2.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T04:20:00Z",
-      "audit_notes": "SubscriptionGate after ProfileGate shows trial/tier/defer choice; activate_user_trial and defer_user_to_basic RPCs persist choices; mapAppUserToLegacy reads Supabase subscription; stripe-webhook handler syncs Stripe events via sync_subscription_from_stripe. All AC unit tests pass."
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (subscription/App.jsx touched). npm run test:story-2.3: 4/4 PASS. AC1 test_STORY_2_3_AC1_subscription_choice_after_profile PASS. AC2 test_STORY_2_3_AC2_trial_grants_pro_access PASS. AC3 test_STORY_2_3_AC3_defer_lands_on_basic PASS. AC4 test_STORY_2_3_AC4_stripe_webhook_syncs_subscription PASS."
     },
     {
       "id": "STORY-2.4",
@@ -848,39 +848,66 @@
         {
           "id": "AC-1",
           "statement": "Progress indicator shows onboarding steps",
-          "test": null
+          "test": "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC1_progress_indicator_shows_steps"
         },
         {
           "id": "AC-2",
           "statement": "Coach can skip team creation and player invites",
-          "test": null
+          "test": "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC2_skip_team_and_invites"
         },
         {
           "id": "AC-3",
           "statement": "Marketplace browse step surfaces catalog without purchase required",
-          "test": null
+          "test": "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC3_marketplace_browse_without_purchase"
         },
         {
           "id": "AC-4",
           "statement": "Create-first-session step links to scheduling flow",
-          "test": null
+          "test": "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC4_session_step_links_to_schedule"
         },
         {
           "id": "AC-5",
           "statement": "Onboarding completion recorded for analytics",
-          "test": null
+          "test": "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC5_onboarding_completion_recorded"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx"
+        "tests": [
+          "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC1_progress_indicator_shows_steps",
+          "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC2_skip_team_and_invites",
+          "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC3_marketplace_browse_without_purchase",
+          "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC4_session_step_links_to_schedule",
+          "tests/onboarding/story-2.4.test.js::test_STORY_2_4_AC5_onboarding_completion_recorded"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260706130000_coach_onboarding.sql",
+          "packages/domain/src/onboarding/rules.ts",
+          "packages/domain/src/profile/schema.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/analytics-repository.ts",
+          "packages/api/src/ports/profile-repository.ts",
+          "packages/api/src/adapters/console/console-analytics-repository.ts",
+          "packages/api/src/adapters/rest/rest-analytics-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-profile-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/profile-mapper.ts",
+          "packages/api/src/adapters/rest/rest-profile-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "apps/mobile/src/features/onboarding/ui/CoachOnboardingGate.jsx",
+          "apps/mobile/src/features/onboarding/ui/CoachOnboardingWizard.jsx",
+          "apps/mobile/src/features/onboarding/ui/CoachOnboardingProgress.jsx",
+          "apps/mobile/src/features/onboarding/lib/coach-onboarding-steps.js",
+          "apps/mobile/src/features/onboarding/lib/mock-marketplace-catalog.js",
+          "apps/mobile/src/features/onboarding/model/onboarding-navigation-context.jsx",
+          "apps/mobile/src/App.jsx",
+          "tests/onboarding/story-2.4.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-2.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-06T06:38:00Z",
+      "audit_notes": "Re-audited 60ebf21..HEAD (new coach onboarding). npm run test:story-2.4: 5/5 PASS. AC1 test_STORY_2_4_AC1_progress_indicator_shows_steps PASS. AC2 test_STORY_2_4_AC2_skip_team_and_invites PASS. AC3 test_STORY_2_4_AC3_marketplace_browse_without_purchase PASS. AC4 test_STORY_2_4_AC4_session_step_links_to_schedule PASS. AC5 test_STORY_2_4_AC5_onboarding_completion_recorded PASS."
     },
     {
       "id": "STORY-2.5",

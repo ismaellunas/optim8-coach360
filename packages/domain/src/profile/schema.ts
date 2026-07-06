@@ -15,6 +15,7 @@ export const profileSchema = z.object({
   position: z.string().nullable(),
   profileCompletedAt: z.string().datetime({ offset: true }).nullable(),
   teamSetupPathEnteredAt: z.string().datetime({ offset: true }).nullable(),
+  coachOnboardingCompletedAt: z.string().datetime({ offset: true }).nullable(),
 });
 
 export type Profile = z.infer<typeof profileSchema>;
