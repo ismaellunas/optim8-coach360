@@ -14,7 +14,11 @@ import { initNativeShell } from './lib/capacitor.js';
 import { AppProviders } from './app/providers/AppProviders.jsx';
 
 async function bootstrap() {
-  await initNativeShell();
+  try {
+    await initNativeShell();
+  } catch (error) {
+    console.error('Native shell init failed', error);
+  }
 
   createRoot(document.getElementById('root')).render(
     <StrictMode>
@@ -25,4 +29,6 @@ async function bootstrap() {
   );
 }
 
-bootstrap();
+bootstrap().catch(function (error) {
+  console.error('App bootstrap failed', error);
+});

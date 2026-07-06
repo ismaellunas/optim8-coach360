@@ -19,7 +19,7 @@
     "build:cap": "npm run build:mobile && cap sync",
     "build:android:release": "npm run build:mobile && npx cap sync android && bash scripts/build-android-release.sh",
     "cap:sync": "cap sync",
-    "cap:ios": "cap open ios",
+    "cap:ios": "npm run build:cap && cap open ios",
     "cap:android": "cap open android",
     "lint": "eslint .",
     "test": "vitest run",
@@ -36,7 +36,7 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.6.6",
+    "@capacitor/cli": "^7.6.7",
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../model/auth-context.jsx';
+import { useAuth } from '../model/use-auth.js';
 import { SignInScreen, SignUpScreen } from './AuthScreens.jsx';
 import { RoleSelectScreen } from './RoleSelectScreen.jsx';
 

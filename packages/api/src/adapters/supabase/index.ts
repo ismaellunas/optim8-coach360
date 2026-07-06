@@ -3,7 +3,6 @@ import {
   type CreateSupabaseClientOptions,
   type SupabaseEnv,
 } from './create-supabase-client.js';
-import { loadProfileUser } from './load-profile-user.js';
 import { SupabaseAppAuthRepository } from './supabase-app-auth-repository.js';
 import { SupabaseAuthRepository } from './supabase-auth-repository.js';
 

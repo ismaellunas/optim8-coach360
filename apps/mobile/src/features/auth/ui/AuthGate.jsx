@@ -1,4 +1,4 @@
-import { useAuth } from '../model/auth-context.jsx';
+import { useAuth } from '../model/use-auth.js';
 import { AuthFlow } from '../ui/AuthFlow.jsx';
 
 export function AuthGate({ children }) {

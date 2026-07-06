@@ -2,6 +2,7 @@
 
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import process from 'node:process';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import ws from 'ws';
 import { createClient } from '@supabase/supabase-js';

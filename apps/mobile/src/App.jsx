@@ -1,7 +1,7 @@
 import './index.css';
 import { useState, useEffect } from "react";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
-import { useAuth } from "./features/auth/model/auth-context.jsx";
+import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
 
 const COLORS = {
@@ -995,7 +995,7 @@ function Coach360App() {
       setOnboarding(true);
       auth.clearJustRegistered();
     }
-  }, [auth, session]);
+  }, [auth, session, setOnboarding]);
 
   function go(s) { setScreen(s); }
 
