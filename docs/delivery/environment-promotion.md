@@ -91,6 +91,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 |----------|---------|---------|
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | PR + push to `main` | Lint, typecheck, story tests 1.2–1.4, Android `assembleRelease` |
 | Vercel Git integration (`apps/admin`) | Push to `main` | `build:admin` on Vercel → production deploy |
+| GitHub Pages (`docs/`) | Push to `main` | Tracker + markdown docs (branch deploy, no Actions workflow) |
 
 **Note:** STORY-1.1 database tests (`db:verify`) require local Supabase Docker and are not run in default CI. Run manually before schema promotions.
 

@@ -83,6 +83,14 @@ docs/
 
 ---
 
+## Publishing
+
+Docs are published from this folder via **GitHub Pages** (source: branch `main`, path `/docs`). Pushes to `main` update the site automatically.
+
+After adding or moving markdown files, run `npm run docs:manifest` (also runs on pre-commit) so `manifest.json` stays in sync for the doc viewer.
+
+---
+
 ## Sync & change policy
 
 1. **Product changes** → update `product/flows.md` first, then architecture docs.

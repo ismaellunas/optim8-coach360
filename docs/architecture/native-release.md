@@ -166,6 +166,7 @@ Pipelines live in [`.github/workflows/`](../../.github/workflows/):
 |----------|---------|------|
 | `ci.yml` | PR + push to `main` | Lint, typecheck, story tests, Android `assembleRelease` |
 | Vercel Git (`apps/admin`) | Push to `main` | `build:admin` → production deploy on Vercel |
+| GitHub Pages (`docs/`) | Push to `main` | Tracker + markdown docs (branch deploy) |
 
 Environment promotion (dev → staging → prod), secrets, and rollback: [`environment-promotion.md`](../delivery/environment-promotion.md).
 
