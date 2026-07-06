@@ -1,6 +1,7 @@
 import './index.css';
 import { useState, useEffect } from "react";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
+import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
 
@@ -1084,7 +1085,9 @@ function Coach360App() {
 export default function Coach360() {
   return (
     <AuthGate>
-      <Coach360App />
+      <ProfileGate>
+        <Coach360App />
+      </ProfileGate>
     </AuthGate>
   );
 }

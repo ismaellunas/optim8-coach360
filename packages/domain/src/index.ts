@@ -26,3 +26,16 @@ export {
   type AppSignInInput,
 } from './auth/schema.js';
 export { isAuthenticatedSession } from './auth/rules.js';
+export {
+  coachContextSchema,
+  profileSchema,
+  coachProfileInputSchema,
+  playerProfileInputSchema,
+  teamManagerProfileInputSchema,
+  type CoachContext,
+  type Profile,
+  type CoachProfileInput,
+  type PlayerProfileInput,
+  type TeamManagerProfileInput,
+} from './profile/schema.js';
+export { isProfileComplete } from './profile/rules.js';

@@ -15,6 +15,7 @@ export { createMemoryAuthStorage } from './memory-auth-storage.js';
 export { loadProfileUser } from './load-profile-user.js';
 export { SupabaseAppAuthRepository } from './supabase-app-auth-repository.js';
 export { SupabaseAuthRepository } from './supabase-auth-repository.js';
+export { SupabaseProfileRepository } from './supabase-profile-repository.js';
 
 export function createSharedSupabaseClient(
   env: SupabaseEnv,
