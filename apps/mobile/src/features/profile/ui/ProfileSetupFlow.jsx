@@ -5,6 +5,7 @@ import { CoachProfileForm } from './CoachProfileForm.jsx';
 import { PlayerProfileForm } from './PlayerProfileForm.jsx';
 import { TeamManagerProfileFlow } from './TeamManagerProfileFlow.jsx';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatProfileError(message, onProfileMissing) {
   if (message === 'profile_not_found') {
     return 'Your session is out of date. Sign out and sign in again (or create a new account after a database reset).';
