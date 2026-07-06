@@ -120,14 +120,10 @@ describeIntegration('STORY_1_1 AC3 — RLS enforces coach/player/team isolation'
         email,
         password,
         email_confirm: true,
+        user_metadata: { role },
       });
       if (error) throw error;
       created.users.push(data.user.id);
-      await admin
-        .from('profiles')
-        .update({ role })
-        .eq('id', data.user.id)
-        .throwOnError();
       // Separate auth-only client so signing in does not demote `admin`
       // from service role to this user.
       const authClient = createClient(supabaseEnv.API_URL, supabaseEnv.ANON_KEY, {

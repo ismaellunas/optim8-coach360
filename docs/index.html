@@ -636,7 +636,7 @@
       "type": "STORY",
       "parent": "EPIC-2",
       "title": "Supabase Auth sign-up and sign-in",
-      "description": "Email and magic-link authentication with session persistence on mobile and admin.",
+      "description": "Email sign-up and sign-in with session persistence on the mobile app.",
       "requirements": [
         "Flow-1",
         "docs/architecture/tech-stack.md#authentication",
@@ -646,35 +646,54 @@
         {
           "id": "AC-1",
           "statement": "User can create account with email and verify identity",
-          "test": null
+          "test": "tests/auth/story-2.1.test.js::test_STORY_2_1_AC1_email_signup_and_profile"
         },
         {
           "id": "AC-2",
-          "statement": "Magic link sign-in works on mobile deep link",
-          "test": null
+          "statement": "Auth session persists across app restarts",
+          "test": "tests/auth/story-2.1.test.js::test_STORY_2_1_AC2_session_persists_across_restarts"
         },
         {
           "id": "AC-3",
-          "statement": "Auth session persists across app restarts",
-          "test": null
-        },
-        {
-          "id": "AC-4",
           "statement": "Unauthenticated users cannot access main app screens",
-          "test": null
+          "test": "tests/auth/story-2.1.test.js::test_STORY_2_1_AC3_unauthenticated_blocked_from_app"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC1_email_signup_and_profile",
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC2_session_persists_across_restarts",
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC3_unauthenticated_blocked_from_app",
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC3_authenticated_allowed",
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC3_auth_gate_blocks_unauthenticated",
+          "tests/auth/story-2.1.test.js::test_STORY_2_1_AC2_capacitor_storage_adapter"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/auth/schema.ts",
+          "packages/domain/src/auth/rules.ts",
+          "packages/api/src/ports/app-auth-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-app-auth-repository.ts",
+          "packages/api/src/adapters/supabase/create-supabase-client.ts",
+          "packages/api/src/adapters/supabase/memory-auth-storage.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/mobile/src/features/auth/model/auth-context.jsx",
+          "apps/mobile/src/features/auth/ui/AuthFlow.jsx",
+          "apps/mobile/src/features/auth/ui/RoleSelectScreen.jsx",
+          "supabase/migrations/20260706100000_signup_role_from_metadata.sql",
+          "apps/mobile/src/features/auth/ui/AuthScreens.jsx",
+          "apps/mobile/src/features/auth/ui/AuthGate.jsx",
+          "apps/mobile/src/features/auth/lib/map-app-user.js",
+          "apps/mobile/src/app/providers/AppProviders.jsx",
+          "apps/mobile/src/lib/supabase-storage.js",
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/main.jsx",
+          "tests/auth/story-2.1.test.js"
+        ],
+        "command": "npm run test:story-2.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-06T00:09:00Z",
+      "audit_notes": "Mobile email sign-up/sign-in via AppAuthRepository; role required at signup (Coach/Player/Team Manager) persisted via auth metadata; AuthGate blocks main app; Capacitor Preferences session storage on native. Unit tests cover all ACs; optional cloud integration via SUPABASE_RUN_INTEGRATION=1."
     },
     {
       "id": "STORY-2.2",

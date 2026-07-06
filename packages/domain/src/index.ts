@@ -13,3 +13,16 @@ export {
   type AdminAccessDeniedReason,
   type AdminAccessResult,
 } from './user/rules.js';
+export {
+  signupRoleSchema,
+  appSessionSchema,
+  signUpResultSchema,
+  signUpInputSchema,
+  appSignInInputSchema,
+  type SignupRole,
+  type AppSession,
+  type SignUpResult,
+  type SignUpInput,
+  type AppSignInInput,
+} from './auth/schema.js';
+export { isAuthenticatedSession } from './auth/rules.js';

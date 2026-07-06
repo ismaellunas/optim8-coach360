@@ -1,28 +1,12 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import {
   adminSessionSchema,
   canAccessAdmin,
   type AdminSession,
   type User,
 } from '@coach360/domain';
-import { normalizeSupabaseUrl } from '../../client/normalize-supabase-url.js';
 import type { AuthRepository, SignInInput } from '../../ports/auth-repository.js';
-import { mapProfileToUser } from './mappers/user-mapper.js';
-
-export type SupabaseEnv = {
-  url: string;
-  anonKey: string;
-};
-
-export function createSupabaseClient(env: SupabaseEnv): SupabaseClient {
-  return createClient(normalizeSupabaseUrl(env.url), env.anonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  });
-}
+import { loadProfileUser } from './load-profile-user.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export class SupabaseAuthRepository implements AuthRepository {
   constructor(private readonly client: SupabaseClient) {}
@@ -37,7 +21,7 @@ export class SupabaseAuthRepository implements AuthRepository {
       throw new Error(error?.message ?? 'sign_in_failed');
     }
 
-    const user = await this.loadUser(data.user.id, data.user.email);
+    const user = await loadProfileUser(this.client, data.user.id, data.user.email);
     const access = canAccessAdmin(user);
     if (!access.ok) {
       await this.client.auth.signOut();
@@ -68,7 +52,7 @@ export class SupabaseAuthRepository implements AuthRepository {
       return null;
     }
 
-    const user = await this.loadUser(session.user.id, session.user.email);
+    const user = await loadProfileUser(this.client, session.user.id, session.user.email);
     const access = canAccessAdmin(user);
     if (!access.ok) {
       return null;
@@ -83,23 +67,5 @@ export class SupabaseAuthRepository implements AuthRepository {
   async getCurrentUser(): Promise<User | null> {
     const session = await this.getSession();
     return session?.user ?? null;
-  }
-
-  private async loadUser(id: string, email: string): Promise<User | null> {
-    const { data, error } = await this.client
-      .from('profiles')
-      .select('id, role, display_name, is_suspended')
-      .eq('id', id)
-      .maybeSingle();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    if (!data) {
-      return null;
-    }
-
-    return mapProfileToUser(data, email);
   }
 }

@@ -1,31 +1,43 @@
+import type { SupportedStorage } from '@supabase/supabase-js';
 import type { ApiAdapterMode } from '../client/types.js';
+import type { AppAuthRepository } from '../ports/app-auth-repository.js';
 import type { AuthRepository } from '../ports/auth-repository.js';
 import type { UserRepository } from '../ports/user-repository.js';
 import type { SubscriptionRepository } from '../ports/subscription-repository.js';
 import type { ContentRepository } from '../ports/content-repository.js';
+import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
 import { RestContentRepository } from '../adapters/rest/rest-content-repository.js';
 import {
   createSupabaseClient,
+  SupabaseAppAuthRepository,
   SupabaseAuthRepository,
   type SupabaseEnv,
-} from '../adapters/supabase/supabase-auth-repository.js';
+  type CreateSupabaseClientOptions,
+} from '../adapters/supabase/index.js';
 import { SupabaseUserRepository } from '../adapters/supabase/supabase-user-repository.js';
 import { SupabaseSubscriptionRepository } from '../adapters/supabase/supabase-subscription-repository.js';
 import { SupabaseContentRepository } from '../adapters/supabase/supabase-content-repository.js';
 
 export type RepositoryBundle = {
   auth: AuthRepository;
+  appAuth: AppAuthRepository;
   users: UserRepository;
   subscriptions: SubscriptionRepository;
   content: ContentRepository;
 };
 
+export type SupabaseClientAuthOptions = {
+  storage?: SupportedStorage;
+  detectSessionInUrl?: boolean;
+};
+
 export type CreateRepositoriesOptions = {
   adapter: ApiAdapterMode;
   supabase?: SupabaseEnv;
+  supabaseClientAuth?: SupabaseClientAuthOptions;
   restBaseUrl?: string;
 };
 
@@ -34,6 +46,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     void options.restBaseUrl;
     return {
       auth: new RestAuthRepository(),
+      appAuth: new RestAppAuthRepository(),
       users: new RestUserRepository(),
       subscriptions: new RestSubscriptionRepository(),
       content: new RestContentRepository(),
@@ -44,12 +57,21 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     throw new Error('supabase_env_required');
   }
 
-  const client = createSupabaseClient(options.supabase);
+  const clientAuthOptions: CreateSupabaseClientOptions = {
+    detectSessionInUrl: options.supabaseClientAuth?.detectSessionInUrl ?? true,
+  };
+  if (options.supabaseClientAuth?.storage) {
+    clientAuthOptions.storage = options.supabaseClientAuth.storage;
+  }
+
+  const adminClient = createSupabaseClient(options.supabase, clientAuthOptions);
+  const appClient = createSupabaseClient(options.supabase, clientAuthOptions);
 
   return {
-    auth: new SupabaseAuthRepository(client),
-    users: new SupabaseUserRepository(client),
-    subscriptions: new SupabaseSubscriptionRepository(client),
+    auth: new SupabaseAuthRepository(adminClient),
+    appAuth: new SupabaseAppAuthRepository(appClient),
+    users: new SupabaseUserRepository(appClient),
+    subscriptions: new SupabaseSubscriptionRepository(appClient),
     content: new SupabaseContentRepository(),
   };
 }
