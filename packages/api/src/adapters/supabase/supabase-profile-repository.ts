@@ -135,6 +135,21 @@ export class SupabaseProfileRepository implements ProfileRepository {
     return mapProfileRow(data);
   }
 
+  async completeCoachOnboarding(id: string): Promise<Profile> {
+    const { data, error } = await this.client.rpc('complete_coach_onboarding');
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const row = data as Record<string, unknown>;
+    if (!row || row.id !== id) {
+      throw new Error('coach_onboarding_completion_failed');
+    }
+
+    return mapProfileRow(row as Parameters<typeof mapProfileRow>[0]);
+  }
+
   async uploadAvatar(id: string, file: Blob, fileName: string): Promise<string> {
     const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${id}/${Date.now()}-${safeName}`;

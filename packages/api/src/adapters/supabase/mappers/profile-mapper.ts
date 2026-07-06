@@ -11,6 +11,7 @@ type ProfileRow = {
   position: string | null;
   profile_completed_at: string | null;
   team_setup_path_entered_at: string | null;
+  coach_onboarding_completed_at: string | null;
 };
 
 export function mapProfileRow(row: ProfileRow): Profile {
@@ -25,8 +26,9 @@ export function mapProfileRow(row: ProfileRow): Profile {
     position: row.position,
     profileCompletedAt: row.profile_completed_at,
     teamSetupPathEnteredAt: row.team_setup_path_entered_at,
+    coachOnboardingCompletedAt: row.coach_onboarding_completed_at,
   });
 }
 
 export const PROFILE_SELECT =
-  'id, role, display_name, avatar_url, bio, coach_context, age, position, profile_completed_at, team_setup_path_entered_at';
+  'id, role, display_name, avatar_url, bio, coach_context, age, position, profile_completed_at, team_setup_path_entered_at, coach_onboarding_completed_at';
