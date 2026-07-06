@@ -711,39 +711,59 @@
         {
           "id": "AC-1",
           "statement": "User selects one of Coach, Player, or Team Manager at registration",
-          "test": null
+          "test": "tests/auth/story-2.2.test.js::test_STORY_2_2_AC1_registration_role_selection"
         },
         {
           "id": "AC-2",
           "statement": "Coach profile captures independent vs team context",
-          "test": null
+          "test": "tests/auth/story-2.2.test.js::test_STORY_2_2_AC2_coach_profile_captures_context"
         },
         {
           "id": "AC-3",
           "statement": "Player profile captures age, position, and optional photo",
-          "test": null
+          "test": "tests/auth/story-2.2.test.js::test_STORY_2_2_AC3_player_profile_fields"
         },
         {
           "id": "AC-4",
           "statement": "Team Manager profile requires team setup path (see EPIC-3)",
-          "test": null
+          "test": "tests/auth/story-2.2.test.js::test_STORY_2_2_AC4_team_manager_requires_team_setup_path"
         },
         {
           "id": "AC-5",
           "statement": "Profile data persists to Supabase profiles table",
-          "test": null
+          "test": "tests/auth/story-2.2.test.js::test_STORY_2_2_AC5_profile_persists_to_supabase"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx"
+        "tests": [
+          "tests/auth/story-2.2.test.js::test_STORY_2_2_AC1_registration_role_selection",
+          "tests/auth/story-2.2.test.js::test_STORY_2_2_AC2_coach_profile_captures_context",
+          "tests/auth/story-2.2.test.js::test_STORY_2_2_AC3_player_profile_fields",
+          "tests/auth/story-2.2.test.js::test_STORY_2_2_AC4_team_manager_requires_team_setup_path",
+          "tests/auth/story-2.2.test.js::test_STORY_2_2_AC5_profile_persists_to_supabase"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260706110000_profile_role_fields.sql",
+          "packages/domain/src/profile/schema.ts",
+          "packages/domain/src/profile/rules.ts",
+          "packages/api/src/ports/profile-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-profile-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/profile-mapper.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/mobile/src/features/profile/ui/ProfileGate.jsx",
+          "apps/mobile/src/features/profile/ui/ProfileSetupFlow.jsx",
+          "apps/mobile/src/features/profile/ui/CoachProfileForm.jsx",
+          "apps/mobile/src/features/profile/ui/PlayerProfileForm.jsx",
+          "apps/mobile/src/features/profile/ui/TeamManagerProfileFlow.jsx",
+          "apps/mobile/src/features/profile/ui/TeamSetupPathScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "tests/auth/story-2.2.test.js"
+        ],
+        "command": "npm run test:story-2.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Prototype has 4 roles including Club Admin — production docs specify 3 self-signup roles."
+      "status": "DONE",
+      "last_updated": "2026-07-06T00:00:00Z",
+      "audit_notes": "ProfileGate blocks main app until role-specific profile setup completes; coach context, player age/position/optional photo, and team-manager team-setup path persist to profiles via ProfileRepository. Role selection at registration retained from STORY-2.1. All AC unit tests pass."
     },
     {
       "id": "STORY-2.3",

@@ -5,11 +5,13 @@ import type { AuthRepository } from '../ports/auth-repository.js';
 import type { UserRepository } from '../ports/user-repository.js';
 import type { SubscriptionRepository } from '../ports/subscription-repository.js';
 import type { ContentRepository } from '../ports/content-repository.js';
+import type { ProfileRepository } from '../ports/profile-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
 import { RestContentRepository } from '../adapters/rest/rest-content-repository.js';
+import { RestProfileRepository } from '../adapters/rest/rest-profile-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -20,11 +22,13 @@ import {
 import { SupabaseUserRepository } from '../adapters/supabase/supabase-user-repository.js';
 import { SupabaseSubscriptionRepository } from '../adapters/supabase/supabase-subscription-repository.js';
 import { SupabaseContentRepository } from '../adapters/supabase/supabase-content-repository.js';
+import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile-repository.js';
 
 export type RepositoryBundle = {
   auth: AuthRepository;
   appAuth: AppAuthRepository;
   users: UserRepository;
+  profiles: ProfileRepository;
   subscriptions: SubscriptionRepository;
   content: ContentRepository;
 };
@@ -48,6 +52,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       auth: new RestAuthRepository(),
       appAuth: new RestAppAuthRepository(),
       users: new RestUserRepository(),
+      profiles: new RestProfileRepository(),
       subscriptions: new RestSubscriptionRepository(),
       content: new RestContentRepository(),
     };
@@ -71,6 +76,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     auth: new SupabaseAuthRepository(adminClient),
     appAuth: new SupabaseAppAuthRepository(appClient),
     users: new SupabaseUserRepository(appClient),
+    profiles: new SupabaseProfileRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     content: new SupabaseContentRepository(),
   };
