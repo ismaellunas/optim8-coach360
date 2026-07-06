@@ -4,6 +4,7 @@ import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
 import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
 import { CoachOnboardingGate } from "./features/onboarding/ui/CoachOnboardingGate.jsx";
+import { PlayerOnboardingGate } from "./features/onboarding/ui/PlayerOnboardingGate.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
@@ -1004,7 +1005,7 @@ function Coach360App() {
   }, []);
 
   useEffect(function() {
-    if (auth.justRegistered && session && session.user.role !== 'coach') {
+    if (auth.justRegistered && session && session.user.role !== 'coach' && session.user.role !== 'player') {
       setOnboarding(true);
       auth.clearJustRegistered();
     }
@@ -1114,7 +1115,9 @@ export default function Coach360() {
       <ProfileGate>
         <SubscriptionGate>
           <CoachOnboardingGate>
-            <Coach360App />
+            <PlayerOnboardingGate>
+              <Coach360App />
+            </PlayerOnboardingGate>
           </CoachOnboardingGate>
         </SubscriptionGate>
       </ProfileGate>

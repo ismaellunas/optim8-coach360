@@ -42,7 +42,10 @@ export { isProfileComplete } from './profile/rules.js';
 export {
   COACH_ONBOARDING_COMPLETED_EVENT,
   COACH_ONBOARDING_STEP_COUNT,
+  PLAYER_ONBOARDING_COMPLETED_EVENT,
+  PLAYER_ONBOARDING_STEP_COUNT,
   needsCoachOnboarding,
+  needsPlayerOnboarding,
 } from './onboarding/rules.js';
 export {
   subscriptionTierSchema,

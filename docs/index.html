@@ -924,39 +924,59 @@
         {
           "id": "AC-1",
           "statement": "Player can complete onboarding without joining a team",
-          "test": null
+          "test": "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC1_complete_without_team"
         },
         {
           "id": "AC-2",
           "statement": "Browse training content step shows marketplace and assigned content",
-          "test": null
+          "test": "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC2_browse_shows_marketplace_and_assigned"
         },
         {
           "id": "AC-3",
           "statement": "First drill completion logs progress to profile",
-          "test": null
+          "test": "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC3_first_drill_logs_progress"
         },
         {
           "id": "AC-4",
           "statement": "Onboarding completion analytics event fires",
-          "test": null
+          "test": "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC4_onboarding_completion_analytics"
         },
         {
           "id": "AC-5",
           "statement": "Invite-to-team option available but not mandatory",
-          "test": null
+          "test": "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC5_team_invite_optional"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx"
+        "tests": [
+          "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC1_complete_without_team",
+          "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC2_browse_shows_marketplace_and_assigned",
+          "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC3_first_drill_logs_progress",
+          "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC4_onboarding_completion_analytics",
+          "tests/onboarding/story-2.5.test.js::test_STORY_2_5_AC5_team_invite_optional"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/onboarding/rules.ts",
+          "packages/domain/src/profile/schema.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/profile-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-profile-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/profile-mapper.ts",
+          "packages/api/src/adapters/rest/rest-profile-repository.ts",
+          "apps/mobile/src/features/onboarding/lib/player-onboarding-steps.js",
+          "apps/mobile/src/features/onboarding/lib/mock-assigned-content.js",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingWizard.jsx",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingGate.jsx",
+          "apps/mobile/src/App.jsx",
+          "supabase/migrations/20260706140000_player_onboarding.sql",
+          "tests/onboarding/story-2.5.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-2.5"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-06T07:12:00Z",
+      "audit_notes": "PlayerOnboardingGate + 6-step Flow 16 wizard. npm run test:story-2.5: 5/5 PASS. AC1–AC5 all covered by passing tests."
     },
     {
       "id": "EPIC-3",

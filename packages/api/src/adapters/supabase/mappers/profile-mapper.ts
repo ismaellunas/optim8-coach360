@@ -12,6 +12,9 @@ type ProfileRow = {
   profile_completed_at: string | null;
   team_setup_path_entered_at: string | null;
   coach_onboarding_completed_at: string | null;
+  player_onboarding_completed_at: string | null;
+  first_drill_completed_at: string | null;
+  player_drills_completed_count: number;
 };
 
 export function mapProfileRow(row: ProfileRow): Profile {
@@ -27,8 +30,11 @@ export function mapProfileRow(row: ProfileRow): Profile {
     profileCompletedAt: row.profile_completed_at,
     teamSetupPathEnteredAt: row.team_setup_path_entered_at,
     coachOnboardingCompletedAt: row.coach_onboarding_completed_at,
+    playerOnboardingCompletedAt: row.player_onboarding_completed_at,
+    firstDrillCompletedAt: row.first_drill_completed_at,
+    playerDrillsCompletedCount: row.player_drills_completed_count,
   });
 }
 
 export const PROFILE_SELECT =
-  'id, role, display_name, avatar_url, bio, coach_context, age, position, profile_completed_at, team_setup_path_entered_at, coach_onboarding_completed_at';
+  'id, role, display_name, avatar_url, bio, coach_context, age, position, profile_completed_at, team_setup_path_entered_at, coach_onboarding_completed_at, player_onboarding_completed_at, first_drill_completed_at, player_drills_completed_count';
