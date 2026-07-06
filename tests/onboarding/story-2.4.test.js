@@ -110,6 +110,9 @@ function coachProfile(overrides = {}) {
     profileCompletedAt: new Date().toISOString(),
     teamSetupPathEnteredAt: null,
     coachOnboardingCompletedAt: null,
+    playerOnboardingCompletedAt: null,
+    firstDrillCompletedAt: null,
+    playerDrillsCompletedCount: 0,
     ...overrides,
   });
 }

@@ -45,6 +45,16 @@ export class RestProfileRepository implements ProfileRepository {
     throw new NotImplementedAdapterError('rest', 'completeCoachOnboarding');
   }
 
+  async completePlayerOnboarding(id: string): Promise<Profile> {
+    void id;
+    throw new NotImplementedAdapterError('rest', 'completePlayerOnboarding');
+  }
+
+  async logPlayerFirstDrill(id: string): Promise<Profile> {
+    void id;
+    throw new NotImplementedAdapterError('rest', 'logPlayerFirstDrill');
+  }
+
   async uploadAvatar(id: string, file: Blob, fileName: string): Promise<string> {
     void id;
     void file;

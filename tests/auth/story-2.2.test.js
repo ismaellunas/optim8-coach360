@@ -206,6 +206,9 @@ describe('STORY_2_2 AC4 — team manager requires team setup path', () => {
       profileCompletedAt: null,
       teamSetupPathEnteredAt: null,
       coachOnboardingCompletedAt: null,
+      playerOnboardingCompletedAt: null,
+      firstDrillCompletedAt: null,
+      playerDrillsCompletedCount: 0,
     });
     expect(isProfileComplete(incomplete)).toBe(false);
 

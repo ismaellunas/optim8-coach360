@@ -16,6 +16,9 @@ export const profileSchema = z.object({
   profileCompletedAt: z.string().datetime({ offset: true }).nullable(),
   teamSetupPathEnteredAt: z.string().datetime({ offset: true }).nullable(),
   coachOnboardingCompletedAt: z.string().datetime({ offset: true }).nullable(),
+  playerOnboardingCompletedAt: z.string().datetime({ offset: true }).nullable(),
+  firstDrillCompletedAt: z.string().datetime({ offset: true }).nullable(),
+  playerDrillsCompletedCount: z.number().int().min(0),
 });
 
 export type Profile = z.infer<typeof profileSchema>;
