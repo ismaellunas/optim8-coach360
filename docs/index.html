@@ -781,35 +781,57 @@
         {
           "id": "AC-1",
           "statement": "After profile completion user sees trial or subscription choice",
-          "test": null
+          "test": "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC1_subscription_choice_after_profile"
         },
         {
           "id": "AC-2",
           "statement": "Trial activation grants time-limited Pro-level access per Flow 2",
-          "test": null
+          "test": "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC2_trial_grants_pro_access"
         },
         {
           "id": "AC-3",
           "statement": "User can defer and land on Basic tier if trial not activated",
-          "test": null
+          "test": "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC3_defer_lands_on_basic"
         },
         {
           "id": "AC-4",
           "statement": "Subscription state synced from Stripe to Supabase profile",
-          "test": null
+          "test": "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC4_stripe_webhook_syncs_subscription"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC1_subscription_choice_after_profile",
+          "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC2_trial_grants_pro_access",
+          "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC3_defer_lands_on_basic",
+          "tests/subscription/story-2.3.test.js::test_STORY_2_3_AC4_stripe_webhook_syncs_subscription",
+          "tests/subscription/story-2.3.test.js::test_STORY_2_3_cloud_trial_and_defer"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/subscription/schema.ts",
+          "packages/domain/src/subscription/rules.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/subscription-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-subscription-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/subscription-mapper.ts",
+          "packages/api/src/adapters/rest/rest-subscription-repository.ts",
+          "packages/api/src/index.ts",
+          "supabase/migrations/20260706120000_subscription_onboarding.sql",
+          "supabase/functions/stripe-webhook/handler.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "apps/mobile/src/features/subscription/ui/SubscriptionGate.jsx",
+          "apps/mobile/src/features/subscription/ui/SubscriptionChoiceScreen.jsx",
+          "apps/mobile/src/features/subscription/model/subscription-context.jsx",
+          "apps/mobile/src/features/auth/lib/map-app-user.js",
+          "apps/mobile/src/App.jsx",
+          "tests/subscription/story-2.3.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-2.3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-06T04:20:00Z",
+      "audit_notes": "SubscriptionGate after ProfileGate shows trial/tier/defer choice; activate_user_trial and defer_user_to_basic RPCs persist choices; mapAppUserToLegacy reads Supabase subscription; stripe-webhook handler syncs Stripe events via sync_subscription_from_stripe. All AC unit tests pass."
     },
     {
       "id": "STORY-2.4",

@@ -2,6 +2,8 @@ import './index.css';
 import { useState, useEffect } from "react";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
 import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
+import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
+import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
 
@@ -87,7 +89,8 @@ function canAccess(user, feature) {
   if (!reqs) return false;
   var needed = reqs[user.role];
   if (!needed) return false;
-  return tierIndex(user.tier) >= tierIndex(needed);
+  var effectiveTier = user.tier === "trial" ? "pro" : user.tier;
+  return tierIndex(effectiveTier) >= tierIndex(needed);
 }
 
 function neededTier(user, feature) {
@@ -978,8 +981,14 @@ function AdminDetailScreen({ screen, onBack }) {
 /* ══════════ MAIN APP ══════════ */
 function Coach360App() {
   var auth = useAuth();
+  var subscriptionState = useSubscription();
   var session = auth.session;
-  var user = session ? mapAppUserToLegacy(session.user, { isNew: auth.justRegistered }) : null;
+  var user = session
+    ? mapAppUserToLegacy(session.user, {
+        isNew: auth.justRegistered,
+        subscription: subscriptionState.subscription,
+      })
+    : null;
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
@@ -997,6 +1006,13 @@ function Coach360App() {
       auth.clearJustRegistered();
     }
   }, [auth, session, setOnboarding]);
+
+  useEffect(function() {
+    if (subscriptionState.redirectToSubscription) {
+      setScreen("subscription");
+      subscriptionState.clearRedirectToSubscription();
+    }
+  }, [subscriptionState, setScreen]);
 
   function go(s) { setScreen(s); }
 
@@ -1086,7 +1102,9 @@ export default function Coach360() {
   return (
     <AuthGate>
       <ProfileGate>
-        <Coach360App />
+        <SubscriptionGate>
+          <Coach360App />
+        </SubscriptionGate>
       </ProfileGate>
     </AuthGate>
   );
