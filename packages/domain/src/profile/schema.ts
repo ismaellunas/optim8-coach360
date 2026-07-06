@@ -13,8 +13,8 @@ export const profileSchema = z.object({
   coachContext: coachContextSchema.nullable(),
   age: z.number().int().nullable(),
   position: z.string().nullable(),
-  profileCompletedAt: z.string().datetime().nullable(),
-  teamSetupPathEnteredAt: z.string().datetime().nullable(),
+  profileCompletedAt: z.string().datetime({ offset: true }).nullable(),
+  teamSetupPathEnteredAt: z.string().datetime({ offset: true }).nullable(),
 });
 
 export type Profile = z.infer<typeof profileSchema>;

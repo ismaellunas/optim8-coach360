@@ -214,6 +214,13 @@ describe('STORY_2_2 AC4 — team manager requires team setup path', () => {
       profileCompletedAt: new Date().toISOString(),
     });
     expect(isProfileComplete(complete)).toBe(true);
+
+    const postgresTimestamp = profileSchema.parse({
+      ...incomplete,
+      profileCompletedAt: '2026-07-06T02:46:22.778167+00:00',
+      teamSetupPathEnteredAt: '2026-07-06T02:46:22.778167+00:00',
+    });
+    expect(postgresTimestamp.profileCompletedAt).toBe('2026-07-06T02:46:22.778167+00:00');
   });
 });
 
