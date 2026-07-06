@@ -63,3 +63,10 @@ export {
   legacyDisplayTier,
   trialDaysRemaining,
 } from './subscription/rules.js';
+export {
+  teamSchema,
+  teamProfileInputSchema,
+  type Team,
+  type TeamProfileInput,
+} from './team/schema.js';
+export { needsTeamManagerTeamSetup, canManageTeamAgeRange, formatTeamAgeRange, formatTeamProfileSummary } from './team/rules.js';

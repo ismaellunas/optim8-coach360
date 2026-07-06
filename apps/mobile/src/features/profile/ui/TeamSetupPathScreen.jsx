@@ -23,8 +23,8 @@ export function TeamSetupPathScreen({ submitting, error, onContinue }) {
     <div className="px-6 py-10 text-center">
       <div className="mb-3 font-display text-2xl font-bold text-coach-t1">SET UP YOUR TEAM</div>
       <div className="mb-8 font-body text-sm leading-relaxed text-coach-t2">
-        Team managers must configure a team as part of onboarding. You will create your team
-        profile with name, age group, and roster in the next step (EPIC-3).
+        Team managers must configure a team as part of onboarding. Create your team profile
+        with name, age range, logo, and season dates next.
       </div>
       <div className="mb-6 rounded-[14px] border border-coach-border bg-coach-card p-5 text-left">
         <div className="mb-2 font-display text-base font-semibold text-coach-t1">What&apos;s next</div>

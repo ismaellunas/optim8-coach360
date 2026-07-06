@@ -162,7 +162,7 @@
 | 11.2 | Can a player be on **multiple teams** simultaneously? | Roster data model | | | |
 | 11.3 | Can a team have **multiple coaches**? At what tier (matrix: assign coaches ○ at Pro)? | Team structure | | | |
 | 11.4 | Who can remove players — coach, team manager, both? Different rules per tier? | Access matrix | | | |
-| 11.5 | How is **team age range** captured — min/max, grade level, division — and who can edit it? | Marketplace filtering (Flow 4) | | | |
+| 11.5 | How is **team age range** captured — min/max, grade level, division — and who can edit it? | Marketplace filtering (Flow 4) | Captured as team profile data (min/max, grade level, division). Team managers create and manage these fields for their teams. | | 2026-07-06 |
 
 ---
 

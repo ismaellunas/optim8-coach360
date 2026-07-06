@@ -277,8 +277,14 @@ export type Database = {
           age_min: number | null
           created_at: string
           created_by: string
+          description: string | null
+          division: string | null
+          grade_level: string | null
           id: string
+          logo_url: string | null
           name: string
+          season_end: string | null
+          season_start: string | null
           updated_at: string
         }
         Insert: {
@@ -286,8 +292,14 @@ export type Database = {
           age_min?: number | null
           created_at?: string
           created_by: string
+          description?: string | null
+          division?: string | null
+          grade_level?: string | null
           id?: string
+          logo_url?: string | null
           name: string
+          season_end?: string | null
+          season_start?: string | null
           updated_at?: string
         }
         Update: {
@@ -295,8 +307,14 @@ export type Database = {
           age_min?: number | null
           created_at?: string
           created_by?: string
+          description?: string | null
+          division?: string | null
+          grade_level?: string | null
           id?: string
+          logo_url?: string | null
           name?: string
+          season_end?: string | null
+          season_start?: string | null
           updated_at?: string
         }
         Relationships: [
