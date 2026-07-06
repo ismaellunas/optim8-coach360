@@ -1,7 +1,7 @@
 # Environment promotion runbook
 
 > **Scope:** Dev → staging → production for Supabase, admin web, and Capacitor mobile  
-> **Related:** [`admin-deploy.md`](../architecture/admin-deploy.md) · [`native-release.md`](../architecture/native-release.md) · [`.env.example`](../../.env.example)
+> **Related:** [`admin-deploy.md`](../architecture/admin-deploy.md) · [`mobile-deploy.md`](../architecture/mobile-deploy.md) · [`native-release.md`](../architecture/native-release.md) · [`.env.example`](../../.env.example)
 
 ---
 
@@ -10,10 +10,10 @@
 | Environment | Supabase | Admin web | Mobile app |
 |-------------|----------|-----------|------------|
 | **Local dev** | `supabase start` (Docker) | `npm run dev:admin` | `npm run dev:mobile` + simulators |
-| **Staging** | Dedicated Supabase project | Vercel preview or `admin-staging.coach360.com` | Internal testing track / debug builds |
-| **Production** | Production Supabase project | `admin.coach360.com` (Vercel) | App Store / Play Store |
+| **Staging** | Dedicated Supabase project | Vercel preview or `admin-staging.coach360.com` | Vercel preview or `app-staging.coach360.com`; internal native tracks |
+| **Production** | Production Supabase project | `admin.coach360.com` (Vercel) | `app.coach360.com` (Vercel web) + App Store / Play Store (native) |
 
-Never commit credentials. Use Vercel env vars for admin deploys; GitHub Actions runs CI only (lint, tests, Android build).
+Never commit credentials. Use Vercel env vars for admin and mobile web deploys; GitHub Actions runs CI only (lint, tests, Android build).
 
 ---
 
@@ -69,7 +69,25 @@ See also [`admin-deploy.md`](../architecture/admin-deploy.md#promotion-checklist
 
 ---
 
-## Promotion: Mobile (Capacitor)
+## Promotion: Mobile web
+
+Automated on merge to `main` via **Vercel Git integration** — see [`mobile-deploy.md`](../architecture/mobile-deploy.md#deploy-on-merge-to-main).
+
+### Manual promotion checklist
+
+1. `supabase db push` applied to target Supabase project.
+2. `npm run build:mobile` succeeds.
+3. Deploy preview → verify sign-up, role select, and profile flows on a mobile viewport.
+4. Supabase Auth **Redirect URLs** include the Vercel production (and preview) origins.
+5. Promote to production domain.
+
+See also [`mobile-deploy.md`](../architecture/mobile-deploy.md#promotion-checklist).
+
+**Rollback:** Redeploy a previous Vercel deployment from the Vercel dashboard (Instant Rollback).
+
+---
+
+## Promotion: Mobile native (Capacitor)
 
 CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for pipeline verification only). Store releases use a production keystore.
 
@@ -91,6 +109,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 |----------|---------|---------|
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | PR + push to `main` | Lint, typecheck, story tests 1.2–1.4, Android `assembleRelease` |
 | Vercel Git integration (`apps/admin`) | Push to `main` | `build:admin` on Vercel → production deploy |
+| Vercel Git integration (`apps/mobile`) | Push to `main` | `build:mobile` on Vercel → production deploy (browser) |
 | GitHub Pages (`docs/`) | Push to `main` | Tracker + markdown docs (branch deploy, no Actions workflow) |
 
 **Note:** STORY-1.1 database tests (`db:verify`) require local Supabase Docker and are not run in default CI. Run manually before schema promotions.
@@ -100,7 +119,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 ## First-time setup
 
 1. Create Supabase projects for staging and production.
-2. Create Vercel project for `apps/admin`; connect GitHub repo with Production branch `main`.
+2. Create Vercel projects for `apps/admin` and `apps/mobile`; connect GitHub repo with Production branch `main`.
 3. Register `com.coach360.app` in Apple Developer and Google Play Console.
 4. Generate Android release keystore; configure signing in `android/app/build.gradle` for local/store builds (not CI).
 

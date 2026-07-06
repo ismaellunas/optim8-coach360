@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-06T04:26:53.985Z",
+  "generated": "2026-07-06T06:03:07.675Z",
   "root": "docs",
   "tree": [
     {
@@ -31,6 +31,11 @@
           "type": "file",
           "name": "frontend-architecture.md",
           "path": "architecture/frontend-architecture.md"
+        },
+        {
+          "type": "file",
+          "name": "mobile-deploy.md",
+          "path": "architecture/mobile-deploy.md"
         },
         {
           "type": "file",

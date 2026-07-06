@@ -247,6 +247,7 @@ The following guidance **does not yet exist** in this repo and must be written f
 | **Capacitor native release** | ⚠️ Not documented | App Store / Play Store signing, `cap sync`, versioning, splash/icons |
 | **CI/CD for Capacitor** | ✅ Documented | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — lint, tests, Android release; [`environment-promotion.md`](../delivery/environment-promotion.md) |
 | **Admin web deployment** | ✅ Documented | [`admin-deploy.md`](./admin-deploy.md) — Vercel static deploy for `apps/admin` |
+| **Mobile web deployment** | ✅ Documented | [`mobile-deploy.md`](./mobile-deploy.md) — Vercel static deploy for `apps/mobile` (browser testing) |
 | **Supabase client in Capacitor** | ⚠️ Partial | Session persistence (`@capacitor/preferences` or secure storage pattern) — see [`best-practices.md`](./best-practices.md) |
 | **Webhook / Edge Function layout** | ⚠️ Not documented | Where Stripe/Sanity/Mux handlers live relative to monorepo |
 | **Code splitting / `src/features/`** | ⚠️ Not documented | Migration plan from single-file `App.jsx` |

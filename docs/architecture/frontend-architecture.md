@@ -2,7 +2,7 @@
 
 > **Status:** Canonical structure for `apps/admin` and shared `packages/`  
 > **Stack:** React 19 + Vite + TypeScript (admin); Vite + React (mobile)  
-> **Related:** [`tech-stack.md`](./tech-stack.md) · [`best-practices.md`](./best-practices.md) · [`admin-deploy.md`](./admin-deploy.md)
+> **Related:** [`tech-stack.md`](./tech-stack.md) · [`best-practices.md`](./best-practices.md) · [`admin-deploy.md`](./admin-deploy.md) · [`mobile-deploy.md`](./mobile-deploy.md)
 
 ---
 

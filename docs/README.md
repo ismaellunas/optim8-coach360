@@ -30,6 +30,7 @@ docs/
 │   ├── tech-stack.md         # Single-stack architecture (Vite + Capacitor + SaaS)
 │   ├── frontend-architecture.md  # Monorepo, FSD layers, repository pattern
 │   ├── admin-deploy.md       # Admin web staging/production deploy
+│   ├── mobile-deploy.md      # Mobile web (browser) staging/production on Vercel
 │   ├── best-practices.md     # Client patterns & integration rules
 │   ├── content-model.md      # CMS, packaging, uploads
 │   └── ai-integration.md     # RAG, recommendations
