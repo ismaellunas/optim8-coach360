@@ -2,6 +2,11 @@
   "appId": "com.coach360.app",
   "appName": "Coach360",
   "webDir": "apps/mobile/dist",
+  "includePlugins": [
+    "@capacitor/keyboard",
+    "@capacitor/preferences",
+    "@capacitor/status-bar"
+  ],
   "plugins": {
     "Keyboard": {
       "resize": "body",

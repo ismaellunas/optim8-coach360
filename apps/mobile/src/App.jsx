@@ -1,5 +1,8 @@
 import './index.css';
 import { useState, useEffect } from "react";
+import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
+import { useAuth } from "./features/auth/model/use-auth.js";
+import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
 
 const COLORS = {
   bg: "#0B0E14",
@@ -242,117 +245,6 @@ function DashedBtn({ children, onClick }) {
     >
       {children}
     </button>
-  );
-}
-
-/* ── Login ── */
-function LoginScreen({ onLogin }) {
-  var _s = useState("welcome"), step = _s[0], setStep = _s[1];
-  var _r = useState("coach"), role = _r[0], setRole = _r[1];
-  var _n = useState(""), name = _n[0], setName = _n[1];
-  var _e = useState(""), email = _e[0], setEmail = _e[1];
-  var _t = useState("trial"), tier = _t[0], setTier = _t[1];
-
-  var roles = [{ id: "coach", label: "Coach", desc: "Plan, create, and lead", emoji: "\uD83C\uDFC0" }, { id: "player", label: "Player", desc: "Train and improve", emoji: "\u26F9\uFE0F" }, { id: "team", label: "Team Manager", desc: "Manage roster and team ops", emoji: "\uD83D\uDCCB" }];
-  var tiers = [{ id: "trial", label: "Free Trial", desc: "14-day Pro access", price: "Free", color: COLORS.yellow }, { id: "basic", label: "Basic", desc: "Profile, buy content", price: "$9/mo", color: COLORS.green }, { id: "advanced", label: "Advanced", desc: "Coach, chat, distribute", price: "$29/mo", color: COLORS.blue }, { id: "pro", label: "Pro", desc: "AI, objectives, full MVP", price: "$49/mo", color: COLORS.orange }];
-
-  if (step === "welcome") {
-    return (
-      <div className="px-6 py-[60px] text-center">
-        <div className="mb-2 font-display text-5xl font-bold tracking-widest text-coach-orange">COACH360</div>
-        <div className="mb-12 font-body text-base text-coach-t2">Basketball coaching and player development</div>
-        <Btn primary full onClick={function() { setStep("role"); }}>Get Started</Btn>
-      </div>
-    );
-  }
-
-  if (step === "role") {
-    return (
-      <div className="px-6 py-10">
-        <div className="mb-6 font-display text-2xl font-bold text-coach-t1">SELECT YOUR ROLE</div>
-        {roles.map(function(r) {
-          return (
-            <Card
-              key={r.id}
-              onClick={function() { setRole(r.id); setStep("name"); }}
-              className={`flex items-center gap-3.5 ${role === r.id ? "border-2 border-coach-orange" : ""}`}
-            >
-              <div className="text-[28px]">{r.emoji}</div>
-              <div className="flex-1">
-                <div className="font-display text-lg font-semibold text-coach-t1">{r.label}</div>
-                <div className="font-body text-xs text-coach-t3">{r.desc}</div>
-              </div>
-              <IconChev />
-            </Card>
-          );
-        })}
-      </div>
-    );
-  }
-
-  if (step === "name") {
-    return (
-      <div className="px-6 py-10">
-        <div onClick={function() { setStep("role"); }} className="mb-4 flex cursor-pointer items-center gap-1 text-coach-orange">
-          <IconBack /><span className="font-body text-[13px]">Back</span>
-        </div>
-        <div className="mb-6 font-display text-2xl font-bold text-coach-t1">CREATE PROFILE</div>
-        <input
-          value={name}
-          onChange={function(e) { setName(e.target.value); }}
-          placeholder="Your name"
-          className="mb-3 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-        />
-        <input
-          value={email}
-          onChange={function(e) { setEmail(e.target.value); }}
-          placeholder="Email address"
-          type="email"
-          className="mb-5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-        />
-        <Btn primary full disabled={!name.trim() || !email.trim() || email.indexOf("@") === -1} onClick={function() { setStep("tier"); }}>Continue</Btn>
-      </div>
-    );
-  }
-
-  return (
-    <div className="px-6 py-10">
-      <div onClick={function() { setStep("name"); }} className="mb-4 flex cursor-pointer items-center gap-1 text-coach-orange">
-        <IconBack /><span className="font-body text-[13px]">Back</span>
-      </div>
-      <div className="mb-6 font-display text-2xl font-bold text-coach-t1">CHOOSE YOUR PLAN</div>
-      {tiers.map(function(t) {
-        const tierColor = {
-          [COLORS.yellow]: "border-coach-yellow text-coach-yellow",
-          [COLORS.green]: "border-coach-green text-coach-green",
-          [COLORS.blue]: "border-coach-blue text-coach-blue",
-          [COLORS.orange]: "border-coach-orange text-coach-orange",
-        };
-        const dotColor = {
-          [COLORS.yellow]: "bg-coach-yellow",
-          [COLORS.green]: "bg-coach-green",
-          [COLORS.blue]: "bg-coach-blue",
-          [COLORS.orange]: "bg-coach-orange",
-        };
-        return (
-          <Card
-            key={t.id}
-            onClick={function() { setTier(t.id); }}
-            className={`flex items-center gap-3.5 ${tier === t.id ? `border-2 ${tierColor[t.color]?.split(" ")[0] || "border-coach-orange"}` : ""}`}
-          >
-            <div className={`h-2.5 w-2.5 rounded-full ${dotColor[t.color] || "bg-coach-orange"}`} />
-            <div className="flex-1">
-              <div className="font-display text-base font-semibold text-coach-t1">{t.label}</div>
-              <div className="font-body text-[11px] text-coach-t3">{t.desc}</div>
-            </div>
-            <div className={`font-display text-base font-bold ${tierColor[t.color]?.split(" ")[1] || "text-coach-orange"}`}>{t.price}</div>
-          </Card>
-        );
-      })}
-      <Btn primary full onClick={function() { onLogin({ role: role, name: name.trim(), email: email.trim(), tier: tier, trialDays: tier === "trial" ? 14 : 0, isNew: true }); }}>
-        {tier === "trial" ? "Start Free Trial" : "Subscribe"}
-      </Btn>
-    </div>
   );
 }
 
@@ -900,7 +792,7 @@ function ProgressScreen({ user }) {
 }
 
 /* ── Profile / Subscription ── */
-function ProfileScreen({ user, setUser, go }) {
+function ProfileScreen({ user, go, onSignOut }) {
   return (
     <div className="px-5">
       <PageHeader title="PROFILE" onBack={function() { go("home"); }} />
@@ -915,7 +807,7 @@ function ProfileScreen({ user, setUser, go }) {
       <Card onClick={function() { go("subscription"); }}><span className="font-body text-sm text-coach-t1">Manage Subscription</span></Card>
       <Card><span className="font-body text-sm text-coach-t1">Edit Profile</span></Card>
       <Card><span className="font-body text-sm text-coach-t1">Notifications</span></Card>
-      <Card onClick={function() { setUser(null); }}><span className="font-body text-sm text-coach-red">Sign Out</span></Card>
+      <Card onClick={onSignOut}><span className="font-body text-sm text-coach-red">Sign Out</span></Card>
     </div>
   );
 }
@@ -1083,9 +975,11 @@ function AdminDetailScreen({ screen, onBack }) {
 }
 
 /* ══════════ MAIN APP ══════════ */
-export default function Coach360() {
-  var _u = useState(null), user = _u[0], setUser = _u[1];
-  var _s = useState("login"), screen = _s[0], setScreen = _s[1];
+function Coach360App() {
+  var auth = useAuth();
+  var session = auth.session;
+  var user = session ? mapAppUserToLegacy(session.user, { isNew: auth.justRegistered }) : null;
+  var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
 
@@ -1096,7 +990,12 @@ export default function Coach360() {
     document.head.appendChild(link);
   }, []);
 
-  useEffect(function() { if (!user) setScreen("login"); }, [user, setScreen]);
+  useEffect(function() {
+    if (auth.justRegistered && session) {
+      setOnboarding(true);
+      auth.clearJustRegistered();
+    }
+  }, [auth, session, setOnboarding]);
 
   function go(s) { setScreen(s); }
 
@@ -1105,15 +1004,15 @@ export default function Coach360() {
     else { setPaywall(feature); }
   }
 
-  function handleLogin(u) {
-    setUser(u);
-    if (u.isNew) { setOnboarding(true); }
-    else { setScreen("home"); }
-  }
-
   function finishOnboarding() {
     setOnboarding(false);
     setScreen("home");
+  }
+
+  async function handleSignOut() {
+    await auth.signOut();
+    setScreen("home");
+    setOnboarding(false);
   }
 
   var tabs;
@@ -1128,7 +1027,6 @@ export default function Coach360() {
   }
 
   function renderScreen() {
-    if (!user) return <LoginScreen onLogin={handleLogin} />;
     if (onboarding) return <OnboardingScreen user={user} onComplete={finishOnboarding} />;
     if (screen === "home") return <HomeScreen user={user} go={go} tryA={tryA} />;
     if (screen === "teams") return <RosterScreen user={user} tryA={tryA} />;
@@ -1136,8 +1034,8 @@ export default function Coach360() {
     if (screen === "chat") return <ChatScreen user={user} tryA={tryA} />;
     if (screen === "marketplace") return <StoreScreen user={user} tryA={tryA} />;
     if (screen === "progress") return <ProgressScreen user={user} />;
-    if (screen === "profile") return <ProfileScreen user={user} setUser={setUser} go={go} />;
-    if (screen === "subscription") return <SubscriptionScreen user={user} setUser={setUser} onBack={function() { go("profile"); }} />;
+    if (screen === "profile") return <ProfileScreen user={user} go={go} onSignOut={handleSignOut} />;
+    if (screen === "subscription") return <SubscriptionScreen user={user} setUser={function() {}} onBack={function() { go("profile"); }} />;
     if (screen === "objectives") return <ObjectivesScreen user={user} onBack={function() { go("home"); }} />;
     if (screen === "create-content") return <CreateContentScreen onBack={function() { go("home"); }} />;
     if (screen.indexOf("admin-") === 0) return <AdminDetailScreen screen={screen} onBack={function() { go("home"); }} />;
@@ -1160,7 +1058,7 @@ export default function Coach360() {
 
       {paywall && <PaywallModal feature={paywall} user={user} onClose={function() { setPaywall(null); }} onUpgrade={function() { setPaywall(null); go("subscription"); }} />}
 
-      {user && !onboarding && screen !== "login" && (
+      {user && !onboarding && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 bg-gradient-to-t from-coach-bg from-80% to-transparent pt-4">
           <div className="flex items-center justify-around rounded-t-[20px] border-t border-coach-border bg-coach-surface px-2 pb-5 pt-2.5">
             {tabs.map(function(t) {
@@ -1180,5 +1078,13 @@ export default function Coach360() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function Coach360() {
+  return (
+    <AuthGate>
+      <Coach360App />
+    </AuthGate>
   );
 }

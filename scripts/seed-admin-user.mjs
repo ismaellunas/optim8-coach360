@@ -129,7 +129,7 @@ if (!user) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { display_name: displayName },
+    user_metadata: { display_name: displayName, role: 'admin' },
   });
 
   if (created.error) throw created.error;

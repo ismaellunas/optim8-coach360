@@ -8,7 +8,13 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 export async function initNativeShell() {
   if (!Capacitor.isNativePlatform()) return;
 
-  await StatusBar.setStyle({ style: Style.Dark });
-  await StatusBar.setBackgroundColor({ color: '#0C0C10' });
-  await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
+  try {
+    await StatusBar.setStyle({ style: Style.Dark });
+    if (Capacitor.getPlatform() === 'android') {
+      await StatusBar.setBackgroundColor({ color: '#0C0C10' });
+    }
+    await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
+  } catch (error) {
+    console.warn('initNativeShell failed', error);
+  }
 }
