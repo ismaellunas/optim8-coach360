@@ -82,17 +82,21 @@ function PageHeader({ title, user, onBack }) {
   );
 }
 
-const MOCK_PLAYERS = [
-  { n: 'Jaylen Carter', tm: 'U14 Eagles', pos: 'PG', g: '3/4' },
-  { n: 'Marcus Johnson', tm: 'U16 Hawks', pos: 'SF', g: '2/5' },
-  { n: 'Deon Williams', tm: 'U14 Eagles', pos: 'SG', g: '3/3' },
-];
+function EmptyState({ title, description }) {
+  return (
+    <Card className="p-6 text-center">
+      <p className="font-display text-base font-semibold text-coach-t1">{title}</p>
+      <p className="mt-2 font-body text-sm leading-relaxed text-coach-t2">{description}</p>
+    </Card>
+  );
+}
 
 export function RosterScreen({ user, tryA }) {
   const { session } = useAuth();
   const repos = useRepositories();
   const userId = session?.user.id;
   const canManageAgeRange = session?.user.role === 'team_manager';
+  const isCoach = user?.role === 'coach';
 
   const [tab, setTab] = useState('teams');
   const [sub, setSub] = useState(null);
@@ -110,11 +114,13 @@ export function RosterScreen({ user, tryA }) {
       }
 
       setLoading(true);
+      setError(null);
       try {
         const nextTeams = await repos.teams.listForUser(userId);
         setTeams(nextTeams);
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'team_load_failed');
+        setTeams([]);
+        setError(cause instanceof Error ? cause.message : 'We could not load your teams.');
       } finally {
         setLoading(false);
       }
@@ -140,6 +146,7 @@ export function RosterScreen({ user, tryA }) {
       await repos.teams.createTeam(userId, input, logoFile);
       await loadTeams();
       setSub(null);
+      setTab('teams');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'team_create_failed');
     } finally {
@@ -158,6 +165,7 @@ export function RosterScreen({ user, tryA }) {
       await repos.teams.updateTeam(editingTeam.id, userId, input, logoFile);
       await loadTeams();
       setSub(null);
+      setTab('teams');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'team_update_failed');
     } finally {
@@ -212,16 +220,10 @@ export function RosterScreen({ user, tryA }) {
     return (
       <div className="px-5">
         <PageHeader title="INVITE PLAYERS" onBack={function () { setSub(null); }} />
-        <Card className="p-6 text-center">
-          <div className="font-display text-[32px] font-bold tracking-[4px] text-coach-orange">
-            EGL-2026
-          </div>
-          <div className="mt-2 font-body text-xs text-coach-t3">Share this code with players</div>
-        </Card>
-        <Btn primary full>
-          Copy Invite Link
-        </Btn>
-        <div className="h-4" />
+        <EmptyState
+          title="Player invites coming soon"
+          description="Invite links and roster joins will arrive in a future update. For now, manage your team profile from the Teams tab."
+        />
         <Btn full onClick={function () { setSub(null); }}>
           Back to roster
         </Btn>
@@ -234,15 +236,18 @@ export function RosterScreen({ user, tryA }) {
     <div className="px-5">
       <PageHeader title="ROSTER" user={user} />
       <div className="mb-4 flex rounded-xl bg-coach-card p-1">
-        {['teams', 'players'].map(function (t) {
+        {[
+          { id: 'teams', label: 'Teams' },
+          { id: 'players', label: 'Players' },
+        ].map(function (item) {
           return (
             <button
-              key={t}
+              key={item.id}
               type="button"
-              onClick={function () { setTab(t); }}
-              className={`flex-1 cursor-pointer rounded-[10px] border-none py-2.5 font-display text-[13px] font-semibold uppercase ${tab === t ? 'bg-coach-orange text-white' : 'bg-transparent text-coach-t3'}`}
+              onClick={function () { setTab(item.id); }}
+              className={`flex-1 cursor-pointer rounded-[10px] border-none py-2.5 font-display text-[13px] font-semibold uppercase ${tab === item.id ? 'bg-coach-orange text-white' : 'bg-transparent text-coach-t3'}`}
             >
-              {t}
+              {item.label}
             </button>
           );
         })}
@@ -252,8 +257,18 @@ export function RosterScreen({ user, tryA }) {
           {loading ? (
             <p className="font-body text-sm text-coach-t2">Loading teams…</p>
           ) : null}
-          {!loading && error && teams.length === 0 ? (
+          {!loading && error ? (
             <p className="mb-3 font-body text-sm text-coach-red">{error}</p>
+          ) : null}
+          {!loading && teams.length === 0 && !error ? (
+            <EmptyState
+              title="No teams yet"
+              description={
+                isCoach
+                  ? 'Create a team to organize players, season dates, and your logo. This is optional — you can also work with individual players.'
+                  : 'Your teams will appear here once they are created.'
+              }
+            />
           ) : null}
           {teams.map(function (team, index) {
             const accent = TEAM_ACCENTS[index % TEAM_ACCENTS.length];
@@ -266,11 +281,15 @@ export function RosterScreen({ user, tryA }) {
                       alt=""
                       className="h-10 w-10 rounded-full border border-coach-border object-cover"
                     />
-                  ) : null}
+                  ) : (
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-coach-border bg-coach-surface font-display text-sm font-bold text-coach-t3">
+                      {team.name.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="font-display text-lg font-bold text-coach-t1">{team.name}</div>
                     <div className="mt-1 font-body text-xs text-coach-t3">
-                      {formatTeamProfileSummary(team)}
+                      {formatTeamProfileSummary(team) || 'Team profile'}
                     </div>
                   </div>
                 </div>
@@ -298,7 +317,7 @@ export function RosterScreen({ user, tryA }) {
               </Card>
             );
           })}
-          {user?.role !== 'team_manager' ? (
+          {isCoach ? (
             <DashedBtn
               onClick={function () {
                 tryA('teamManage', function () {
@@ -312,28 +331,10 @@ export function RosterScreen({ user, tryA }) {
           ) : null}
         </div>
       ) : (
-        MOCK_PLAYERS.map(function (p, i) {
-          return (
-            <Card key={i} className="flex items-center gap-3.5">
-              <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-gradient-to-br from-coach-orange to-coach-orange-light font-display text-[15px] font-bold text-white">
-                {p.n
-                  .split(' ')
-                  .map(function (x) { return x[0]; })
-                  .join('')}
-              </div>
-              <div className="flex-1">
-                <div className="font-body text-sm font-semibold text-coach-t1">{p.n}</div>
-                <div className="font-body text-xs text-coach-t3">
-                  {p.tm + ' - ' + p.pos}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="font-mono text-sm font-semibold text-coach-yellow">{p.g}</div>
-                <div className="font-body text-[10px] text-coach-t3">Goals</div>
-              </div>
-            </Card>
-          );
-        })
+        <EmptyState
+          title="No players on your roster yet"
+          description="Player roster management and invites are not available in this release. Create a team first, then check back after player invite support ships."
+        />
       )}
       <div className="h-[100px]" />
     </div>

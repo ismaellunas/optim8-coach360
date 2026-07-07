@@ -148,7 +148,9 @@ describe('STORY_3_1 AC2 — coach optional create from roster', () => {
     expect(roster).toMatch(/\+ Create Team/);
     expect(roster).toMatch(/type: 'create'/);
     expect(roster).toMatch(/tryA\('teamManage'/);
-    expect(roster).toMatch(/user\?\.role !== 'team_manager'/);
+    expect(roster).toMatch(/user\?\.role === 'coach'/);
+    expect(roster).not.toMatch(/Jaylen Carter/);
+    expect(roster).not.toMatch(/MOCK_PLAYERS/);
 
     expect(roster).toMatch(/canManageAgeRange=\{canManageAgeRange\}/);
     expect(roster).toMatch(/session\?\.user\.role === 'team_manager'/);

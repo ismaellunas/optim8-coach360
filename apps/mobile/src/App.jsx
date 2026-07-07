@@ -79,7 +79,7 @@ const FEATURE_REQS = {
   objectives: { coach: "pro", player: "pro" },
   ai: { coach: "pro", player: "pro" },
   createContent: { coach: "advanced" },
-  teamManage: { coach: "advanced", team: "basic" },
+  teamManage: { coach: "basic", team: "basic" },
   invitePlayers: { coach: "advanced", team: "basic" },
   viewProgress: { coach: "advanced", player: "basic" },
   purchase: { coach: "basic", player: "basic" },
