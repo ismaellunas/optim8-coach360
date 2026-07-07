@@ -4,6 +4,10 @@ import { needsTeamManagerTeamSetup } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { TeamProfileForm } from './TeamProfileForm.jsx';
 
+function teamErrorMessage(cause) {
+  return cause instanceof Error ? cause.message : 'We could not save your team. Please try again.';
+}
+
 export function TeamManagerTeamGate({ children }) {
   const { session } = useAuth();
   const repos = useRepositories();
@@ -11,6 +15,7 @@ export function TeamManagerTeamGate({ children }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   const userId = session?.user.id;
   const isTeamManager = session?.user.role === 'team_manager';
@@ -20,7 +25,7 @@ export function TeamManagerTeamGate({ children }) {
       if (!userId || !isTeamManager) {
         setTeams([]);
         setLoading(false);
-        return;
+        return [];
       }
 
       setLoading(true);
@@ -28,9 +33,11 @@ export function TeamManagerTeamGate({ children }) {
       try {
         const nextTeams = await repos.teams.listForUser(userId);
         setTeams(nextTeams);
+        return nextTeams;
       } catch (cause) {
         setTeams([]);
-        setError(cause instanceof Error ? cause.message : 'team_load_failed');
+        setError(teamErrorMessage(cause));
+        return [];
       } finally {
         setLoading(false);
       }
@@ -49,11 +56,23 @@ export function TeamManagerTeamGate({ children }) {
 
     setSubmitting(true);
     setError(null);
+    setNotice(null);
     try {
       await repos.teams.createTeam(userId, input, logoFile);
       await loadTeams();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'team_create_failed');
+      const nextTeams = await repos.teams.listForUser(userId).catch(function () {
+        return [];
+      });
+      setTeams(nextTeams);
+
+      if (!needsTeamManagerTeamSetup(nextTeams)) {
+        setError(null);
+        setNotice(teamErrorMessage(cause));
+        return;
+      }
+
+      setError(teamErrorMessage(cause));
     } finally {
       setSubmitting(false);
     }
@@ -80,7 +99,7 @@ export function TeamManagerTeamGate({ children }) {
           onClick={loadTeams}
           className="cursor-pointer rounded-xl border-none bg-coach-orange-glow px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-coach-orange"
         >
-          Retry
+          Try again
         </button>
       </div>
     );
@@ -93,8 +112,20 @@ export function TeamManagerTeamGate({ children }) {
         canManageAgeRange
         submitting={submitting}
         error={error}
+        notice={notice}
         onSubmit={handleCreateTeam}
       />
+    );
+  }
+
+  if (notice) {
+    return (
+      <>
+        <div className="border-b border-coach-border bg-coach-card px-6 py-4">
+          <p className="font-body text-sm text-coach-t2">{notice}</p>
+        </div>
+        {children}
+      </>
     );
   }
 

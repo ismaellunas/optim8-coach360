@@ -24,6 +24,11 @@ function FieldLabel({ children }) {
   return <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">{children}</div>;
 }
 
+function readOptionalDate(form, fieldId) {
+  const raw = form.elements.namedItem(fieldId)?.value?.trim() ?? '';
+  return raw || null;
+}
+
 function TextInput({ id, name, type = 'text', required, min, max, defaultValue, placeholder }) {
   return (
     <input
@@ -77,8 +82,8 @@ export function TeamProfileForm({
     const form = event.currentTarget;
     const name = form.elements.namedItem(nameId)?.value?.trim() ?? '';
     const description = form.elements.namedItem(descriptionId)?.value?.trim() ?? '';
-    const seasonStart = form.elements.namedItem(seasonStartId)?.value?.trim() || null;
-    const seasonEnd = form.elements.namedItem(seasonEndId)?.value?.trim() || null;
+    const seasonStart = readOptionalDate(form, seasonStartId);
+    const seasonEnd = readOptionalDate(form, seasonEndId);
 
     let ageMin = null;
     let ageMax = null;

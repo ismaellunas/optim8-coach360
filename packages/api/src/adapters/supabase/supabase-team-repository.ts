@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { teamProfileInputSchema, type Team, type TeamProfileInput } from '@coach360/domain';
 import type { TeamLogoFile, TeamRepository } from '../../ports/team-repository.js';
 import { mapTeamRow, TEAM_SELECT } from './mappers/team-mapper.js';
+import { mapTeamError } from './map-team-error.js';
 
 function mapTeamInsert(input: TeamProfileInput) {
   const parsed = teamProfileInputSchema.parse(input);
@@ -29,7 +30,7 @@ export class SupabaseTeamRepository implements TeamRepository {
       .order('created_at', { ascending: false });
 
     if (error) {
-      throw new Error(error.message);
+      throw mapTeamError(error, 'load');
     }
 
     return (data ?? []).map((row) => mapTeamRow(row as Parameters<typeof mapTeamRow>[0]));
@@ -43,7 +44,7 @@ export class SupabaseTeamRepository implements TeamRepository {
       .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw mapTeamError(error, 'load');
     }
 
     if (!data) {
@@ -70,14 +71,18 @@ export class SupabaseTeamRepository implements TeamRepository {
       .single();
 
     if (error) {
-      throw new Error(error.message);
+      throw mapTeamError(error, 'create');
     }
 
     let team = mapTeamRow(data as Parameters<typeof mapTeamRow>[0]);
 
     if (logoFile) {
-      const logoUrl = await this.uploadLogo(team.id, userId, logoFile.file, logoFile.fileName);
-      team = await this.updateTeam(team.id, userId, { ...input, logoUrl });
+      try {
+        const logoUrl = await this.uploadLogo(team.id, userId, logoFile.file, logoFile.fileName);
+        team = await this.updateTeam(team.id, userId, { ...input, logoUrl });
+      } catch (logoError) {
+        throw mapTeamError(logoError, 'logo');
+      }
     }
 
     return team;
@@ -92,7 +97,11 @@ export class SupabaseTeamRepository implements TeamRepository {
     const payload = mapTeamInsert(input);
 
     if (logoFile) {
-      payload.logo_url = await this.uploadLogo(teamId, userId, logoFile.file, logoFile.fileName);
+      try {
+        payload.logo_url = await this.uploadLogo(teamId, userId, logoFile.file, logoFile.fileName);
+      } catch (logoError) {
+        throw mapTeamError(logoError, 'logo');
+      }
     }
 
     const { data, error } = await this.client
@@ -104,11 +113,11 @@ export class SupabaseTeamRepository implements TeamRepository {
       .maybeSingle();
 
     if (error) {
-      throw new Error(error.message);
+      throw mapTeamError(error, 'update');
     }
 
     if (!data) {
-      throw new Error('team_not_found');
+      throw mapTeamError(new Error('team_not_found'), 'update');
     }
 
     return mapTeamRow(data as Parameters<typeof mapTeamRow>[0]);
@@ -124,7 +133,7 @@ export class SupabaseTeamRepository implements TeamRepository {
       .upload(path, file, { upsert: true });
 
     if (uploadError) {
-      throw new Error(uploadError.message);
+      throw mapTeamError(uploadError, 'logo');
     }
 
     const { data } = this.client.storage.from('team-logos').getPublicUrl(path);

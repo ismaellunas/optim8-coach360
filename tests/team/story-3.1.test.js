@@ -109,6 +109,8 @@ describe('STORY_3_1 AC1 — team manager creates team in core workflow', () => {
     expect(gate).toMatch(/needsTeamManagerTeamSetup/);
     expect(gate).toMatch(/TeamProfileForm/);
     expect(gate).toMatch(/repos\.teams\.createTeam/);
+    expect(gate).toMatch(/listForUser/);
+    expect(gate).toMatch(/notice/);
 
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/TeamManagerTeamGate/);
@@ -191,6 +193,14 @@ describe('STORY_3_1 AC3 — team settings age range fields', () => {
     expect(parsed.gradeLevel).toBe('U14');
     expect(parsed.division).toBe('Division A');
 
+    const emptySeason = teamProfileInputSchema.parse({
+      name: 'Hawks',
+      seasonStart: '',
+      seasonEnd: '',
+    });
+    expect(emptySeason.seasonStart).toBeNull();
+    expect(emptySeason.seasonEnd).toBeNull();
+
     const form = readFileSync(FORM_PATH, 'utf8');
     expect(form).toMatch(/canManageAgeRange/);
     expect(form).toMatch(/team-profile-age-min/);
@@ -214,6 +224,7 @@ describe('STORY_3_1 AC4 — team logo uploads to storage', () => {
     const repo = readFileSync(TEAM_REPO_PATH, 'utf8');
     expect(repo).toMatch(/from\('team-logos'\)/);
     expect(repo).toMatch(/uploadLogo/);
+    expect(repo).toMatch(/mapTeamError/);
 
     const form = readFileSync(FORM_PATH, 'utf8');
     expect(form).toMatch(/team-profile-logo/);

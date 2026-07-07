@@ -2,6 +2,25 @@ import { z } from 'zod';
 
 const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
+function normalizeOptionalDate(value: unknown): string | null {
+  if (value === null || value === undefined || value === '') {
+    return null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const datePart = trimmed.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+      return datePart;
+    }
+  }
+  return null;
+}
+
+const optionalDateSchema = z.preprocess(normalizeOptionalDate, dateStringSchema.nullable());
+
 export const teamSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
@@ -26,10 +45,16 @@ export const teamProfileInputSchema = z
     description: z.string().trim().optional(),
     ageMin: z.number().int().min(5).max(99).nullable().optional(),
     ageMax: z.number().int().min(5).max(99).nullable().optional(),
-    gradeLevel: z.string().trim().min(1).nullable().optional(),
-    division: z.string().trim().min(1).nullable().optional(),
-    seasonStart: dateStringSchema.nullable().optional(),
-    seasonEnd: dateStringSchema.nullable().optional(),
+    gradeLevel: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      z.string().trim().min(1).nullable().optional(),
+    ),
+    division: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      z.string().trim().min(1).nullable().optional(),
+    ),
+    seasonStart: optionalDateSchema.optional(),
+    seasonEnd: optionalDateSchema.optional(),
     logoUrl: z.string().url().nullable().optional(),
   })
   .superRefine(function (data, ctx) {
