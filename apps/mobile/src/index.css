@@ -27,14 +27,25 @@
     box-sizing: border-box;
   }
 
+  html {
+    width: 100%;
+    background-color: var(--color-coach-bg);
+  }
+
   body {
+    width: 100%;
     margin: 0;
+    background-color: var(--color-coach-bg);
+    color: var(--color-coach-t1);
+    font-family: var(--font-body);
     overscroll-behavior: none;
     -webkit-overflow-scrolling: auto;
   }
 
   #root {
+    width: 100%;
     min-height: 100svh;
+    background-color: var(--color-coach-bg);
   }
 
   input::placeholder {

@@ -3,84 +3,15 @@ import { useRepositories } from '@coach360/api';
 import { formatTeamProfileSummary } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { TeamProfileForm } from '@/features/team/ui/TeamProfileForm.jsx';
+import {
+  Button as Btn,
+  Card,
+  DashedBtn,
+  PageHeader,
+  ScreenContainer,
+} from '@/shared/ui/primitives.jsx';
 
 const TEAM_ACCENTS = ['#FF6B2C', '#60A5FA', '#34D399'];
-
-function IconBack() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
-
-function Btn({ children, primary, small, disabled, onClick, full }) {
-  return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      className={[
-        'rounded-xl border-none font-display font-semibold uppercase tracking-wider',
-        small ? 'px-3.5 py-2 text-xs' : 'px-5 py-3 text-sm',
-        full ? 'w-full' : '',
-        disabled
-          ? 'cursor-default bg-coach-border text-coach-t3 opacity-50'
-          : 'cursor-pointer',
-        !disabled && primary ? 'bg-coach-orange text-white' : '',
-        !disabled && !primary ? 'bg-coach-orange-glow text-coach-orange' : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Card({ children, className = '', style }) {
-  return (
-    <div
-      className={`mb-2.5 rounded-[14px] border border-coach-border bg-coach-card p-4 ${className}`}
-      style={style}
-    >
-      {children}
-    </div>
-  );
-}
-
-function DashedBtn({ children, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="w-full cursor-pointer rounded-xl border-2 border-dashed border-coach-border bg-transparent px-3.5 py-3.5 font-display text-[13px] font-semibold uppercase text-coach-t3"
-    >
-      {children}
-    </button>
-  );
-}
-
-function PageHeader({ title, user, onBack }) {
-  return (
-    <div className="flex items-center justify-between pb-2 pt-4">
-      <div className="flex items-center gap-2.5">
-        {onBack ? (
-          <button
-            type="button"
-            onClick={onBack}
-            className="cursor-pointer border-none bg-transparent text-coach-orange"
-          >
-            <IconBack />
-          </button>
-        ) : null}
-        <div className="font-display text-2xl font-bold tracking-wide text-coach-t1">{title}</div>
-      </div>
-      {user ? (
-        <div className="font-body text-xs text-coach-t3">{user.name}</div>
-      ) : null}
-    </div>
-  );
-}
 
 function EmptyState({ title, description }) {
   return (
@@ -175,10 +106,8 @@ export function RosterScreen({ user, tryA }) {
 
   if (sub?.type === 'create') {
     return (
-      <div>
-        <div className="px-5">
-          <PageHeader title="CREATE TEAM" onBack={function () { setSub(null); setError(null); }} />
-        </div>
+      <ScreenContainer className="pb-6">
+        <PageHeader title="CREATE TEAM" onBack={function () { setSub(null); setError(null); }} />
         <TeamProfileForm
           mode="create"
           canManageAgeRange={canManageAgeRange}
@@ -190,16 +119,14 @@ export function RosterScreen({ user, tryA }) {
             setError(null);
           }}
         />
-      </div>
+      </ScreenContainer>
     );
   }
 
   if (sub?.type === 'edit' && editingTeam) {
     return (
-      <div>
-        <div className="px-5">
-          <PageHeader title="EDIT TEAM" onBack={function () { setSub(null); setError(null); }} />
-        </div>
+      <ScreenContainer className="pb-6">
+        <PageHeader title="EDIT TEAM" onBack={function () { setSub(null); setError(null); }} />
         <TeamProfileForm
           mode="edit"
           initialTeam={editingTeam}
@@ -212,13 +139,13 @@ export function RosterScreen({ user, tryA }) {
             setError(null);
           }}
         />
-      </div>
+      </ScreenContainer>
     );
   }
 
   if (sub === 'invite') {
     return (
-      <div className="px-5">
+      <ScreenContainer>
         <PageHeader title="INVITE PLAYERS" onBack={function () { setSub(null); }} />
         <EmptyState
           title="Player invites coming soon"
@@ -227,14 +154,16 @@ export function RosterScreen({ user, tryA }) {
         <Btn full onClick={function () { setSub(null); }}>
           Back to roster
         </Btn>
-        <div className="h-[100px]" />
-      </div>
+      </ScreenContainer>
     );
   }
 
   return (
-    <div className="px-5">
-      <PageHeader title="ROSTER" user={user} />
+    <ScreenContainer>
+      <PageHeader
+        title="ROSTER"
+        trailing={user ? <span className="font-body text-xs text-coach-t3">{user.name}</span> : null}
+      />
       <div className="mb-4 flex rounded-xl bg-coach-card p-1">
         {[
           { id: 'teams', label: 'Teams' },
@@ -336,7 +265,6 @@ export function RosterScreen({ user, tryA }) {
           description="Player roster management and invites are not available in this release. Create a team first, then check back after player invite support ships."
         />
       )}
-      <div className="h-[100px]" />
-    </div>
+    </ScreenContainer>
   );
 }
