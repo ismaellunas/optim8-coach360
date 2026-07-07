@@ -5,6 +5,8 @@ import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
 import { CoachOnboardingGate } from "./features/onboarding/ui/CoachOnboardingGate.jsx";
 import { PlayerOnboardingGate } from "./features/onboarding/ui/PlayerOnboardingGate.jsx";
+import { TeamManagerTeamGate } from "./features/team/ui/TeamManagerTeamGate.jsx";
+import { RosterScreen } from "./features/roster/ui/RosterScreen.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
@@ -77,7 +79,7 @@ const FEATURE_REQS = {
   objectives: { coach: "pro", player: "pro" },
   ai: { coach: "pro", player: "pro" },
   createContent: { coach: "advanced" },
-  teamManage: { coach: "advanced", team: "basic" },
+  teamManage: { coach: "basic", team: "basic" },
   invitePlayers: { coach: "advanced", team: "basic" },
   viewProgress: { coach: "advanced", player: "basic" },
   purchase: { coach: "basic", player: "basic" },
@@ -434,80 +436,6 @@ function HomeScreen({ user, go, tryA }) {
         <div className="px-5 py-3">
           <Btn primary full onClick={function() { go("create-content"); }}>+ Create Content</Btn>
         </div>
-      )}
-      <div className="h-[100px]" />
-    </div>
-  );
-}
-
-/* ── Roster ── */
-function RosterScreen({ user, tryA }) {
-  var _t = useState("teams"), tab = _t[0], setTab = _t[1];
-  var _s = useState(null), sub = _s[0], setSub = _s[1];
-
-  var teams = [{ n: "U14 Eagles", p: 12, r: "8-2", c: COLORS.orange }, { n: "U16 Hawks", p: 10, r: "6-4", c: COLORS.blue }, { n: "U12 Wolves", p: 14, r: "10-1", c: COLORS.green }];
-  var players = [{ n: "Jaylen Carter", tm: "U14 Eagles", pos: "PG", g: "3/4" }, { n: "Marcus Johnson", tm: "U16 Hawks", pos: "SF", g: "2/5" }, { n: "Deon Williams", tm: "U14 Eagles", pos: "SG", g: "3/3" }];
-
-  if (sub === "create") {
-    return (<div className="px-5"><PageHeader title="CREATE TEAM" onBack={function() { setSub(null); }} /><Field label="Team Name" placeholder="e.g. U14 Eagles" /><Field label="Age Group" placeholder="e.g. U14" /><Btn primary full onClick={function() { setSub(null); }}>Create Team</Btn></div>);
-  }
-  if (sub === "invite") {
-    return (<div className="px-5"><PageHeader title="INVITE PLAYERS" onBack={function() { setSub(null); }} />
-      <Card className="p-6 text-center"><div className="font-display text-[32px] font-bold tracking-[4px] text-coach-orange">EGL-2026</div><div className="mt-2 font-body text-xs text-coach-t3">Share this code with players</div></Card>
-      <Btn primary full>Copy Invite Link</Btn><div className="h-4" /><Field label="Or add manually" placeholder="Player email or name" /><Btn full onClick={function() { setSub(null); }}>Add Player</Btn>
-    </div>);
-  }
-
-  return (
-    <div className="px-5">
-      <PageHeader title="ROSTER" user={user} />
-      <div className="mb-4 flex rounded-xl bg-coach-card p-1">
-        {["teams", "players"].map(function(t) {
-          return (
-            <button
-              key={t}
-              onClick={function() { setTab(t); }}
-              className={`flex-1 cursor-pointer rounded-[10px] border-none py-2.5 font-display text-[13px] font-semibold uppercase ${tab === t ? "bg-coach-orange text-white" : "bg-transparent text-coach-t3"}`}
-            >
-              {t}
-            </button>
-          );
-        })}
-      </div>
-      {tab === "teams" ? (
-        <div>
-          {teams.map(function(t, i) {
-            return (
-              <Card key={i} className="border-l-[3px]" style={{ borderLeftColor: t.c }}>
-                <div className="font-display text-lg font-bold text-coach-t1">{t.n}</div>
-                <div className="mt-1 font-body text-xs text-coach-t3">{t.p + " players - " + t.r}</div>
-                <div className="mt-2.5 flex gap-2">
-                  <Btn small onClick={function() { tryA("invitePlayers", function() { setSub("invite"); }); }}>Invite</Btn>
-                  <Btn small onClick={function() { tryA("teamManage", function() {}); }}>Manage</Btn>
-                </div>
-              </Card>
-            );
-          })}
-          <DashedBtn onClick={function() { tryA("teamManage", function() { setSub("create"); }); }}>+ Create Team</DashedBtn>
-        </div>
-      ) : (
-        players.map(function(p, i) {
-          return (
-            <Card key={i} className="flex items-center gap-3.5">
-              <div className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-gradient-to-br from-coach-orange to-coach-orange-light font-display text-[15px] font-bold text-white">
-                {p.n.split(" ").map(function(x) { return x[0]; }).join("")}
-              </div>
-              <div className="flex-1">
-                <div className="font-body text-sm font-semibold text-coach-t1">{p.n}</div>
-                <div className="font-body text-xs text-coach-t3">{p.tm + " - " + p.pos}</div>
-              </div>
-              <div className="text-right">
-                <div className="font-mono text-sm font-semibold text-coach-yellow">{p.g}</div>
-                <div className="font-body text-[10px] text-coach-t3">Goals</div>
-              </div>
-            </Card>
-          );
-        })
       )}
       <div className="h-[100px]" />
     </div>
@@ -1114,11 +1042,13 @@ export default function Coach360() {
     <AuthGate>
       <ProfileGate>
         <SubscriptionGate>
-          <CoachOnboardingGate>
-            <PlayerOnboardingGate>
-              <Coach360App />
-            </PlayerOnboardingGate>
-          </CoachOnboardingGate>
+          <TeamManagerTeamGate>
+            <CoachOnboardingGate>
+              <PlayerOnboardingGate>
+                <Coach360App />
+              </PlayerOnboardingGate>
+            </CoachOnboardingGate>
+          </TeamManagerTeamGate>
         </SubscriptionGate>
       </ProfileGate>
     </AuthGate>

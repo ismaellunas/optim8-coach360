@@ -1013,40 +1013,60 @@
         {
           "id": "AC-1",
           "statement": "Team Manager can create team as part of core workflow",
-          "test": null
+          "test": "tests/team/story-3.1.test.js::test_STORY_3_1_AC1_team_manager_creates_team_in_core_workflow"
         },
         {
           "id": "AC-2",
           "statement": "Coach can optionally create team from roster screen",
-          "test": null
+          "test": "tests/team/story-3.1.test.js::test_STORY_3_1_AC2_coach_optional_create_from_roster"
         },
         {
           "id": "AC-3",
           "statement": "Team settings include min/max age range fields",
-          "test": null
+          "test": "tests/team/story-3.1.test.js::test_STORY_3_1_AC3_team_settings_age_range_fields"
         },
         {
           "id": "AC-4",
           "statement": "Team logo uploads to Supabase Storage",
-          "test": null
+          "test": "tests/team/story-3.1.test.js::test_STORY_3_1_AC4_team_logo_uploads_to_storage"
         },
         {
           "id": "AC-5",
           "statement": "Team profile edits persist and reflect in roster UI",
-          "test": null
+          "test": "tests/team/story-3.1.test.js::test_STORY_3_1_AC5_team_edits_persist_in_roster_ui"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/team/story-3.1.test.js::test_STORY_3_1_AC1_team_manager_creates_team_in_core_workflow",
+          "tests/team/story-3.1.test.js::test_STORY_3_1_AC2_coach_optional_create_from_roster",
+          "tests/team/story-3.1.test.js::test_STORY_3_1_AC3_team_settings_age_range_fields",
+          "tests/team/story-3.1.test.js::test_STORY_3_1_AC4_team_logo_uploads_to_storage",
+          "tests/team/story-3.1.test.js::test_STORY_3_1_AC5_team_edits_persist_in_roster_ui"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260706155000_team_profile_fields.sql",
+          "supabase/migrations/20260706160000_team_age_range_fields.sql",
+          "packages/domain/src/team/schema.ts",
+          "packages/domain/src/team/rules.ts",
+          "packages/api/src/ports/team-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-team-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/team-mapper.ts",
+          "packages/api/src/adapters/rest/rest-team-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/mobile/src/features/team/ui/TeamProfileForm.jsx",
+          "apps/mobile/src/features/team/ui/TeamManagerTeamGate.jsx",
+          "apps/mobile/src/features/roster/ui/RosterScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/types/database.ts",
+          "tests/team/story-3.1.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-3.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-06T09:57:00Z",
+      "audit_notes": "npm run test:story-3.1: 5/5 PASS. Q11.5: team managers manage min/max age, grade level, and division via TeamProfileForm; coaches omit age-range fields. grade_level and division columns added."
     },
     {
       "id": "STORY-3.2",
