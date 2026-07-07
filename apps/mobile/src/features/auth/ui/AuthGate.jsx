@@ -6,7 +6,7 @@ export function AuthGate({ children }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6 text-coach-t2">
+      <div className="flex min-h-[60vh] items-center justify-center bg-coach-bg px-6 text-coach-t2">
         Restoring session…
       </div>
     );

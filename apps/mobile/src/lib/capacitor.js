@@ -11,7 +11,7 @@ export async function initNativeShell() {
   try {
     await StatusBar.setStyle({ style: Style.Dark });
     if (Capacitor.getPlatform() === 'android') {
-      await StatusBar.setBackgroundColor({ color: '#0C0C10' });
+      await StatusBar.setBackgroundColor({ color: '#0B0E14' });
     }
     await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
   } catch (error) {

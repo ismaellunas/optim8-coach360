@@ -11,6 +11,22 @@ import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
+import {
+  AppShell,
+  Badge,
+  Button as Btn,
+  Card,
+  DashedBtn,
+  Field,
+  PageHeader,
+  ScreenContainer,
+  TabBar,
+} from "./shared/ui/primitives.jsx";
+import {
+  bgAccentClass as bgcx,
+  borderAccentClass as bdcx,
+  textAccentClass as tcx,
+} from "./shared/ui/accent.js";
 
 const COLORS = {
   bg: "#0B0E14",
@@ -29,39 +45,6 @@ const COLORS = {
   t2: "#8B93A7",
   t3: "#5A6278",
 };
-
-const CV = {
-  [COLORS.orange]: 'orange',
-  [COLORS.green]: 'green',
-  [COLORS.blue]: 'blue',
-  [COLORS.purple]: 'purple',
-  [COLORS.yellow]: 'yellow',
-  [COLORS.red]: 'red',
-};
-const tcx = (c) => ({
-  orange: 'text-coach-orange',
-  green: 'text-coach-green',
-  blue: 'text-coach-blue',
-  purple: 'text-coach-purple',
-  yellow: 'text-coach-yellow',
-  red: 'text-coach-red',
-}[CV[c] || 'orange']);
-const bgcx = (c) => ({
-  orange: 'bg-coach-orange/20',
-  green: 'bg-coach-green/20',
-  blue: 'bg-coach-blue/20',
-  purple: 'bg-coach-purple/20',
-  yellow: 'bg-coach-yellow/20',
-  red: 'bg-coach-red/20',
-}[CV[c] || 'orange']);
-const bdcx = (c) => ({
-  orange: 'border-coach-orange',
-  green: 'border-coach-green',
-  blue: 'border-coach-blue',
-  purple: 'border-coach-purple',
-  yellow: 'border-coach-yellow',
-  red: 'border-coach-red',
-}[CV[c] || 'orange']);
 
 /* ── Package Images ── */
 var IMG_SHOOTING = "data:image/jpeg;base64,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";
@@ -123,99 +106,12 @@ function IconTrophy() { return <svg width="22" height="22" viewBox="0 0 24 24" f
 function IconSettings() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>; }
 function IconPlus() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
 
-/* ── Shared Components ── */
-function Btn({ children, primary, small, disabled, onClick, full }) {
-  return (
-    <button
-      onClick={disabled ? undefined : onClick}
-      className={[
-        "rounded-xl border-none font-display font-semibold uppercase tracking-wider",
-        small ? "px-3.5 py-2 text-xs" : "px-5 py-3 text-sm",
-        full ? "w-full" : "",
-        disabled
-          ? "cursor-default bg-coach-border text-coach-t3 opacity-50"
-          : "cursor-pointer",
-        !disabled && primary ? "bg-coach-orange text-white" : "",
-        !disabled && !primary ? "bg-coach-orange-glow text-coach-orange" : "",
-      ].filter(Boolean).join(" ")}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Badge({ children, color }) {
-  const key = CV[color || COLORS.orange] || "orange";
-  const classes = {
-    orange: "bg-coach-orange/20 text-coach-orange",
-    green: "bg-coach-green/20 text-coach-green",
-    blue: "bg-coach-blue/20 text-coach-blue",
-    purple: "bg-coach-purple/20 text-coach-purple",
-    yellow: "bg-coach-yellow/20 text-coach-yellow",
-    red: "bg-coach-red/20 text-coach-red",
-  };
-  return (
-    <span className={`inline-block rounded-md px-2 py-0.5 font-body text-[10px] font-bold uppercase tracking-wide ${classes[key]}`}>
-      {children}
-    </span>
-  );
-}
-
-function Card({ children, onClick, className = "" }) {
-  return (
-    <div
-      onClick={onClick}
-      className={`mb-2.5 rounded-[14px] border border-coach-border bg-coach-card p-4 ${onClick ? "cursor-pointer" : "cursor-default"} ${className}`}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Field({ label, placeholder }) {
-  return (
-    <div className="mb-3.5">
-      <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">{label}</div>
-      <input
-        placeholder={placeholder}
-        className="box-border w-full rounded-[10px] border border-coach-border bg-coach-card px-3.5 py-3 font-body text-sm text-coach-t1 outline-none"
-      />
-    </div>
-  );
-}
-
-function PageHeader({ title, subtitle, user, onBack, onSettings }) {
-  return (
-    <div className="flex items-center justify-between px-5 pb-2 pt-4">
-      <div className="flex items-center gap-2.5">
-        {onBack && (
-          <div onClick={onBack} className="cursor-pointer text-coach-orange">
-            <IconBack />
-          </div>
-        )}
-        <div>
-          {subtitle && (
-            <div className="font-body text-[11px] uppercase tracking-widest text-coach-t3">{subtitle}</div>
-          )}
-          <div className="font-display text-[26px] font-bold text-coach-t1">{title}</div>
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        {user && user.tier === "trial" && <Badge color={COLORS.yellow}>Trial {user.trialDays}d</Badge>}
-        {onSettings && (
-          <div onClick={onSettings} className="cursor-pointer text-coach-t2">
-            <IconSettings />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+/* ── Shared Components (imported from shared/ui/primitives.jsx) ── */
 
 function TrialBanner({ user, onUpgrade }) {
   if (!user || user.tier !== "trial") return null;
   return (
-    <div className="mx-5 mb-3 flex items-center justify-between rounded-xl border border-coach-yellow/20 bg-coach-yellow/10 p-3">
+    <div className="mb-3 flex items-center justify-between rounded-xl border border-coach-yellow/20 bg-coach-yellow/10 p-3">
       <div>
         <div className="font-body text-[13px] font-semibold text-coach-yellow">
           Free Trial - {user.trialDays} days left
@@ -231,7 +127,7 @@ function PaywallModal({ feature, user, onClose, onUpgrade }) {
   var needed = neededTier(user, feature);
   var names = { basic: "Basic", advanced: "Advanced", pro: "Pro" };
   return (
-    <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/85 p-5">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6">
       <div className="w-full max-w-[340px] rounded-[20px] border border-coach-border bg-coach-surface p-7 text-center">
         <div className="mb-4 text-coach-orange"><IconLock /></div>
         <div className="mb-2 font-display text-[22px] font-bold text-coach-t1">Feature Locked</div>
@@ -243,17 +139,6 @@ function PaywallModal({ feature, user, onClose, onUpgrade }) {
         <Btn full onClick={onClose}>Maybe Later</Btn>
       </div>
     </div>
-  );
-}
-
-function DashedBtn({ children, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full cursor-pointer rounded-xl border-2 border-dashed border-coach-border bg-transparent px-3.5 py-3.5 font-display text-[13px] font-semibold uppercase text-coach-t3"
-    >
-      {children}
-    </button>
   );
 }
 
@@ -324,7 +209,7 @@ function HomeScreen({ user, go, tryA }) {
 
   if (isAdmin) {
     return (
-      <div className="px-5">
+      <ScreenContainer>
         <PageHeader title="ADMIN" user={user} />
         {[{ l: "Users", v: "1,247", c: COLORS.blue, s: "admin-users" }, { l: "Revenue", v: "$34.8k", c: COLORS.green, s: "admin-subs" }, { l: "Content", v: "156 pkgs", c: COLORS.purple, s: "admin-content" }, { l: "Active", v: "89%", c: COLORS.orange, s: "admin-analytics" }].map(function(s, i) {
           return (
@@ -338,8 +223,8 @@ function HomeScreen({ user, go, tryA }) {
             </Card>
           );
         })}
-        <div className="h-[100px]" />
-      </div>
+        <div className="h-6" />
+      </ScreenContainer>
     );
   }
 
@@ -350,11 +235,24 @@ function HomeScreen({ user, go, tryA }) {
     : [{ l: "Players", v: "34", c: COLORS.blue }, { l: "Teams", v: "4", c: COLORS.green }, { l: "Sessions", v: "128", c: COLORS.purple }, { l: "Drills", v: "57", c: COLORS.orange }];
 
   return (
-    <div>
-      <PageHeader title={isPlayer ? user.name : isTeam ? user.name + " (Team)" : "Coach " + user.name} user={user} subtitle="Welcome back" onSettings={function() { go("profile"); }} />
-      <TrialBanner user={user} onUpgrade={function() { go("subscription"); }} />
+    <ScreenContainer>
+      <PageHeader
+        title={isPlayer ? user.name : isTeam ? user.name + " (Team)" : "Coach " + user.name}
+        user={user}
+        subtitle="Welcome back"
+        trailing={
+          <button
+            type="button"
+            onClick={function () { go("profile"); }}
+            className="cursor-pointer border-none bg-transparent p-0 text-coach-t2"
+          >
+            <IconSettings />
+          </button>
+        }
+      />
+      <TrialBanner user={user} onUpgrade={function () { go("subscription"); }} />
 
-      <div className="grid grid-cols-4 gap-2.5 px-5 py-3">
+      <div className="grid grid-cols-4 gap-2.5 py-3">
         {stats.map(function(s, i) {
           return (
             <div key={i} className="rounded-[14px] border border-coach-border bg-coach-card px-2 py-3.5 text-center">
@@ -366,7 +264,7 @@ function HomeScreen({ user, go, tryA }) {
       </div>
 
       {canAccess(user, "ai") ? (
-        <div className="px-5 py-2">
+        <div className="py-2">
           <Card>
             <div className="mb-2.5 flex items-center gap-2">
               <div className="text-coach-orange"><IconSpark /></div>
@@ -376,7 +274,7 @@ function HomeScreen({ user, go, tryA }) {
           </Card>
         </div>
       ) : (
-        <div className="px-5 py-2">
+        <div className="py-2">
           <Card onClick={function() { tryA("ai", function() {}); }} className="flex items-center gap-3">
             <div className="text-coach-t3"><IconLock /></div>
             <div>
@@ -387,9 +285,9 @@ function HomeScreen({ user, go, tryA }) {
         </div>
       )}
 
-      <div className="px-5 py-3">
+      <div className="py-3">
         <div className="mb-2.5 flex justify-between">
-          <span className="font-display text-base font-semibold uppercase tracking-widest text-coach-t1">Upcoming</span>
+          <span className="font-display text-sm font-semibold uppercase tracking-widest text-coach-t1">Upcoming</span>
           <span onClick={function() { go("schedule"); }} className="cursor-pointer font-body text-xs text-coach-orange">View all</span>
         </div>
         {[{ t: "Shooting Drills", tm: isTeam ? "Full roster" : "U14 Eagles", ti: "Today, 4:00 PM" }, { t: isPlayer ? "Personal Training" : "Game Film Review", tm: isPlayer ? "Individual" : "Individual session", ti: "Tomorrow, 10 AM" }].map(function(s, i) {
@@ -405,9 +303,9 @@ function HomeScreen({ user, go, tryA }) {
         })}
       </div>
 
-      <div className="px-5 py-1">
+      <div className="py-1">
         <div className="mb-2.5 flex justify-between">
-          <span className="font-display text-base font-semibold uppercase text-coach-t1">Objectives</span>
+          <span className="font-display text-sm font-semibold uppercase text-coach-t1">Objectives</span>
           <span onClick={function() { tryA("objectives", function() { go("objectives"); }); }} className="cursor-pointer font-body text-xs text-coach-orange">{canAccess(user, "objectives") ? "Manage" : "Pro"}</span>
         </div>
         {canAccess(user, "objectives") ? (
@@ -433,12 +331,11 @@ function HomeScreen({ user, go, tryA }) {
       </div>
 
       {!isPlayer && !isTeam && canAccess(user, "createContent") && (
-        <div className="px-5 py-3">
+        <div className="py-3">
           <Btn primary full onClick={function() { go("create-content"); }}>+ Create Content</Btn>
         </div>
       )}
-      <div className="h-[100px]" />
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -451,16 +348,16 @@ function ScheduleScreen({ user, tryA }) {
   var sessions = { 0: [{ ti: "4 PM", t: "Ball Handling", tm: "U12 Wolves" }], 1: [{ ti: "10 AM", t: "Film Study", tm: "U16 Hawks" }], 2: [{ ti: "9 AM", t: "Shooting Clinic", tm: "U14 Eagles" }, { ti: "4 PM", t: "Scrimmage", tm: "U18 Elite" }], 3: [{ ti: "3:30 PM", t: "Defense Drills", tm: "U14 Eagles" }], 5: [{ ti: "11 AM", t: "Game Day", tm: "U14 Eagles" }] };
 
   if (creating) {
-    return (<div className="px-5"><PageHeader title="NEW SESSION" onBack={function() { setCreating(false); }} /><Field label="Session Title" placeholder="e.g. Shooting Drills" /><Field label="Date and Time" placeholder="Select" /><Field label="Team" placeholder="Select team" />
+    return (<ScreenContainer><PageHeader title="NEW SESSION" onBack={function() { setCreating(false); }} /><Field label="Session Title" placeholder="e.g. Shooting Drills" /><Field label="Date and Time" placeholder="Select" /><Field label="Team" placeholder="Select team" />
       <div className="mb-2 font-body text-xs text-coach-t3">ADD CONTENT</div>
       <div className="mb-5 flex gap-2">{["Drills", "Video", "Strategy"].map(function(t) { return <Btn key={t} small>{t}</Btn>; })}</div>
       <Btn primary full onClick={function() { setCreating(false); }}>Create and Share</Btn>
-    </div>);
+    </ScreenContainer>);
   }
 
   var dayData = sessions[sel] || [];
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="SCHEDULE" user={user} />
       <div className="mb-5 flex gap-1.5">
         {days.map(function(d, i) {
@@ -488,8 +385,7 @@ function ScheduleScreen({ user, tryA }) {
         );
       })}
       {user.role === "coach" && <DashedBtn onClick={function() { tryA("createSession", function() { setCreating(true); }); }}>+ Add Session</DashedBtn>}
-      <div className="h-[100px]" />
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -500,15 +396,15 @@ function ChatScreen({ user, tryA }) {
 
   if (!canAccess(user, "chat")) {
     return (
-      <div className="px-5">
+      <ScreenContainer>
         <PageHeader title="MESSAGES" user={user} />
-        <div className="px-5 py-[60px] text-center">
+        <div className="py-[60px] text-center">
           <div className="mb-3 text-coach-t3"><IconLock /></div>
           <div className="mb-2 font-display text-lg font-semibold text-coach-t1">Chat Locked</div>
           <div className="mb-5 font-body text-[13px] text-coach-t3">Upgrade to Advanced to message.</div>
           <Btn primary onClick={function() { tryA("chat", function() {}); }}>Upgrade</Btn>
         </div>
-      </div>
+      </ScreenContainer>
     );
   }
 
@@ -518,12 +414,12 @@ function ChatScreen({ user, tryA }) {
   if (active) {
     var chat = chats.find(function(c) { return c.id === active; });
     return (
-      <div className="flex h-[calc(100vh-70px)] flex-col">
-        <div className="flex items-center gap-3 border-b border-coach-border px-5 py-4">
+      <div className="flex min-h-[calc(100svh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5rem)] flex-col">
+        <div className="flex items-center gap-3 border-b border-coach-border px-6 py-4">
           <div onClick={function() { setActive(null); }} className="cursor-pointer text-coach-orange"><IconBack /></div>
           <div className="font-body text-[15px] font-semibold text-coach-t1">{chat ? chat.n : ""}</div>
         </div>
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
           {messages.map(function(m, i) {
             return (
               <div key={i} className={`mb-3 flex ${m.f === "me" ? "justify-end" : "justify-start"}`}>
@@ -535,7 +431,7 @@ function ChatScreen({ user, tryA }) {
             );
           })}
         </div>
-        <div className="flex gap-2.5 border-t border-coach-border px-5 pb-5 pt-3">
+        <div className="flex gap-2.5 border-t border-coach-border px-6 pb-5 pt-3">
           <input
             value={msg}
             onChange={function(e) { setMsg(e.target.value); }}
@@ -551,7 +447,7 @@ function ChatScreen({ user, tryA }) {
   }
 
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="MESSAGES" user={user} />
       {chats.map(function(c) {
         return (
@@ -578,8 +474,8 @@ function ChatScreen({ user, tryA }) {
           </div>
         );
       })}
-      <div className="h-[100px]" />
-    </div>
+      <div className="h-6" />
+    </ScreenContainer>
   );
 }
 
@@ -616,7 +512,7 @@ function StoreScreen({ user, tryA }) {
   if (viewing) {
     var pk = pkgs.find(function(x) { return x.id === viewing; });
     return (
-      <div className="px-5">
+      <ScreenContainer>
         <PageHeader title="PACKAGE" onBack={function() { setViewing(null); }} />
         <div className="mb-4"><PackageThumb tag={pk.tag} color={pk.c} size="full" /></div>
         <Badge color={pk.c}>{pk.tag}</Badge>
@@ -641,12 +537,12 @@ function StoreScreen({ user, tryA }) {
             </Btn>
           </div>
         )}
-      </div>
+      </ScreenContainer>
     );
   }
 
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="STORE" user={user} />
       {canAccess(user, "ai") && (
         <Card className="flex items-center gap-3 border border-coach-orange/20 bg-gradient-to-br from-coach-orange-glow to-coach-purple/10">
@@ -695,15 +591,15 @@ function StoreScreen({ user, tryA }) {
           </Card>
         );
       })}
-      <div className="h-[100px]" />
-    </div>
+      <div className="h-6" />
+    </ScreenContainer>
   );
 }
 
 /* ── Progress (Player) ── */
 function ProgressScreen({ user }) {
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="MY PROGRESS" user={user} />
       {[{ l: "Drills completed", v: "124", tr: "+12 this week" }, { l: "Practice hours", v: "48h", tr: "+6h this week" }, { l: "Shooting %", v: "67%", tr: "+4% this month" }].map(function(s, i) {
         return (
@@ -721,15 +617,15 @@ function ProgressScreen({ user }) {
         <div className="font-body text-[13px] leading-relaxed text-coach-t1">Great improvement on the crossover. Focus on finishing with your left hand.</div>
         <div className="mt-2 font-body text-[11px] text-coach-t3">Coach Marcus - 2 days ago</div>
       </Card>
-      <div className="h-[100px]" />
-    </div>
+      <div className="h-6" />
+    </ScreenContainer>
   );
 }
 
 /* ── Profile / Subscription ── */
 function ProfileScreen({ user, go, onSignOut }) {
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="PROFILE" onBack={function() { go("home"); }} />
       <div className="mb-6 text-center">
         <div className="mx-auto mb-3 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-br from-coach-orange to-coach-orange-light font-display text-[28px] font-bold text-white">
@@ -743,14 +639,14 @@ function ProfileScreen({ user, go, onSignOut }) {
       <Card><span className="font-body text-sm text-coach-t1">Edit Profile</span></Card>
       <Card><span className="font-body text-sm text-coach-t1">Notifications</span></Card>
       <Card onClick={onSignOut}><span className="font-body text-sm text-coach-red">Sign Out</span></Card>
-    </div>
+    </ScreenContainer>
   );
 }
 
 function SubscriptionScreen({ user, setUser, onBack }) {
   var tiers = [{ id: "basic", l: "Basic", p: "$9/mo", c: COLORS.green, f: ["Profile setup", "Purchase content", "Track progress"] }, { id: "advanced", l: "Advanced", p: "$29/mo", c: COLORS.blue, f: ["All Basic +", "Coach and chat", "Distribute content", "Plan and schedule"] }, { id: "pro", l: "Pro", p: "$49/mo", c: COLORS.orange, f: ["All Advanced +", "AI personalization", "Set objectives", "Full MVP access"] }];
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="SUBSCRIPTION" onBack={onBack} />
       <Card className="p-5 text-center">
         <div className="font-body text-xs uppercase text-coach-t3">Current Plan</div>
@@ -786,7 +682,7 @@ function SubscriptionScreen({ user, setUser, onBack }) {
           </Card>
         );
       })}
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -795,7 +691,7 @@ function CreateContentScreen({ onBack }) {
   var _t = useState(null), ty = _t[0], setTy = _t[1];
   if (!ty) {
     return (
-      <div className="px-5">
+      <ScreenContainer>
         <PageHeader title="CREATE CONTENT" onBack={onBack} />
         {[{ id: "drill", l: "Training Drill", d: "Instructions and reps", e: "\uD83C\uDFC0" }, { id: "video", l: "Video Upload", d: "Film and demos", e: "\uD83C\uDFAC" }, { id: "strategy", l: "Game Strategy", d: "Plays and formations", e: "\uD83D\uDCCB" }].map(function(t) {
           return (
@@ -809,11 +705,11 @@ function CreateContentScreen({ onBack }) {
             </Card>
           );
         })}
-      </div>
+      </ScreenContainer>
     );
   }
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title={"NEW " + ty.toUpperCase()} onBack={function() { setTy(null); }} />
       <Field label="Title" placeholder="e.g. Crossover Drill" /><Field label="Description" placeholder="Instructions" />
       {ty === "video" && (
@@ -824,7 +720,7 @@ function CreateContentScreen({ onBack }) {
       )}
       <div className="my-3 mb-5 flex gap-2">{["U14 Eagles", "U16 Hawks"].map(function(t) { return <Btn key={t} small>{t}</Btn>; })}</div>
       <Btn primary full onClick={function() { setTy(null); }}>Create and Share</Btn>
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -837,7 +733,7 @@ function ObjectivesScreen({ user, onBack }) {
     return COLORS.orange;
   }
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title="OBJECTIVES" onBack={onBack} />
       {objs.map(function(o, i) {
         const barColor = progressColor(o.p);
@@ -855,7 +751,7 @@ function ObjectivesScreen({ user, onBack }) {
         );
       })}
       {user.role === "coach" && <DashedBtn>+ Add Objective</DashedBtn>}
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -863,7 +759,7 @@ function ObjectivesScreen({ user, onBack }) {
 function AdminDetailScreen({ screen, onBack }) {
   var titles = { "admin-users": "USERS", "admin-subs": "SUBSCRIPTIONS", "admin-content": "CONTENT", "admin-analytics": "ANALYTICS" };
   return (
-    <div className="px-5">
+    <ScreenContainer>
       <PageHeader title={titles[screen] || "ADMIN"} onBack={onBack} />
       {screen === "admin-users" && [{ n: "Coach Marcus", r: "Coach", t: "Pro", s: "Active" }, { n: "Jaylen Carter", r: "Player", t: "Advanced", s: "Active" }, { n: "Sarah Kim", r: "Coach", t: "Trial", s: "Trial" }].map(function(u, i) {
         return (
@@ -905,7 +801,7 @@ function AdminDetailScreen({ screen, onBack }) {
           })}
         </div>
       )}
-    </div>
+    </ScreenContainer>
   );
 }
 
@@ -924,13 +820,6 @@ function Coach360App() {
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
-
-  useEffect(function() {
-    var link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-  }, []);
 
   useEffect(function() {
     if (auth.justRegistered && session && session.user.role !== 'coach' && session.user.role !== 'player') {
@@ -973,13 +862,13 @@ function Coach360App() {
 
   var tabs;
   if (user && user.role === "admin") {
-    tabs = [{ id: "home", icon: <IconHome />, l: "Dashboard" }, { id: "admin-users", icon: <IconUsers />, l: "Users" }, { id: "admin-content", icon: <IconStore />, l: "Content" }, { id: "admin-analytics", icon: <IconChart />, l: "Analytics" }];
+    tabs = [{ id: "home", icon: <IconHome />, label: "Dashboard" }, { id: "admin-users", icon: <IconUsers />, label: "Users" }, { id: "admin-content", icon: <IconStore />, label: "Content" }, { id: "admin-analytics", icon: <IconChart />, label: "Analytics" }];
   } else if (user && user.role === "player") {
-    tabs = [{ id: "home", icon: <IconHome />, l: "Home" }, { id: "progress", icon: <IconTrophy />, l: "Progress" }, { id: "schedule", icon: <IconCal />, l: "Schedule" }, { id: "chat", icon: <IconChat />, l: "Chat" }, { id: "marketplace", icon: <IconStore />, l: "Store" }];
+    tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "progress", icon: <IconTrophy />, label: "Progress" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Store" }];
   } else if (user && user.role === "team") {
-    tabs = [{ id: "home", icon: <IconHome />, l: "Home" }, { id: "teams", icon: <IconUsers />, l: "Roster" }, { id: "schedule", icon: <IconCal />, l: "Schedule" }, { id: "chat", icon: <IconChat />, l: "Chat" }, { id: "marketplace", icon: <IconStore />, l: "Store" }];
+    tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "teams", icon: <IconUsers />, label: "Roster" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Store" }];
   } else {
-    tabs = [{ id: "home", icon: <IconHome />, l: "Home" }, { id: "teams", icon: <IconUsers />, l: "Roster" }, { id: "schedule", icon: <IconCal />, l: "Schedule" }, { id: "chat", icon: <IconChat />, l: "Chat" }, { id: "marketplace", icon: <IconStore />, l: "Store" }];
+    tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "teams", icon: <IconUsers />, label: "Roster" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Store" }];
   }
 
   function renderScreen() {
@@ -999,41 +888,25 @@ function Coach360App() {
   }
 
   return (
-    <div className="relative mx-auto min-h-screen max-w-[430px] bg-coach-bg font-body text-coach-t1">
-      <div className="flex items-center justify-between px-5 pb-1 pt-2.5">
-        <span className="font-body text-[13px] font-semibold text-coach-t1">9:41</span>
-        <div className="flex items-center gap-1.5">
-          <svg width="16" height="12" viewBox="0 0 16 12" fill={COLORS.t1}><rect x="0" y="4" width="3" height="8" rx="1" /><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" /><rect x="9" y="0.5" width="3" height="11.5" rx="1" /></svg>
-          <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2" stroke={COLORS.t1} /><rect x="2" y="2" width="16" height="8" rx="1" fill={COLORS.green} /><rect x="24" y="3.5" width="2" height="5" rx="1" fill={COLORS.t1} /></svg>
-        </div>
-      </div>
-
-      <div className="h-[calc(100vh-100px)] overflow-y-auto">
-        {renderScreen()}
-      </div>
-
-      {paywall && <PaywallModal feature={paywall} user={user} onClose={function() { setPaywall(null); }} onUpgrade={function() { setPaywall(null); go("subscription"); }} />}
-
-      {user && !onboarding && (
-        <div className="fixed bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 bg-gradient-to-t from-coach-bg from-80% to-transparent pt-4">
-          <div className="flex items-center justify-around rounded-t-[20px] border-t border-coach-border bg-coach-surface px-2 pb-5 pt-2.5">
-            {tabs.map(function(t) {
-              return (
-                <button
-                  key={t.id}
-                  onClick={function() { go(t.id); }}
-                  className={`relative flex cursor-pointer flex-col items-center gap-1 border-none bg-transparent ${screen === t.id ? "text-coach-orange" : "text-coach-t3"}`}
-                >
-                  {screen === t.id && <div className="absolute -top-3.5 h-[3px] w-6 rounded-sm bg-coach-orange" />}
-                  {t.icon}
-                  <span className="font-body text-[10px] font-semibold tracking-wide">{t.l}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
+    <AppShell
+      overlay={
+        paywall ? (
+          <PaywallModal
+            feature={paywall}
+            user={user}
+            onClose={function () { setPaywall(null); }}
+            onUpgrade={function () { setPaywall(null); go("subscription"); }}
+          />
+        ) : null
+      }
+      footer={
+        user && !onboarding ? (
+          <TabBar tabs={tabs} activeId={screen} onSelect={go} />
+        ) : null
+      }
+    >
+      {renderScreen()}
+    </AppShell>
   );
 }
 
