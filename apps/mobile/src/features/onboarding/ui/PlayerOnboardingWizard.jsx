@@ -31,8 +31,13 @@ export function PlayerOnboardingWizard({
   error,
   onComplete,
   onLogFirstDrill,
+  onAcceptInvite,
+  inviteSubmitting = false,
+  inviteError = null,
 }) {
   const [stepIndex, setStepIndex] = useState(0);
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteNotice, setInviteNotice] = useState(null);
   const step = PLAYER_ONBOARDING_STEPS[stepIndex];
   const isLastStep = stepIndex === PLAYER_ONBOARDING_STEPS.length - 1;
 
@@ -149,9 +154,34 @@ export function PlayerOnboardingWizard({
           <input
             type="text"
             placeholder="Team invite code"
+            value={inviteCode}
+            onChange={function (event) {
+              setInviteCode(event.target.value.toUpperCase());
+              setInviteNotice(null);
+            }}
             className="w-full rounded-xl border border-coach-border bg-coach-surface px-4 py-3 font-body text-sm text-coach-t1 outline-none placeholder:text-coach-t3"
-            readOnly
           />
+          {inviteError ? (
+            <p className="mt-2 font-body text-sm text-coach-red">{inviteError}</p>
+          ) : null}
+          {inviteNotice ? (
+            <p className="mt-2 font-body text-sm text-coach-green">{inviteNotice}</p>
+          ) : null}
+          {onAcceptInvite ? (
+            <WizardBtn
+              disabled={inviteSubmitting || !inviteCode.trim()}
+              onClick={async function () {
+                try {
+                  await onAcceptInvite(inviteCode);
+                  setInviteNotice('You joined the team roster.');
+                } catch {
+                  setInviteNotice(null);
+                }
+              }}
+            >
+              {inviteSubmitting ? 'Joining…' : 'Join team'}
+            </WizardBtn>
+          ) : null}
         </div>
       )}
 

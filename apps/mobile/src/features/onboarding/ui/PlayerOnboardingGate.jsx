@@ -11,7 +11,9 @@ export function PlayerOnboardingGate({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [inviteError, setInviteError] = useState(null);
 
   const userId = session?.user.id;
   const isPlayer = session?.user.role === 'player';
@@ -71,6 +73,23 @@ export function PlayerOnboardingGate({ children }) {
       setError(cause instanceof Error ? cause.message : 'player_onboarding_completion_failed');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleAcceptInvite(code) {
+    if (!userId) {
+      return;
+    }
+
+    setInviteSubmitting(true);
+    setInviteError(null);
+    try {
+      await repos.rosters.acceptInvite(code, userId);
+    } catch (cause) {
+      setInviteError(cause instanceof Error ? cause.message : 'invite_accept_failed');
+      throw cause;
+    } finally {
+      setInviteSubmitting(false);
     }
   }
 
@@ -135,6 +154,9 @@ export function PlayerOnboardingGate({ children }) {
         error={error}
         onComplete={finishOnboarding}
         onLogFirstDrill={handleLogFirstDrill}
+        onAcceptInvite={handleAcceptInvite}
+        inviteSubmitting={inviteSubmitting}
+        inviteError={inviteError}
       />
     </OnboardingNavigationContext.Provider>
   );

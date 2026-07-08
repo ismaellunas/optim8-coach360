@@ -75,3 +75,47 @@ export const teamProfileInputSchema = z
   });
 
 export type TeamProfileInput = z.infer<typeof teamProfileInputSchema>;
+
+export const rosterRoleSchema = z.enum(['player', 'assistant_coach', 'manager']);
+export const rosterStatusSchema = z.enum(['invited', 'active', 'removed']);
+export const inviteStatusSchema = z.enum(['active', 'revoked', 'consumed']);
+
+export type RosterRole = z.infer<typeof rosterRoleSchema>;
+export type RosterStatus = z.infer<typeof rosterStatusSchema>;
+export type InviteStatus = z.infer<typeof inviteStatusSchema>;
+
+export const rosterMemberSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  profileId: z.string().uuid(),
+  displayName: z.string().nullable(),
+  rosterRole: rosterRoleSchema,
+  status: rosterStatusSchema,
+  joinedAt: z.string().datetime({ offset: true }),
+});
+
+export type RosterMember = z.infer<typeof rosterMemberSchema>;
+
+export const teamInviteSchema = z.object({
+  id: z.string().uuid(),
+  teamId: z.string().uuid(),
+  code: z.string().min(4),
+  invitedEmail: z.string().email().nullable(),
+  status: inviteStatusSchema,
+  expiresAt: z.string().datetime({ offset: true }),
+  createdAt: z.string().datetime({ offset: true }),
+});
+
+export type TeamInvite = z.infer<typeof teamInviteSchema>;
+
+export const teamInviteWithLinkSchema = teamInviteSchema.extend({
+  inviteUrl: z.string().url(),
+});
+
+export type TeamInviteWithLink = z.infer<typeof teamInviteWithLinkSchema>;
+
+export const teamInvitePreviewSchema = teamInviteSchema.extend({
+  teamName: z.string(),
+});
+
+export type TeamInvitePreview = z.infer<typeof teamInvitePreviewSchema>;

@@ -3,6 +3,7 @@ import { useRepositories } from '@coach360/api';
 import { formatTeamProfileSummary } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { TeamProfileForm } from '@/features/team/ui/TeamProfileForm.jsx';
+import { TeamInviteScreen } from './TeamInviteScreen.jsx';
 import {
   Button as Btn,
   Card,
@@ -32,7 +33,9 @@ export function RosterScreen({ user, tryA }) {
   const [tab, setTab] = useState('teams');
   const [sub, setSub] = useState(null);
   const [teams, setTeams] = useState([]);
+  const [rosterMembers, setRosterMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [playersLoading, setPlayersLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -59,12 +62,44 @@ export function RosterScreen({ user, tryA }) {
     [repos.teams, userId],
   );
 
+  const loadRosterMembers = useCallback(
+    async function () {
+      if (!userId || teams.length === 0) {
+        setRosterMembers([]);
+        return;
+      }
+
+      setPlayersLoading(true);
+      try {
+        const memberLists = await Promise.all(
+          teams.map(function (team) {
+            return repos.rosters.listMembers(team.id);
+          }),
+        );
+        setRosterMembers(memberLists.flat());
+      } catch {
+        setRosterMembers([]);
+      } finally {
+        setPlayersLoading(false);
+      }
+    },
+    [repos.rosters, teams, userId],
+  );
+
   useEffect(function () {
     loadTeams();
   }, [loadTeams]);
 
+  useEffect(function () {
+    if (tab === 'players') {
+      loadRosterMembers();
+    }
+  }, [tab, loadRosterMembers]);
+
   const editingTeam =
     sub?.type === 'edit' ? teams.find((team) => team.id === sub.teamId) ?? null : null;
+  const invitingTeam =
+    sub?.type === 'invite' ? teams.find((team) => team.id === sub.teamId) ?? null : null;
 
   async function handleCreateTeam(input, logoFile) {
     if (!userId) {
@@ -143,20 +178,19 @@ export function RosterScreen({ user, tryA }) {
     );
   }
 
-  if (sub === 'invite') {
+  if (sub?.type === 'invite' && sub.teamId) {
     return (
-      <ScreenContainer>
-        <PageHeader title="INVITE PLAYERS" onBack={function () { setSub(null); }} />
-        <EmptyState
-          title="Player invites coming soon"
-          description="Invite links and roster joins will arrive in a future update. For now, manage your team profile from the Teams tab."
-        />
-        <Btn full onClick={function () { setSub(null); }}>
-          Back to roster
-        </Btn>
-      </ScreenContainer>
+      <TeamInviteScreen
+        teamId={sub.teamId}
+        team={invitingTeam}
+        onBack={function () { setSub(null); }}
+      />
     );
   }
+
+  const activePlayers = rosterMembers.filter(function (member) {
+    return member.rosterRole === 'player' && member.status === 'active';
+  });
 
   return (
     <ScreenContainer>
@@ -226,7 +260,9 @@ export function RosterScreen({ user, tryA }) {
                   <Btn
                     small
                     onClick={function () {
-                      tryA('invitePlayers', function () { setSub('invite'); });
+                      tryA('invitePlayers', function () {
+                        setSub({ type: 'invite', teamId: team.id });
+                      });
                     }}
                   >
                     Invite
@@ -260,10 +296,34 @@ export function RosterScreen({ user, tryA }) {
           ) : null}
         </div>
       ) : (
-        <EmptyState
-          title="No players on your roster yet"
-          description="Player roster management and invites are not available in this release. Create a team first, then check back after player invite support ships."
-        />
+        <div>
+          {playersLoading ? (
+            <p className="font-body text-sm text-coach-t2">Loading players…</p>
+          ) : null}
+          {!playersLoading && activePlayers.length === 0 ? (
+            <EmptyState
+              title="No players on your roster yet"
+              description="Invite players with a link or code from the Teams tab, or add an existing player by email."
+            />
+          ) : null}
+          {!playersLoading
+            ? activePlayers.map(function (member) {
+                const team = teams.find(function (item) {
+                  return item.id === member.teamId;
+                });
+                return (
+                  <Card key={member.id} className="mb-2.5 p-4">
+                    <div className="font-display text-base font-semibold text-coach-t1">
+                      {member.displayName || 'Player'}
+                    </div>
+                    <div className="mt-1 font-body text-xs text-coach-t3">
+                      {team ? team.name : 'Team member'}
+                    </div>
+                  </Card>
+                );
+              })
+            : null}
+        </div>
       )}
     </ScreenContainer>
   );
