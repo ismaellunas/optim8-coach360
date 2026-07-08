@@ -4,7 +4,7 @@ import { MOCK_MARKETPLACE_CATALOG } from '../lib/mock-marketplace-catalog.js';
 import { MOCK_ASSIGNED_CONTENT } from '../lib/mock-assigned-content.js';
 import { CoachOnboardingProgress } from './CoachOnboardingProgress.jsx';
 
-function WizardBtn({ children, primary, disabled, onClick }) {
+function WizardBtn({ children, primary, disabled, onClick, className = '' }) {
   return (
     <button
       type="button"
@@ -12,6 +12,7 @@ function WizardBtn({ children, primary, disabled, onClick }) {
       onClick={disabled ? undefined : onClick}
       className={[
         'w-full rounded-xl border-none px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider',
+        className,
         disabled ? 'cursor-default bg-coach-border text-coach-t3 opacity-50' : 'cursor-pointer',
         !disabled && primary ? 'bg-coach-orange text-white' : '',
         !disabled && !primary ? 'bg-coach-orange-glow text-coach-orange' : '',
@@ -34,12 +35,15 @@ export function PlayerOnboardingWizard({
   onAcceptInvite,
   inviteSubmitting = false,
   inviteError = null,
+  pendingInviteCode = '',
+  inviteAccepted = false,
 }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [inviteCode, setInviteCode] = useState('');
   const [inviteNotice, setInviteNotice] = useState(null);
   const step = PLAYER_ONBOARDING_STEPS[stepIndex];
   const isLastStep = stepIndex === PLAYER_ONBOARDING_STEPS.length - 1;
+  const resolvedInviteCode = pendingInviteCode || inviteCode;
 
   function goNext() {
     if (isLastStep) {
@@ -148,31 +152,46 @@ export function PlayerOnboardingWizard({
       {step.id === 'team' && (
         <div className="mb-6 rounded-[14px] border border-dashed border-coach-border bg-coach-card/50 p-4 text-left">
           <p className="mb-3 font-body text-sm text-coach-t2">
-            Have an invite code from your coach? Enter it when you are ready. This step is
-            optional.
+            {inviteAccepted
+              ? 'You already joined your team from the invite link. You can finish onboarding and start training.'
+              : pendingInviteCode
+                ? 'We found your invite code from the link you used. Join the team when you are ready.'
+                : 'Have an invite code from your coach? Enter it when you are ready. This step is optional.'}
           </p>
-          <input
-            type="text"
-            placeholder="Team invite code"
-            value={inviteCode}
-            onChange={function (event) {
-              setInviteCode(event.target.value.toUpperCase());
-              setInviteNotice(null);
-            }}
-            className="w-full rounded-xl border border-coach-border bg-coach-surface px-4 py-3 font-body text-sm text-coach-t1 outline-none placeholder:text-coach-t3"
-          />
+          {pendingInviteCode ? (
+            <div className="rounded-xl border border-coach-border bg-coach-surface px-4 py-3">
+              <p className="font-body text-[10px] uppercase tracking-wider text-coach-t3">
+                Invite code
+              </p>
+              <p className="mt-1 font-display text-base font-semibold tracking-[0.18em] text-coach-t1">
+                {resolvedInviteCode}
+              </p>
+            </div>
+          ) : (
+            <input
+              type="text"
+              placeholder="Team invite code"
+              value={inviteCode}
+              onChange={function (event) {
+                setInviteCode(event.target.value.toUpperCase());
+                setInviteNotice(null);
+              }}
+              className="w-full rounded-xl border border-coach-border bg-coach-surface px-4 py-3 font-body text-sm text-coach-t1 outline-none placeholder:text-coach-t3"
+            />
+          )}
           {inviteError ? (
             <p className="mt-2 font-body text-sm text-coach-red">{inviteError}</p>
           ) : null}
           {inviteNotice ? (
             <p className="mt-2 font-body text-sm text-coach-green">{inviteNotice}</p>
           ) : null}
-          {onAcceptInvite ? (
+          {onAcceptInvite && !inviteAccepted ? (
             <WizardBtn
+              className="mt-4"
               disabled={inviteSubmitting || !inviteCode.trim()}
               onClick={async function () {
                 try {
-                  await onAcceptInvite(inviteCode);
+                  await onAcceptInvite(resolvedInviteCode);
                   setInviteNotice('You joined the team roster.');
                 } catch {
                   setInviteNotice(null);

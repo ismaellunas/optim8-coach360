@@ -812,7 +812,7 @@ function AdminDetailScreen({ screen, onBack }) {
 }
 
 /* ══════════ MAIN APP ══════════ */
-function Coach360App() {
+function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var auth = useAuth();
   var subscriptionState = useSubscription();
   var onboardingNav = useOnboardingNavigation();
@@ -826,11 +826,6 @@ function Coach360App() {
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
-  var _invite = useState(function () {
-    if (typeof window === "undefined") return "";
-    return new URLSearchParams(window.location.search).get("invite") || "";
-  }), pendingInviteCode = _invite[0], setPendingInviteCode = _invite[1];
-
   useEffect(function() {
     if (auth.justRegistered && session && session.user.role !== 'coach' && session.user.role !== 'player') {
       setOnboarding(true);
@@ -859,6 +854,16 @@ function Coach360App() {
   }, [pendingInviteCode, user, setScreen]);
 
   function go(s) { setScreen(s); }
+
+  function clearPendingInvite() {
+    setPendingInviteCode("");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("invite");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+    setScreen("home");
+  }
 
   function tryA(feature, action) {
     if (canAccess(user, feature)) { action(); }
@@ -900,13 +905,7 @@ function Coach360App() {
         <PlayerJoinTeamScreen
           initialCode={pendingInviteCode}
           onJoined={function () {
-            setPendingInviteCode("");
-            if (typeof window !== "undefined") {
-              const url = new URL(window.location.href);
-              url.searchParams.delete("invite");
-              window.history.replaceState({}, "", url.pathname + url.search);
-            }
-            go("home");
+            clearPendingInvite();
           }}
           onBack={function () {
             setPendingInviteCode("");
@@ -947,14 +946,34 @@ function Coach360App() {
 }
 
 export default function Coach360() {
+  var _invite = useState(function () {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("invite") || "";
+  }), pendingInviteCode = _invite[0], setPendingInviteCode = _invite[1];
+
+  function clearPendingInvite() {
+    setPendingInviteCode("");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("invite");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }
+
   return (
     <AuthGate>
       <ProfileGate>
         <SubscriptionGate>
           <TeamManagerTeamGate>
             <CoachOnboardingGate>
-              <PlayerOnboardingGate>
-                <Coach360App />
+              <PlayerOnboardingGate
+                pendingInviteCode={pendingInviteCode}
+                onPendingInviteResolved={clearPendingInvite}
+              >
+                <Coach360App
+                  pendingInviteCode={pendingInviteCode}
+                  setPendingInviteCode={setPendingInviteCode}
+                />
               </PlayerOnboardingGate>
             </CoachOnboardingGate>
           </TeamManagerTeamGate>

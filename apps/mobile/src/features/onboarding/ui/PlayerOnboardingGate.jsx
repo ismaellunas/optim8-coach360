@@ -5,7 +5,11 @@ import { useAuth } from '@/features/auth/model/use-auth.js';
 import { OnboardingNavigationContext } from '../model/onboarding-navigation-context.jsx';
 import { PlayerOnboardingWizard } from './PlayerOnboardingWizard.jsx';
 
-export function PlayerOnboardingGate({ children }) {
+export function PlayerOnboardingGate({
+  children,
+  pendingInviteCode = '',
+  onPendingInviteResolved,
+}) {
   const { session } = useAuth();
   const repos = useRepositories();
   const [profile, setProfile] = useState(null);
@@ -14,6 +18,7 @@ export function PlayerOnboardingGate({ children }) {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [inviteError, setInviteError] = useState(null);
+  const [inviteAccepted, setInviteAccepted] = useState(false);
 
   const userId = session?.user.id;
   const isPlayer = session?.user.role === 'player';
@@ -44,6 +49,13 @@ export function PlayerOnboardingGate({ children }) {
   useEffect(function () {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(
+    function () {
+      setInviteAccepted(false);
+    },
+    [pendingInviteCode],
+  );
 
   const navigationValue = useMemo(
     function () {
@@ -85,6 +97,10 @@ export function PlayerOnboardingGate({ children }) {
     setInviteError(null);
     try {
       await repos.rosters.acceptInvite(code, userId);
+      setInviteAccepted(true);
+      if (pendingInviteCode && code === pendingInviteCode) {
+        onPendingInviteResolved?.();
+      }
     } catch (cause) {
       setInviteError(cause instanceof Error ? cause.message : 'invite_accept_failed');
       throw cause;
@@ -157,6 +173,8 @@ export function PlayerOnboardingGate({ children }) {
         onAcceptInvite={handleAcceptInvite}
         inviteSubmitting={inviteSubmitting}
         inviteError={inviteError}
+        pendingInviteCode={pendingInviteCode}
+        inviteAccepted={inviteAccepted}
       />
     </OnboardingNavigationContext.Provider>
   );
