@@ -373,9 +373,9 @@
         "Environment secrets managed without committing credentials",
         "Integration test checklist covers cross-flow scenarios per DEP-09"
       ],
-      "status": "DONE",
-      "last_updated": "2026-07-06T06:27:00Z",
-      "audit_notes": "Child rollup: STORY-1.1 DONE (4/4 AC tests PASS with local Supabase). STORY-1.2 DONE (6/6 PASS). STORY-1.3 DONE (8/8 PASS). STORY-1.4 DONE (4/4 PASS). Re-audited 2026-07-06 after EPIC-2 auth/subscription changes. Epic-level criteria (multi-env, DEP-09 checklist) still lack automated tests."
+      "status": "IN_PROGRESS",
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Child rollup (1f9484e..HEAD): STORY-1.1 IN_REVIEW; STORY-1.2 DONE; STORY-1.3 DONE; STORY-1.4 DONE. STORY-1.1 AC3 not executable this audit → epic IN_PROGRESS."
     },
     {
       "id": "STORY-1.1",
@@ -430,9 +430,9 @@
         ],
         "command": "supabase db reset --no-seed && npm test -- --reporter=json -t STORY_1_1"
       },
-      "status": "DONE",
-      "last_updated": "2026-07-06T06:38:00Z",
-      "audit_notes": "Re-audited 60ebf21..HEAD (test file touched). npm run test:story-1.1: 4/4 PASS. AC1 test_STORY_1_1_AC1_supabase_services_configured PASS. AC2 test_STORY_1_1_AC2_core_tables_exist PASS. AC3 test_STORY_1_1_AC3_rls_coach_player_team_isolation PASS. AC4 test_STORY_1_1_AC4_database_types_exported PASS."
+      "status": "IN_REVIEW",
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (supabase/config.toml touched). npm run test:story-1.1: AC1 PASS (test_STORY_1_1_AC1_supabase_services_configured); AC2 PASS (test_STORY_1_1_AC2_core_tables_exist); AC3 NOT EXECUTED — suite beforeAll failed with permission denied for table teams (GRANT SELECT, INSERT ON public.teams TO service_role); AC4 PASS (test_STORY_1_1_AC4_database_types_exported)."
     },
     {
       "id": "STORY-1.2",
@@ -692,8 +692,8 @@
         "command": "npm run test:story-2.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Re-audited c67348d..HEAD (App.jsx PlayerOnboardingGate). npm run test:story-2.1: 6/6 PASS. AC1 test_STORY_2_1_AC1_email_signup_and_profile PASS. AC2 test_STORY_2_1_AC2_session_persists_across_restarts PASS. AC2 test_STORY_2_1_AC2_capacitor_storage_adapter PASS. AC3 test_STORY_2_1_AC3_unauthenticated_blocked_from_app PASS. AC3 test_STORY_2_1_AC3_authenticated_allowed PASS. AC3 test_STORY_2_1_AC3_auth_gate_blocks_unauthenticated PASS."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.1: 6/6 PASS. AC1 test_STORY_2_1_AC1_email_signup_and_profile PASS. AC2 test_STORY_2_1_AC2_session_persists_across_restarts PASS; test_STORY_2_1_AC2_capacitor_storage_adapter PASS. AC3 test_STORY_2_1_AC3_unauthenticated_blocked_from_app PASS; test_STORY_2_1_AC3_authenticated_allowed PASS; test_STORY_2_1_AC3_auth_gate_blocks_unauthenticated PASS."
     },
     {
       "id": "STORY-2.2",
@@ -762,8 +762,8 @@
         "command": "npm run test:story-2.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Re-audited c67348d..HEAD (profile schema fixture). npm run test:story-2.2: 5/5 PASS. AC1 test_STORY_2_2_AC1_registration_role_selection PASS. AC2 test_STORY_2_2_AC2_coach_profile_captures_context PASS. AC3 test_STORY_2_2_AC3_player_profile_fields PASS. AC4 test_STORY_2_2_AC4_team_manager_requires_team_setup_path PASS. AC5 test_STORY_2_2_AC5_profile_persists_to_supabase PASS."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.2: 5/5 PASS. AC1 test_STORY_2_2_AC1_registration_role_selection PASS. AC2 test_STORY_2_2_AC2_coach_profile_captures_context PASS. AC3 test_STORY_2_2_AC3_player_profile_fields PASS. AC4 test_STORY_2_2_AC4_team_manager_requires_team_setup_path PASS. AC5 test_STORY_2_2_AC5_profile_persists_to_supabase PASS."
     },
     {
       "id": "STORY-2.3",
@@ -830,8 +830,8 @@
         "command": "npm run test:story-2.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Re-audited c67348d..HEAD (App.jsx PlayerOnboardingGate). npm run test:story-2.3: 4/4 PASS. AC1 test_STORY_2_3_AC1_subscription_choice_after_profile PASS. AC2 test_STORY_2_3_AC2_trial_grants_pro_access PASS. AC3 test_STORY_2_3_AC3_defer_lands_on_basic PASS. AC4 test_STORY_2_3_AC4_stripe_webhook_syncs_subscription PASS."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.3: 4/4 PASS. AC1 test_STORY_2_3_AC1_subscription_choice_after_profile PASS. AC2 test_STORY_2_3_AC2_trial_grants_pro_access PASS. AC3 test_STORY_2_3_AC3_defer_lands_on_basic PASS. AC4 test_STORY_2_3_AC4_stripe_webhook_syncs_subscription PASS."
     },
     {
       "id": "STORY-2.4",
@@ -906,8 +906,8 @@
         "command": "npm run test:story-2.4"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Re-audited c67348d..HEAD (shared profile/onboarding paths). npm run test:story-2.4: 5/5 PASS. AC1 test_STORY_2_4_AC1_progress_indicator_shows_steps PASS. AC2 test_STORY_2_4_AC2_skip_team_and_invites PASS. AC3 test_STORY_2_4_AC3_marketplace_browse_without_purchase PASS. AC4 test_STORY_2_4_AC4_session_step_links_to_schedule PASS. AC5 test_STORY_2_4_AC5_onboarding_completion_recorded PASS."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.4: 5/5 PASS. AC1 test_STORY_2_4_AC1_progress_indicator_shows_steps PASS. AC2 test_STORY_2_4_AC2_skip_team_and_invites PASS. AC3 test_STORY_2_4_AC3_marketplace_browse_without_purchase PASS. AC4 test_STORY_2_4_AC4_session_step_links_to_schedule PASS. AC5 test_STORY_2_4_AC5_onboarding_completion_recorded PASS."
     },
     {
       "id": "STORY-2.5",
@@ -975,8 +975,8 @@
         "command": "npm run test:story-2.5"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Audited c67348d..HEAD (STORY-2.5 merge). npm run test:story-2.5: 5/5 PASS. AC1 test_STORY_2_5_AC1_complete_without_team PASS. AC2 test_STORY_2_5_AC2_browse_shows_marketplace_and_assigned PASS. AC3 test_STORY_2_5_AC3_first_drill_logs_progress PASS. AC4 test_STORY_2_5_AC4_onboarding_completion_analytics PASS. AC5 test_STORY_2_5_AC5_team_invite_optional PASS."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (PlayerOnboardingGate/Wizard, App.jsx invite wiring). npm run test:story-2.5: 5/5 PASS. AC1 test_STORY_2_5_AC1_complete_without_team PASS. AC2 test_STORY_2_5_AC2_browse_shows_marketplace_and_assigned PASS. AC3 test_STORY_2_5_AC3_first_drill_logs_progress PASS. AC4 test_STORY_2_5_AC4_onboarding_completion_analytics PASS. AC5 test_STORY_2_5_AC5_team_invite_optional PASS."
     },
     {
       "id": "EPIC-3",
@@ -994,9 +994,9 @@
         "Players join via shareable link/code or manual add",
         "Roster view shows all team members with role badges"
       ],
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "IN_PROGRESS",
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Child rollup (1f9484e..HEAD): STORY-3.1 DONE (5/5 PASS). STORY-3.2 DONE (5/5 PASS). STORY-3.3 still TODO. Epic IN_PROGRESS."
     },
     {
       "id": "STORY-3.1",
@@ -1065,8 +1065,8 @@
         "command": "npm run test:story-3.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T09:57:00Z",
-      "audit_notes": "npm run test:story-3.1: 5/5 PASS. Q11.5: team managers manage min/max age, grade level, and division via TeamProfileForm; coaches omit age-range fields. grade_level and division columns added."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-3.1: 5/5 PASS. AC1 test_STORY_3_1_AC1_team_manager_creates_team_in_core_workflow PASS. AC2 test_STORY_3_1_AC2_coach_optional_create_from_roster PASS. AC3 test_STORY_3_1_AC3_team_settings_age_range_fields PASS. AC4 test_STORY_3_1_AC4_team_logo_uploads_to_storage PASS. AC5 test_STORY_3_1_AC5_team_edits_persist_in_roster_ui PASS."
     },
     {
       "id": "STORY-3.2",
@@ -1137,8 +1137,8 @@
         "command": "npm run test:story-3.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08",
-      "audit_notes": "Implemented team_invites migration, RosterRepository, invite/join UI, and tier gates; Q11.1 link+code and Q11.2 multi-team allowed as interim defaults. All 5 AC tests pass via npm run test:story-3.2."
+      "last_updated": "2026-07-08T09:31:00Z",
+      "audit_notes": "Re-audited 1f9484e..HEAD (invite migration, onboarding invite prefill, App.jsx). npm run test:story-3.2: 5/5 PASS. AC1 test_STORY_3_2_AC1_coach_advanced_generates_invite_link_or_code PASS. AC2 test_STORY_3_2_AC2_team_manager_basic_invite_and_manual_add PASS. AC3 test_STORY_3_2_AC3_player_accept_invite_sees_team_context PASS. AC4 test_STORY_3_2_AC4_invalid_or_expired_invite_shows_clear_error PASS. AC5 test_STORY_3_2_AC5_multi_team_membership_allowed PASS."
     },
     {
       "id": "STORY-3.3",
