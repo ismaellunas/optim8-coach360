@@ -58,6 +58,10 @@ create policy "team_invites_coach_update"
     or public.is_admin(auth.uid())
   );
 
+-- Table created after 20260706150000_authenticated_table_grants.sql; grant explicitly.
+grant select, insert, update, delete on public.team_invites to authenticated;
+grant select on public.team_invites to anon;
+
 ------------------------------------------------------------------------------
 -- Helpers for manual add and invite acceptance (SECURITY DEFINER)
 ------------------------------------------------------------------------------
