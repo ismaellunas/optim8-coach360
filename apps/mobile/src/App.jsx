@@ -7,6 +7,8 @@ import { CoachOnboardingGate } from "./features/onboarding/ui/CoachOnboardingGat
 import { PlayerOnboardingGate } from "./features/onboarding/ui/PlayerOnboardingGate.jsx";
 import { TeamManagerTeamGate } from "./features/team/ui/TeamManagerTeamGate.jsx";
 import { RosterScreen } from "./features/roster/ui/RosterScreen.jsx";
+import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
+import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
@@ -251,6 +253,10 @@ function HomeScreen({ user, go, tryA }) {
         }
       />
       <TrialBanner user={user} onUpgrade={function () { go("subscription"); }} />
+
+      {isPlayer ? (
+        <PlayerTeamContext onJoinTeam={function () { go("join-team"); }} />
+      ) : null}
 
       <div className="grid grid-cols-4 gap-2.5 py-3">
         {stats.map(function(s, i) {
@@ -806,7 +812,7 @@ function AdminDetailScreen({ screen, onBack }) {
 }
 
 /* ══════════ MAIN APP ══════════ */
-function Coach360App() {
+function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var auth = useAuth();
   var subscriptionState = useSubscription();
   var onboardingNav = useOnboardingNavigation();
@@ -820,7 +826,6 @@ function Coach360App() {
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
-
   useEffect(function() {
     if (auth.justRegistered && session && session.user.role !== 'coach' && session.user.role !== 'player') {
       setOnboarding(true);
@@ -842,7 +847,23 @@ function Coach360App() {
     }
   }, [subscriptionState, setScreen]);
 
+  useEffect(function () {
+    if (pendingInviteCode && user && user.role === "player") {
+      setScreen("join-team");
+    }
+  }, [pendingInviteCode, user, setScreen]);
+
   function go(s) { setScreen(s); }
+
+  function clearPendingInvite() {
+    setPendingInviteCode("");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("invite");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+    setScreen("home");
+  }
 
   function tryA(feature, action) {
     if (canAccess(user, feature)) { action(); }
@@ -879,6 +900,20 @@ function Coach360App() {
     if (screen === "chat") return <ChatScreen user={user} tryA={tryA} />;
     if (screen === "marketplace") return <StoreScreen user={user} tryA={tryA} />;
     if (screen === "progress") return <ProgressScreen user={user} />;
+    if (screen === "join-team") {
+      return (
+        <PlayerJoinTeamScreen
+          initialCode={pendingInviteCode}
+          onJoined={function () {
+            clearPendingInvite();
+          }}
+          onBack={function () {
+            setPendingInviteCode("");
+            go("home");
+          }}
+        />
+      );
+    }
     if (screen === "profile") return <ProfileScreen user={user} go={go} onSignOut={handleSignOut} />;
     if (screen === "subscription") return <SubscriptionScreen user={user} setUser={function() {}} onBack={function() { go("profile"); }} />;
     if (screen === "objectives") return <ObjectivesScreen user={user} onBack={function() { go("home"); }} />;
@@ -911,14 +946,34 @@ function Coach360App() {
 }
 
 export default function Coach360() {
+  var _invite = useState(function () {
+    if (typeof window === "undefined") return "";
+    return new URLSearchParams(window.location.search).get("invite") || "";
+  }), pendingInviteCode = _invite[0], setPendingInviteCode = _invite[1];
+
+  function clearPendingInvite() {
+    setPendingInviteCode("");
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("invite");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }
+
   return (
     <AuthGate>
       <ProfileGate>
         <SubscriptionGate>
           <TeamManagerTeamGate>
             <CoachOnboardingGate>
-              <PlayerOnboardingGate>
-                <Coach360App />
+              <PlayerOnboardingGate
+                pendingInviteCode={pendingInviteCode}
+                onPendingInviteResolved={clearPendingInvite}
+              >
+                <Coach360App
+                  pendingInviteCode={pendingInviteCode}
+                  setPendingInviteCode={setPendingInviteCode}
+                />
               </PlayerOnboardingGate>
             </CoachOnboardingGate>
           </TeamManagerTeamGate>

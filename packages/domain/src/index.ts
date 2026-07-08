@@ -66,7 +66,32 @@ export {
 export {
   teamSchema,
   teamProfileInputSchema,
+  rosterMemberSchema,
+  teamInviteSchema,
+  teamInviteWithLinkSchema,
+  teamInvitePreviewSchema,
+  rosterRoleSchema,
+  rosterStatusSchema,
+  inviteStatusSchema,
   type Team,
   type TeamProfileInput,
+  type RosterMember,
+  type RosterRole,
+  type RosterStatus,
+  type TeamInvite,
+  type TeamInviteWithLink,
+  type TeamInvitePreview,
+  type InviteStatus,
 } from './team/schema.js';
 export { needsTeamManagerTeamSetup, canManageTeamAgeRange, formatTeamAgeRange, formatTeamProfileSummary } from './team/rules.js';
+export { canGenerateTeamInvite, canManuallyAddRosterPlayer } from './team/access.js';
+export {
+  INVITE_EXPIRY_DAYS,
+  allowsMultipleTeamMembership,
+  generateInviteCode,
+  normalizeInviteCode,
+  buildInviteLink,
+  validateTeamInvite,
+  mapInviteErrorMessage,
+  type InviteValidationError,
+} from './team/invite-rules.js';

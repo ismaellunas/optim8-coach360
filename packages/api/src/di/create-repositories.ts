@@ -7,6 +7,7 @@ import type { SubscriptionRepository } from '../ports/subscription-repository.js
 import type { ContentRepository } from '../ports/content-repository.js';
 import type { ProfileRepository } from '../ports/profile-repository.js';
 import type { TeamRepository } from '../ports/team-repository.js';
+import type { RosterRepository } from '../ports/roster-repository.js';
 import type { AnalyticsRepository } from '../ports/analytics-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
@@ -15,6 +16,7 @@ import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-r
 import { RestContentRepository } from '../adapters/rest/rest-content-repository.js';
 import { RestProfileRepository } from '../adapters/rest/rest-profile-repository.js';
 import { RestTeamRepository } from '../adapters/rest/rest-team-repository.js';
+import { RestRosterRepository } from '../adapters/rest/rest-roster-repository.js';
 import { RestAnalyticsRepository } from '../adapters/rest/rest-analytics-repository.js';
 import {
   createSupabaseClient,
@@ -28,6 +30,7 @@ import { SupabaseSubscriptionRepository } from '../adapters/supabase/supabase-su
 import { SupabaseContentRepository } from '../adapters/supabase/supabase-content-repository.js';
 import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile-repository.js';
 import { SupabaseTeamRepository } from '../adapters/supabase/supabase-team-repository.js';
+import { SupabaseRosterRepository } from '../adapters/supabase/supabase-roster-repository.js';
 import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
 
 export type RepositoryBundle = {
@@ -36,6 +39,7 @@ export type RepositoryBundle = {
   users: UserRepository;
   profiles: ProfileRepository;
   teams: TeamRepository;
+  rosters: RosterRepository;
   subscriptions: SubscriptionRepository;
   content: ContentRepository;
   analytics: AnalyticsRepository;
@@ -62,6 +66,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       users: new RestUserRepository(),
       profiles: new RestProfileRepository(),
       teams: new RestTeamRepository(),
+      rosters: new RestRosterRepository(),
       subscriptions: new RestSubscriptionRepository(),
       content: new RestContentRepository(),
       analytics: new RestAnalyticsRepository(),
@@ -88,6 +93,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     users: new SupabaseUserRepository(appClient),
     profiles: new SupabaseProfileRepository(appClient),
     teams: new SupabaseTeamRepository(appClient),
+    rosters: new SupabaseRosterRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     content: new SupabaseContentRepository(),
     analytics: new ConsoleAnalyticsRepository(),

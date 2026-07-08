@@ -1084,40 +1084,61 @@
         {
           "id": "AC-1",
           "statement": "Coach at Advanced+ can generate invite link or code",
-          "test": null
+          "test": "tests/team/story-3.2.test.js::test_STORY_3_2_AC1_coach_advanced_generates_invite_link_or_code"
         },
         {
           "id": "AC-2",
           "statement": "Team Manager at Basic+ can invite and manually add players",
-          "test": null
+          "test": "tests/team/story-3.2.test.js::test_STORY_3_2_AC2_team_manager_basic_invite_and_manual_add"
         },
         {
           "id": "AC-3",
           "statement": "Player accepting invite joins roster and sees team context",
-          "test": null
+          "test": "tests/team/story-3.2.test.js::test_STORY_3_2_AC3_player_accept_invite_sees_team_context"
         },
         {
           "id": "AC-4",
           "statement": "Invalid or expired invite shows clear error",
-          "test": null
+          "test": "tests/team/story-3.2.test.js::test_STORY_3_2_AC4_invalid_or_expired_invite_shows_clear_error"
         },
         {
           "id": "AC-5",
           "statement": "Player multi-team membership behavior follows stakeholder decision",
-          "test": null
+          "test": "tests/team/story-3.2.test.js::test_STORY_3_2_AC5_multi_team_membership_allowed"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/team/story-3.2.test.js::test_STORY_3_2_AC1_coach_advanced_generates_invite_link_or_code",
+          "tests/team/story-3.2.test.js::test_STORY_3_2_AC2_team_manager_basic_invite_and_manual_add",
+          "tests/team/story-3.2.test.js::test_STORY_3_2_AC3_player_accept_invite_sees_team_context",
+          "tests/team/story-3.2.test.js::test_STORY_3_2_AC4_invalid_or_expired_invite_shows_clear_error",
+          "tests/team/story-3.2.test.js::test_STORY_3_2_AC5_multi_team_membership_allowed"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260708120000_team_invites.sql",
+          "packages/domain/src/team/access.ts",
+          "packages/domain/src/team/invite-rules.ts",
+          "packages/domain/src/team/schema.ts",
+          "packages/api/src/ports/roster-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-roster-repository.ts",
+          "packages/api/src/adapters/supabase/map-roster-error.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/mobile/src/features/roster/ui/TeamInviteScreen.jsx",
+          "apps/mobile/src/features/roster/ui/ManualAddPlayerForm.jsx",
+          "apps/mobile/src/features/roster/ui/PlayerJoinTeamScreen.jsx",
+          "apps/mobile/src/features/roster/ui/PlayerTeamContext.jsx",
+          "apps/mobile/src/features/roster/ui/RosterScreen.jsx",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingWizard.jsx",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingGate.jsx",
+          "apps/mobile/src/App.jsx",
+          "tests/team/story-3.2.test.js"
+        ],
+        "command": "npm run test:story-3.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-08",
+      "audit_notes": "Implemented team_invites migration, RosterRepository, invite/join UI, and tier gates; Q11.1 link+code and Q11.2 multi-team allowed as interim defaults. All 5 AC tests pass via npm run test:story-3.2."
     },
     {
       "id": "STORY-3.3",
