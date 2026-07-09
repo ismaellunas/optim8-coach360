@@ -292,7 +292,7 @@
   "open_questions": [
     {
       "id": "OQ-2.1",
-      "question": "What does 'track own progress' mean at Basic tier \u2014 drill logs, completion %, stats, or full profile dashboard? Flow 2 tier summary grants Basic \u2713 but the player access matrix gates it to Advanced+.",
+      "question": "What does 'track own progress' mean at Basic tier — drill logs, completion %, stats, or full profile dashboard? Flow 2 tier summary grants Basic ✓ but the player access matrix gates it to Advanced+.",
       "source": "docs/product/stakeholder-questions.md#flow-2",
       "status": "sent",
       "blocks": [
@@ -312,7 +312,7 @@
     },
     {
       "id": "OQ-2.3",
-      "question": "At Advanced, what are the precise boundaries for coach & communicate, distribute content, and plan & schedule vs Pro \u2014 including what \u25cb partial means for each feature?",
+      "question": "At Advanced, what are the precise boundaries for coach & communicate, distribute content, and plan & schedule vs Pro — including what ○ partial means for each feature?",
       "source": "docs/product/stakeholder-questions.md#flow-2",
       "status": "sent",
       "blocks": [
@@ -335,7 +335,7 @@
     },
     {
       "id": "OQ-3.2",
-      "question": "How do coaches schedule sessions \u2014 date/time picker only, recurrence, or calendar sync (Google/Apple)?",
+      "question": "How do coaches schedule sessions — date/time picker only, recurrence, or calendar sync (Google/Apple)?",
       "source": "docs/product/stakeholder-questions.md#flow-3",
       "status": "sent",
       "blocks": [
@@ -344,7 +344,7 @@
     },
     {
       "id": "OQ-6.5",
-      "question": "AI features show \u25cb partial at Advanced in the access matrix but principles say 'AI exclusively at Pro' \u2014 which is correct for MVP?",
+      "question": "AI features show ○ partial at Advanced in the access matrix but principles say 'AI exclusively at Pro' — which is correct for MVP?",
       "source": "docs/product/stakeholder-questions.md#flow-6",
       "status": "sent",
       "blocks": [
@@ -374,8 +374,8 @@
         "Integration test checklist covers cross-flow scenarios per DEP-09"
       ],
       "status": "IN_PROGRESS",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Child rollup (1f9484e..HEAD): STORY-1.1 IN_REVIEW; STORY-1.2 DONE; STORY-1.3 DONE; STORY-1.4 DONE. STORY-1.1 AC3 not executable this audit \u2192 epic IN_PROGRESS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Child rollup (47245b8..HEAD): STORY-1.1 IN_REVIEW; STORY-1.2 DONE; STORY-1.3 DONE; STORY-1.4 DONE. STORY-1.1 AC3 not executable this audit → epic IN_PROGRESS."
     },
     {
       "id": "STORY-1.1",
@@ -431,8 +431,8 @@
         "command": "supabase db reset --no-seed && npm test -- --reporter=json -t STORY_1_1"
       },
       "status": "IN_REVIEW",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (supabase/config.toml touched). npm run test:story-1.1: AC1 PASS (test_STORY_1_1_AC1_supabase_services_configured); AC2 PASS (test_STORY_1_1_AC2_core_tables_exist); AC3 NOT EXECUTED \u2014 suite beforeAll failed with permission denied for table teams (GRANT SELECT, INSERT ON public.teams TO service_role); AC4 PASS (test_STORY_1_1_AC4_database_types_exported)."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (package.json). npm run test:story-1.1: AC1 PASS (test_STORY_1_1_AC1_supabase_services_configured); AC2 PASS (test_STORY_1_1_AC2_core_tables_exist); AC3 NOT EXECUTED — suite skipped/failed before run (RLS isolation); AC4 PASS (test_STORY_1_1_AC4_database_types_exported)."
     },
     {
       "id": "STORY-1.2",
@@ -490,8 +490,8 @@
         "command": "npm test -- --reporter=json -t STORY_1_2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T06:27:00Z",
-      "audit_notes": "npm test -t STORY_1_2: 6/6 PASS. AC1 test_STORY_1_2_AC1_cap_sync_scripts_configured PASS. AC1 test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output PASS. AC1 test_STORY_1_2_AC1_cap_sync_after_vite_build PASS. AC2 test_STORY_1_2_AC2_supabase_client_typed PASS. AC3 test_STORY_1_2_AC3_release_signing_documented PASS. AC4 test_STORY_1_2_AC4_native_plugins_configured PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (package.json). vitest -t STORY_1_2: 6/6 PASS. AC1 test_STORY_1_2_AC1_cap_sync_scripts_configured PASS; test_STORY_1_2_AC1_capacitor_web_dir_matches_vite_output PASS; test_STORY_1_2_AC1_cap_sync_after_vite_build PASS. AC2 test_STORY_1_2_AC2_supabase_client_typed PASS. AC3 test_STORY_1_2_AC3_release_signing_documented PASS. AC4 test_STORY_1_2_AC4_native_plugins_configured PASS."
     },
     {
       "id": "STORY-1.3",
@@ -550,8 +550,8 @@
         "command": "npm run test:story-1.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T06:27:00Z",
-      "audit_notes": "npm run test:story-1.3: 8/8 PASS. AC1 test_STORY_1_3_AC1_admin_routes_require_admin_role PASS. AC2 test_STORY_1_3_AC2_dashboard_nav_four_pillars PASS. AC3 test_STORY_1_3_AC3_staging_deploy_configured PASS. AC4 test_STORY_1_3_AC4_content_links_sanity_studio PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (package.json). vitest -t STORY_1_3: 8/8 PASS. AC0–AC4 and structure tests all PASS."
     },
     {
       "id": "STORY-1.4",
@@ -606,8 +606,8 @@
         "command": "npm test -- --reporter=json -t STORY_1_4"
       },
       "status": "DONE",
-      "last_updated": "2026-07-06T06:38:00Z",
-      "audit_notes": "Re-audited 60ebf21..HEAD (test file touched). npm run test:story-1.4: 4/4 PASS. AC1 test_STORY_1_4_AC1_github_actions_pr_and_main PASS. AC2 test_STORY_1_4_AC2_android_release_ci_configured PASS. AC3 test_STORY_1_4_AC3_admin_deploy_on_main_merge PASS. AC4 test_STORY_1_4_AC4_environment_promotion_runbook PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (package.json). vitest -t STORY_1_4: 4/4 PASS. AC1–AC4 all PASS."
     },
     {
       "id": "EPIC-2",
@@ -628,8 +628,8 @@
         "Independent operation without a team is supported for coaches and players"
       ],
       "status": "DONE",
-      "last_updated": "2026-07-06T07:45:00Z",
-      "audit_notes": "Child rollup (c67348d..HEAD): STORY-2.1 DONE (6/6 PASS). STORY-2.2 DONE (5/5 PASS). STORY-2.3 DONE (4/4 PASS). STORY-2.4 DONE (5/5 PASS). STORY-2.5 DONE (5/5 PASS). All EPIC-2 children complete."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Child rollup (47245b8..HEAD): STORY-2.1 DONE; STORY-2.2 DONE; STORY-2.3 DONE; STORY-2.4 DONE; STORY-2.5 DONE. All EPIC-2 children complete."
     },
     {
       "id": "STORY-2.1",
@@ -692,8 +692,8 @@
         "command": "npm run test:story-2.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.1: 6/6 PASS. AC1 test_STORY_2_1_AC1_email_signup_and_profile PASS. AC2 test_STORY_2_1_AC2_session_persists_across_restarts PASS; test_STORY_2_1_AC2_capacitor_storage_adapter PASS. AC3 test_STORY_2_1_AC3_unauthenticated_blocked_from_app PASS; test_STORY_2_1_AC3_authenticated_allowed PASS; test_STORY_2_1_AC3_auth_gate_blocks_unauthenticated PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, create-repositories). npm run test:story-2.1: 6/6 PASS. AC1–AC3 all PASS."
     },
     {
       "id": "STORY-2.2",
@@ -762,8 +762,8 @@
         "command": "npm run test:story-2.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.2: 5/5 PASS. AC1 test_STORY_2_2_AC1_registration_role_selection PASS. AC2 test_STORY_2_2_AC2_coach_profile_captures_context PASS. AC3 test_STORY_2_2_AC3_player_profile_fields PASS. AC4 test_STORY_2_2_AC4_team_manager_requires_team_setup_path PASS. AC5 test_STORY_2_2_AC5_profile_persists_to_supabase PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, create-repositories). npm run test:story-2.2: 5/5 PASS. AC1–AC5 all PASS."
     },
     {
       "id": "STORY-2.3",
@@ -830,15 +830,15 @@
         "command": "npm run test:story-2.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.3: 4/4 PASS. AC1 test_STORY_2_3_AC1_subscription_choice_after_profile PASS. AC2 test_STORY_2_3_AC2_trial_grants_pro_access PASS. AC3 test_STORY_2_3_AC3_defer_lands_on_basic PASS. AC4 test_STORY_2_3_AC4_stripe_webhook_syncs_subscription PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, package.json, domain/api index). npm run test:story-2.3: 4/4 PASS. AC1–AC4 all PASS."
     },
     {
       "id": "STORY-2.4",
       "type": "STORY",
       "parent": "EPIC-2",
       "title": "First-time coach guided onboarding (Flow 15)",
-      "description": "Wizard: welcome, profile, marketplace browse, first session creation \u2014 team optional.",
+      "description": "Wizard: welcome, profile, marketplace browse, first session creation — team optional.",
       "requirements": [
         "Flow-15",
         "docs/product/flows.md#flow-15",
@@ -906,15 +906,15 @@
         "command": "npm run test:story-2.4"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-2.4: 5/5 PASS. AC1 test_STORY_2_4_AC1_progress_indicator_shows_steps PASS. AC2 test_STORY_2_4_AC2_skip_team_and_invites PASS. AC3 test_STORY_2_4_AC3_marketplace_browse_without_purchase PASS. AC4 test_STORY_2_4_AC4_session_step_links_to_schedule PASS. AC5 test_STORY_2_4_AC5_onboarding_completion_recorded PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, package.json, domain/api). npm run test:story-2.4: 5/5 PASS. AC1–AC5 all PASS."
     },
     {
       "id": "STORY-2.5",
       "type": "STORY",
       "parent": "EPIC-2",
       "title": "First-time player guided onboarding (Flow 16)",
-      "description": "Wizard: welcome, profile, browse content, first drill, track progress \u2014 team join optional.",
+      "description": "Wizard: welcome, profile, browse content, first drill, track progress — team join optional.",
       "requirements": [
         "Flow-16",
         "docs/product/flows.md#flow-16",
@@ -975,8 +975,8 @@
         "command": "npm run test:story-2.5"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (PlayerOnboardingGate/Wizard, App.jsx invite wiring). npm run test:story-2.5: 5/5 PASS. AC1 test_STORY_2_5_AC1_complete_without_team PASS. AC2 test_STORY_2_5_AC2_browse_shows_marketplace_and_assigned PASS. AC3 test_STORY_2_5_AC3_first_drill_logs_progress PASS. AC4 test_STORY_2_5_AC4_onboarding_completion_analytics PASS. AC5 test_STORY_2_5_AC5_team_invite_optional PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, package.json, domain index). npm run test:story-2.5: 5/5 PASS. AC1–AC5 all PASS."
     },
     {
       "id": "EPIC-3",
@@ -994,9 +994,9 @@
         "Players join via shareable link/code or manual add",
         "Roster view shows all team members with role badges"
       ],
-      "status": "IN_PROGRESS",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Child rollup (1f9484e..HEAD): STORY-3.1 DONE (5/5 PASS). STORY-3.2 DONE (5/5 PASS). STORY-3.3 still TODO. Epic IN_PROGRESS."
+      "status": "DONE",
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Child rollup (47245b8..HEAD): STORY-3.1 DONE; STORY-3.2 DONE; STORY-3.3 DONE. All EPIC-3 children complete → DONE."
     },
     {
       "id": "STORY-3.1",
@@ -1065,8 +1065,8 @@
         "command": "npm run test:story-3.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (App.jsx). npm run test:story-3.1: 5/5 PASS. AC1 test_STORY_3_1_AC1_team_manager_creates_team_in_core_workflow PASS. AC2 test_STORY_3_1_AC2_coach_optional_create_from_roster PASS. AC3 test_STORY_3_1_AC3_team_settings_age_range_fields PASS. AC4 test_STORY_3_1_AC4_team_logo_uploads_to_storage PASS. AC5 test_STORY_3_1_AC5_team_edits_persist_in_roster_ui PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (App.jsx, RosterScreen, package.json). npm run test:story-3.1: 5/5 PASS. AC1–AC5 all PASS."
     },
     {
       "id": "STORY-3.2",
@@ -1137,8 +1137,8 @@
         "command": "npm run test:story-3.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T09:31:00Z",
-      "audit_notes": "Re-audited 1f9484e..HEAD (invite migration, onboarding invite prefill, App.jsx). npm run test:story-3.2: 5/5 PASS. AC1 test_STORY_3_2_AC1_coach_advanced_generates_invite_link_or_code PASS. AC2 test_STORY_3_2_AC2_team_manager_basic_invite_and_manual_add PASS. AC3 test_STORY_3_2_AC3_player_accept_invite_sees_team_context PASS. AC4 test_STORY_3_2_AC4_invalid_or_expired_invite_shows_clear_error PASS. AC5 test_STORY_3_2_AC5_multi_team_membership_allowed PASS."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (access.ts, roster repo, RosterScreen, App.jsx). npm run test:story-3.2: 5/5 PASS. AC1–AC5 all PASS."
     },
     {
       "id": "STORY-3.3",
@@ -1165,7 +1165,7 @@
         },
         {
           "id": "AC-3",
-          "statement": "Assign coach to team available at Pro for coaches (\u25cb partial in matrix)",
+          "statement": "Assign coach to team available at Pro for coaches (○ partial in matrix)",
           "test": "tests/team/story-3.3.test.js::test_STORY_3_3_AC3_assign_coach_pro_for_coaches"
         },
         {
@@ -1202,8 +1202,8 @@
         "command": "npm run test:story-3.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-08T16:18:00Z",
-      "audit_notes": "Added roster removal, role-badged roster management, coach assignment, and notification intent wiring; npm run test:story-3.3 passes 4/4."
+      "last_updated": "2026-07-09T03:26:00Z",
+      "audit_notes": "Re-audited 47245b8..HEAD (STORY-3.3 implementation). npm run test:story-3.3: 4/4 PASS. AC1 test_STORY_3_3_AC1_coach_advanced_can_remove_players PASS. AC2 test_STORY_3_3_AC2_team_manager_basic_manages_full_roster PASS. AC3 test_STORY_3_3_AC3_assign_coach_pro_for_coaches PASS. AC4 test_STORY_3_3_AC4_roster_change_notifies_affected_players PASS."
     },
     {
       "id": "EPIC-4",
@@ -1463,7 +1463,7 @@
       "type": "EPIC",
       "parent": null,
       "title": "RBAC & Tier Feature Gating",
-      "description": "Role \u00d7 tier enforcement in API and UI per access control matrix (DEP-06, Part 3).",
+      "description": "Role × tier enforcement in API and UI per access control matrix (DEP-06, Part 3).",
       "requirements": [
         "DEP-06",
         "docs/product/flows.md#part-3",
@@ -1552,7 +1552,7 @@
         },
         {
           "id": "AC-4",
-          "statement": "\u25ce read-only and \u25cb partial behaviors documented and implemented per feature list",
+          "statement": "◎ read-only and ○ partial behaviors documented and implemented per feature list",
           "test": null
         },
         {
@@ -1965,7 +1965,7 @@
         },
         {
           "id": "AC-3",
-          "statement": "\u25ce partial dashboard at Basic shows limited stats per matrix",
+          "statement": "◎ partial dashboard at Basic shows limited stats per matrix",
           "test": null
         },
         {
@@ -2187,12 +2187,12 @@
         },
         {
           "id": "AC-3",
-          "statement": "Content hierarchy supports program \u2192 module \u2192 lesson \u2192 item per proposed model",
+          "statement": "Content hierarchy supports program → module → lesson → item per proposed model",
           "test": null
         },
         {
           "id": "AC-4",
-          "statement": "Workflow status field supports draft \u2192 pending_review \u2192 approved \u2192 published",
+          "statement": "Workflow status field supports draft → pending_review → approved → published",
           "test": null
         }
       ],
@@ -2472,7 +2472,7 @@
       "acceptance_criteria": [
         {
           "id": "AC-1",
-          "statement": "Initial modules unlock immediately on purchase (e.g. lessons 1\u20134)",
+          "statement": "Initial modules unlock immediately on purchase (e.g. lessons 1–4)",
           "test": null
         },
         {
@@ -2569,7 +2569,7 @@
       "acceptance_criteria": [
         {
           "id": "AC-1",
-          "statement": "Submission workflow follows draft \u2192 pending_review \u2192 approved/rejected \u2192 published",
+          "statement": "Submission workflow follows draft → pending_review → approved/rejected → published",
           "test": null
         },
         {
@@ -2626,7 +2626,7 @@
       "id": "STORY-11.1",
       "type": "STORY",
       "parent": "EPIC-11",
-      "title": "Objectives UI \u2014 coach set, player view",
+      "title": "Objectives UI — coach set, player view",
       "description": "Create and track player/team objectives (shooting, defense, strategy goals).",
       "requirements": [
         "Flow-6",
@@ -2762,7 +2762,7 @@
       "id": "STORY-11.4",
       "type": "STORY",
       "parent": "EPIC-11",
-      "title": "RAG pipeline \u2014 embeddings and pgvector retrieval",
+      "title": "RAG pipeline — embeddings and pgvector retrieval",
       "description": "Ingest Sanity packages, embed, store in Supabase pgvector, retrieve for recommendations.",
       "requirements": [
         "DEP-02",
@@ -2786,7 +2786,7 @@
         },
         {
           "id": "AC-4",
-          "statement": "Query returns top 5\u201310 candidates by similarity to recommendation context",
+          "statement": "Query returns top 5–10 candidates by similarity to recommendation context",
           "test": null
         },
         {
@@ -2833,7 +2833,7 @@
       "id": "STORY-12.1",
       "type": "STORY",
       "parent": "EPIC-12",
-      "title": "User management \u2014 profiles, roles, suspend",
+      "title": "User management — profiles, roles, suspend",
       "description": "View/edit all users, assign roles, suspend or deactivate accounts.",
       "requirements": [
         "Flow-7",
@@ -2974,7 +2974,7 @@
       "id": "STORY-12.4",
       "type": "STORY",
       "parent": "EPIC-12",
-      "title": "Monitor \u2014 analytics, chat moderation, AI config",
+      "title": "Monitor — analytics, chat moderation, AI config",
       "description": "Platform analytics, chat moderation, AI parameter config, health monitoring, exports.",
       "requirements": [
         "Flow-7",
@@ -3070,7 +3070,7 @@
       "type": "EPIC",
       "parent": null,
       "title": "Steel-Thread MVP (Phase 0)",
-      "description": "Demonstrable end-to-end slice: sign up \u2192 schedule \u2192 view content \u2192 message coach (16 h baseline).",
+      "description": "Demonstrable end-to-end slice: sign up → schedule → view content → message coach (16 h baseline).",
       "requirements": [
         "docs/delivery/delivery-estimate.md#3-steel-thread-mvp",
         "Flow-1",
@@ -3086,7 +3086,7 @@
       ],
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Prototype provides UI mock only \u2014 steel-thread requires production backend per docs."
+      "audit_notes": "Prototype provides UI mock only — steel-thread requires production backend per docs."
     },
     {
       "id": "STORY-13.1",
