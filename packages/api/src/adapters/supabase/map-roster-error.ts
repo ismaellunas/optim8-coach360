@@ -1,7 +1,7 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 import { mapInviteErrorMessage } from '@coach360/domain';
 
-type RosterErrorContext = 'load' | 'invite' | 'accept' | 'add';
+type RosterErrorContext = 'load' | 'invite' | 'accept' | 'add' | 'remove' | 'assign';
 
 function isPostgrestError(error: unknown): error is PostgrestError {
   return (
@@ -39,6 +39,12 @@ function mapInviteRpcMessage(message: string): string | null {
   if (message === 'player_not_found') {
     return 'No player account was found for that email. Share an invite link instead.';
   }
+  if (message === 'coach_not_found') {
+    return 'No coach account was found for that email.';
+  }
+  if (message === 'roster_member_not_found') {
+    return 'That roster member could not be found.';
+  }
   return null;
 }
 
@@ -70,6 +76,14 @@ export function mapRosterError(error: unknown, context: RosterErrorContext = 'lo
 
   if (context === 'accept') {
     return new Error('We could not join this team. Check the invite code and try again.');
+  }
+
+  if (context === 'remove') {
+    return new Error('We could not remove this player from the roster.');
+  }
+
+  if (context === 'assign') {
+    return new Error('We could not assign that coach to the team.');
   }
 
   return new Error(message);

@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { formatTeamProfileSummary } from '@coach360/domain';
+import {
+  canAssignCoachToTeam,
+  canRemoveRosterPlayer,
+  formatTeamProfileSummary,
+} from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { TeamProfileForm } from '@/features/team/ui/TeamProfileForm.jsx';
 import { TeamInviteScreen } from './TeamInviteScreen.jsx';
+import { RosterManageScreen } from './RosterManageScreen.jsx';
 import {
+  Badge,
   Button as Btn,
   Card,
   DashedBtn,
@@ -13,6 +19,17 @@ import {
 } from '@/shared/ui/primitives.jsx';
 
 const TEAM_ACCENTS = ['#FF6B2C', '#60A5FA', '#34D399'];
+const ROLE_BADGE_TONES = {
+  player: 'blue',
+  assistant_coach: 'orange',
+  manager: 'purple',
+};
+
+const ROLE_LABELS = {
+  player: 'Player',
+  assistant_coach: 'Assistant coach',
+  manager: 'Manager',
+};
 
 function EmptyState({ title, description }) {
   return (
@@ -29,6 +46,18 @@ export function RosterScreen({ user, tryA }) {
   const userId = session?.user.id;
   const canManageAgeRange = session?.user.role === 'team_manager';
   const isCoach = user?.role === 'coach';
+  const accessSubscription = user
+    ? {
+        tier: user.tier === 'trial' ? 'trial' : user.tier,
+        status: user.tier === 'trial' ? 'trialing' : 'active',
+      }
+    : null;
+  const canRemovePlayers = session?.user.role
+    ? canRemoveRosterPlayer(session.user.role, accessSubscription)
+    : false;
+  const canAssignCoach = session?.user.role
+    ? canAssignCoachToTeam(session.user.role, accessSubscription)
+    : false;
 
   const [tab, setTab] = useState('teams');
   const [sub, setSub] = useState(null);
@@ -100,6 +129,8 @@ export function RosterScreen({ user, tryA }) {
     sub?.type === 'edit' ? teams.find((team) => team.id === sub.teamId) ?? null : null;
   const invitingTeam =
     sub?.type === 'invite' ? teams.find((team) => team.id === sub.teamId) ?? null : null;
+  const managingRosterTeam =
+    sub?.type === 'roster' ? teams.find((team) => team.id === sub.teamId) ?? null : null;
 
   async function handleCreateTeam(input, logoFile) {
     if (!userId) {
@@ -134,6 +165,54 @@ export function RosterScreen({ user, tryA }) {
       setTab('teams');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'team_update_failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleRemovePlayer(member) {
+    if (!userId) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const removed = await repos.rosters.removeMember(member.teamId, userId, member.profileId);
+      repos.notifications.enqueueRosterChange({
+        event: 'roster_member_removed',
+        teamId: removed.teamId,
+        profileId: removed.profileId,
+        triggeredBy: userId,
+      });
+      await loadRosterMembers();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'roster_remove_failed');
+      throw cause;
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleAssignCoach(email) {
+    if (!userId || !managingRosterTeam) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const coachMember = await repos.rosters.assignCoachByEmail(managingRosterTeam.id, userId, email);
+      repos.notifications.enqueueRosterChange({
+        event: 'coach_assigned_to_team',
+        teamId: coachMember.teamId,
+        profileId: coachMember.profileId,
+        triggeredBy: userId,
+      });
+      await loadRosterMembers();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'coach_assign_failed');
+      throw cause;
     } finally {
       setSubmitting(false);
     }
@@ -184,6 +263,28 @@ export function RosterScreen({ user, tryA }) {
         teamId={sub.teamId}
         team={invitingTeam}
         onBack={function () { setSub(null); }}
+      />
+    );
+  }
+
+  if (sub?.type === 'roster' && managingRosterTeam) {
+    const teamMembers = rosterMembers.filter(function (member) {
+      return member.teamId === managingRosterTeam.id;
+    });
+    return (
+      <RosterManageScreen
+        team={managingRosterTeam}
+        members={teamMembers}
+        submitting={submitting}
+        error={error}
+        canRemovePlayers={canRemovePlayers}
+        canAssignCoach={canAssignCoach}
+        onRemovePlayer={handleRemovePlayer}
+        onAssignCoach={handleAssignCoach}
+        onBack={function () {
+          setSub(null);
+          setError(null);
+        }}
       />
     );
   }
@@ -270,6 +371,16 @@ export function RosterScreen({ user, tryA }) {
                   <Btn
                     small
                     onClick={function () {
+                      setSub({ type: 'roster', teamId: team.id });
+                      setError(null);
+                      loadRosterMembers();
+                    }}
+                  >
+                    Roster
+                  </Btn>
+                  <Btn
+                    small
+                    onClick={function () {
                       tryA('teamManage', function () {
                         setSub({ type: 'edit', teamId: team.id });
                         setError(null);
@@ -313,11 +424,31 @@ export function RosterScreen({ user, tryA }) {
                 });
                 return (
                   <Card key={member.id} className="mb-2.5 p-4">
-                    <div className="font-display text-base font-semibold text-coach-t1">
-                      {member.displayName || 'Player'}
-                    </div>
-                    <div className="mt-1 font-body text-xs text-coach-t3">
-                      {team ? team.name : 'Team member'}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-display text-base font-semibold text-coach-t1">
+                          {member.displayName || 'Player'}
+                        </div>
+                        <div className="mt-1 font-body text-xs text-coach-t3">
+                          {team ? team.name : 'Team member'}
+                        </div>
+                        <div className="mt-2">
+                          <Badge tone={ROLE_BADGE_TONES[member.rosterRole] || 'blue'}>
+                            {ROLE_LABELS[member.rosterRole] || member.rosterRole}
+                          </Badge>
+                        </div>
+                      </div>
+                      {canRemovePlayers ? (
+                        <Btn
+                          small
+                          disabled={submitting}
+                          onClick={function () {
+                            handleRemovePlayer(member);
+                          }}
+                        >
+                          Remove
+                        </Btn>
+                      ) : null}
                     </div>
                   </Card>
                 );

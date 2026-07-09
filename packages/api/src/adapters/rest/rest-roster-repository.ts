@@ -40,6 +40,20 @@ export class RestRosterRepository implements RosterRepository {
     throw new NotImplementedAdapterError('rest', 'acceptTeamInvite');
   }
 
+  async removeMember(teamId: string, userId: string, profileId: string): Promise<RosterMember> {
+    void teamId;
+    void userId;
+    void profileId;
+    throw new NotImplementedAdapterError('rest', 'removeRosterMember');
+  }
+
+  async assignCoachByEmail(teamId: string, userId: string, email: string): Promise<RosterMember> {
+    void teamId;
+    void userId;
+    void email;
+    throw new NotImplementedAdapterError('rest', 'assignCoachToTeam');
+  }
+
   async addPlayerByEmail(teamId: string, userId: string, email: string): Promise<RosterMember> {
     void teamId;
     void userId;
