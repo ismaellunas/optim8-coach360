@@ -40,3 +40,36 @@ export function canManuallyAddRosterPlayer(
 ): boolean {
   return canGenerateTeamInvite(role, subscription);
 }
+
+/** Flow 11 — coaches remove players at Advanced+; team managers at Basic+. */
+export function canRemoveRosterPlayer(
+  role: AppRole,
+  subscription: Pick<Subscription, 'tier' | 'status'> | null,
+): boolean {
+  return canGenerateTeamInvite(role, subscription);
+}
+
+/** Flow 11 — full roster management follows removal access. */
+export function canManageFullRoster(
+  role: AppRole,
+  subscription: Pick<Subscription, 'tier' | 'status'> | null,
+): boolean {
+  return canRemoveRosterPlayer(role, subscription);
+}
+
+/** Flow 11 — coach assignment is Pro for coaches, Advanced+ for team managers. */
+export function canAssignCoachToTeam(
+  role: AppRole,
+  subscription: Pick<Subscription, 'tier' | 'status'> | null,
+): boolean {
+  if (role === 'admin') {
+    return true;
+  }
+  if (role === 'coach') {
+    return meetsMinimumTier(subscription, 'pro');
+  }
+  if (role === 'team_manager') {
+    return meetsMinimumTier(subscription, 'advanced');
+  }
+  return false;
+}

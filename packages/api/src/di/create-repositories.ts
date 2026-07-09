@@ -9,6 +9,7 @@ import type { ProfileRepository } from '../ports/profile-repository.js';
 import type { TeamRepository } from '../ports/team-repository.js';
 import type { RosterRepository } from '../ports/roster-repository.js';
 import type { AnalyticsRepository } from '../ports/analytics-repository.js';
+import type { NotificationRepository } from '../ports/notification-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
@@ -32,6 +33,7 @@ import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile
 import { SupabaseTeamRepository } from '../adapters/supabase/supabase-team-repository.js';
 import { SupabaseRosterRepository } from '../adapters/supabase/supabase-roster-repository.js';
 import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
+import { ConsoleNotificationRepository } from '../adapters/console/console-notification-repository.js';
 
 export type RepositoryBundle = {
   auth: AuthRepository;
@@ -43,6 +45,7 @@ export type RepositoryBundle = {
   subscriptions: SubscriptionRepository;
   content: ContentRepository;
   analytics: AnalyticsRepository;
+  notifications: NotificationRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -70,6 +73,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       subscriptions: new RestSubscriptionRepository(),
       content: new RestContentRepository(),
       analytics: new RestAnalyticsRepository(),
+      notifications: new ConsoleNotificationRepository(),
     };
   }
 
@@ -97,6 +101,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     content: new SupabaseContentRepository(),
     analytics: new ConsoleAnalyticsRepository(),
+    notifications: new ConsoleNotificationRepository(),
   };
 }
 

@@ -20,6 +20,11 @@ export type { ProfileRepository } from './ports/profile-repository.js';
 export type { TeamRepository, TeamLogoFile } from './ports/team-repository.js';
 export type { RosterRepository, CreateInviteOptions } from './ports/roster-repository.js';
 export type { AnalyticsRepository } from './ports/analytics-repository.js';
+export type {
+  NotificationRepository,
+  RosterNotificationEvent,
+  RosterNotificationPayload,
+} from './ports/notification-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type { ContentRepository, ContentItem } from './ports/content-repository.js';
 export {

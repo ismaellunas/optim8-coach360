@@ -66,6 +66,8 @@ const FEATURE_REQS = {
   createContent: { coach: "advanced" },
   teamManage: { coach: "basic", team: "basic" },
   invitePlayers: { coach: "advanced", team: "basic" },
+  removePlayers: { coach: "advanced", team: "basic" },
+  assignCoach: { coach: "pro", team: "advanced" },
   viewProgress: { coach: "advanced", player: "basic" },
   purchase: { coach: "basic", player: "basic" },
   peerShare: { coach: "advanced", player: "advanced" },

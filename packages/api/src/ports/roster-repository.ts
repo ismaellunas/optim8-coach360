@@ -21,4 +21,6 @@ export type RosterRepository = {
   getInviteByCode(code: string): Promise<TeamInvitePreview | null>;
   acceptInvite(code: string, userId: string): Promise<{ teamId: string }>;
   addPlayerByEmail(teamId: string, userId: string, email: string): Promise<RosterMember>;
+  removeMember(teamId: string, userId: string, profileId: string): Promise<RosterMember>;
+  assignCoachByEmail(teamId: string, userId: string, email: string): Promise<RosterMember>;
 };

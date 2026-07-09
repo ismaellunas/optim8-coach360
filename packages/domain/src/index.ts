@@ -84,7 +84,13 @@ export {
   type InviteStatus,
 } from './team/schema.js';
 export { needsTeamManagerTeamSetup, canManageTeamAgeRange, formatTeamAgeRange, formatTeamProfileSummary } from './team/rules.js';
-export { canGenerateTeamInvite, canManuallyAddRosterPlayer } from './team/access.js';
+export {
+  canAssignCoachToTeam,
+  canGenerateTeamInvite,
+  canManageFullRoster,
+  canManuallyAddRosterPlayer,
+  canRemoveRosterPlayer,
+} from './team/access.js';
 export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
