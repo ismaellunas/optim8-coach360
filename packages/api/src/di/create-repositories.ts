@@ -10,10 +10,12 @@ import type { TeamRepository } from '../ports/team-repository.js';
 import type { RosterRepository } from '../ports/roster-repository.js';
 import type { AnalyticsRepository } from '../ports/analytics-repository.js';
 import type { NotificationRepository } from '../ports/notification-repository.js';
+import type { BillingRepository } from '../ports/billing-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
+import { RestBillingRepository } from '../adapters/rest/rest-billing-repository.js';
 import { RestContentRepository } from '../adapters/rest/rest-content-repository.js';
 import { RestProfileRepository } from '../adapters/rest/rest-profile-repository.js';
 import { RestTeamRepository } from '../adapters/rest/rest-team-repository.js';
@@ -28,6 +30,7 @@ import {
 } from '../adapters/supabase/index.js';
 import { SupabaseUserRepository } from '../adapters/supabase/supabase-user-repository.js';
 import { SupabaseSubscriptionRepository } from '../adapters/supabase/supabase-subscription-repository.js';
+import { SupabaseBillingRepository } from '../adapters/supabase/supabase-billing-repository.js';
 import { SupabaseContentRepository } from '../adapters/supabase/supabase-content-repository.js';
 import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile-repository.js';
 import { SupabaseTeamRepository } from '../adapters/supabase/supabase-team-repository.js';
@@ -43,6 +46,7 @@ export type RepositoryBundle = {
   teams: TeamRepository;
   rosters: RosterRepository;
   subscriptions: SubscriptionRepository;
+  billing: BillingRepository;
   content: ContentRepository;
   analytics: AnalyticsRepository;
   notifications: NotificationRepository;
@@ -71,6 +75,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       teams: new RestTeamRepository(),
       rosters: new RestRosterRepository(),
       subscriptions: new RestSubscriptionRepository(),
+      billing: new RestBillingRepository(),
       content: new RestContentRepository(),
       analytics: new RestAnalyticsRepository(),
       notifications: new ConsoleNotificationRepository(),
@@ -99,6 +104,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     teams: new SupabaseTeamRepository(appClient),
     rosters: new SupabaseRosterRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
+    billing: new SupabaseBillingRepository(appClient),
     content: new SupabaseContentRepository(),
     analytics: new ConsoleAnalyticsRepository(),
     notifications: new ConsoleNotificationRepository(),

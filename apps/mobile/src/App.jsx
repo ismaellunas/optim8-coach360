@@ -9,6 +9,8 @@ import { TeamManagerTeamGate } from "./features/team/ui/TeamManagerTeamGate.jsx"
 import { RosterScreen } from "./features/roster/ui/RosterScreen.jsx";
 import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
 import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
+import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
+import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
@@ -26,7 +28,6 @@ import {
 } from "./shared/ui/primitives.jsx";
 import {
   bgAccentClass as bgcx,
-  borderAccentClass as bdcx,
   textAccentClass as tcx,
 } from "./shared/ui/accent.js";
 
@@ -626,70 +627,6 @@ function ProgressScreen({ user }) {
         <div className="mt-2 font-body text-[11px] text-coach-t3">Coach Marcus - 2 days ago</div>
       </Card>
       <div className="h-6" />
-    </ScreenContainer>
-  );
-}
-
-/* ── Profile / Subscription ── */
-function ProfileScreen({ user, go, onSignOut }) {
-  return (
-    <ScreenContainer>
-      <PageHeader title="PROFILE" onBack={function() { go("home"); }} />
-      <div className="mb-6 text-center">
-        <div className="mx-auto mb-3 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gradient-to-br from-coach-orange to-coach-orange-light font-display text-[28px] font-bold text-white">
-          {user.name[0]}
-        </div>
-        <div className="font-display text-[22px] font-bold text-coach-t1">{user.name}</div>
-        <div className="font-body text-[13px] capitalize text-coach-t3">{user.role + " - " + user.tier + " tier"}</div>
-        {user.email && <div className="mt-1 font-body text-xs text-coach-t3">{user.email}</div>}
-      </div>
-      <Card onClick={function() { go("subscription"); }}><span className="font-body text-sm text-coach-t1">Manage Subscription</span></Card>
-      <Card><span className="font-body text-sm text-coach-t1">Edit Profile</span></Card>
-      <Card><span className="font-body text-sm text-coach-t1">Notifications</span></Card>
-      <Card onClick={onSignOut}><span className="font-body text-sm text-coach-red">Sign Out</span></Card>
-    </ScreenContainer>
-  );
-}
-
-function SubscriptionScreen({ user, setUser, onBack }) {
-  var tiers = [{ id: "basic", l: "Basic", p: "$9/mo", c: COLORS.green, f: ["Profile setup", "Purchase content", "Track progress"] }, { id: "advanced", l: "Advanced", p: "$29/mo", c: COLORS.blue, f: ["All Basic +", "Coach and chat", "Distribute content", "Plan and schedule"] }, { id: "pro", l: "Pro", p: "$49/mo", c: COLORS.orange, f: ["All Advanced +", "AI personalization", "Set objectives", "Full MVP access"] }];
-  return (
-    <ScreenContainer>
-      <PageHeader title="SUBSCRIPTION" onBack={onBack} />
-      <Card className="p-5 text-center">
-        <div className="font-body text-xs uppercase text-coach-t3">Current Plan</div>
-        <div className="mt-1 font-display text-[28px] font-bold capitalize text-coach-orange">{user.tier}</div>
-        {user.tier === "trial" && <div className="mt-1 font-body text-xs text-coach-yellow">{user.trialDays + " days remaining"}</div>}
-      </Card>
-      {tiers.map(function(t) {
-        var isCurrent = t.id === user.tier;
-        return (
-          <Card key={t.id} className={isCurrent ? `border-2 ${bdcx(t.c)}` : ""}>
-            <div className="mb-2.5 flex items-center justify-between">
-              <div>
-                <div className="font-display text-xl font-bold text-coach-t1">{t.l}</div>
-                <div className={`font-display text-base ${tcx(t.c)}`}>{t.p}</div>
-              </div>
-              {isCurrent && <Badge color={t.c}>Current</Badge>}
-            </div>
-            {t.f.map(function(feat, i) {
-              return (
-                <div key={i} className="mb-1 flex items-center gap-2">
-                  <div className="text-coach-green"><IconCheck /></div>
-                  <span className="font-body text-xs text-coach-t2">{feat}</span>
-                </div>
-              );
-            })}
-            {!isCurrent && (
-              <div className="mt-3">
-                <Btn primary full onClick={function() { setUser(Object.assign({}, user, { tier: t.id, trialDays: 0 })); }}>
-                  {tierIndex(t.id) < tierIndex(user.tier) && user.tier !== "trial" ? "Downgrade" : "Upgrade"}
-                </Btn>
-              </div>
-            )}
-          </Card>
-        );
-      })}
     </ScreenContainer>
   );
 }

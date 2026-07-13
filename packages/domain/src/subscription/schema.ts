@@ -24,3 +24,29 @@ export const subscriptionSchema = z.object({
 });
 
 export type Subscription = z.infer<typeof subscriptionSchema>;
+
+export const billingInvoiceStatusSchema = z.enum([
+  'draft',
+  'open',
+  'paid',
+  'void',
+  'uncollectible',
+]);
+export type BillingInvoiceStatus = z.infer<typeof billingInvoiceStatusSchema>;
+
+export const billingInvoiceSchema = z.object({
+  id: z.string().uuid(),
+  profileId: z.string().uuid(),
+  stripeInvoiceId: z.string().min(1),
+  amountCents: z.number().int(),
+  currency: z.string().min(1),
+  status: billingInvoiceStatusSchema,
+  hostedInvoiceUrl: z.string().nullable(),
+  invoicePdf: z.string().nullable(),
+  periodStart: z.string().nullable(),
+  periodEnd: z.string().nullable(),
+  paidAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+export type BillingInvoice = z.infer<typeof billingInvoiceSchema>;

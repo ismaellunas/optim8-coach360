@@ -51,9 +51,13 @@ export {
   subscriptionTierSchema,
   subscriptionStatusSchema,
   subscriptionSchema,
+  billingInvoiceStatusSchema,
+  billingInvoiceSchema,
   type SubscriptionTier,
   type SubscriptionStatus,
   type Subscription,
+  type BillingInvoiceStatus,
+  type BillingInvoice,
 } from './subscription/schema.js';
 export {
   TRIAL_DURATION_DAYS,
@@ -63,6 +67,20 @@ export {
   legacyDisplayTier,
   trialDaysRemaining,
 } from './subscription/rules.js';
+export {
+  STRIPE_PRODUCT_CATALOG,
+  paidSubscriptionTierSchema,
+  getStripeCatalogEntry,
+  resolveTierFromStripePriceMetadata,
+  isPaidSubscriptionTier,
+  type PaidSubscriptionTier,
+  type StripeProductCatalogEntry,
+} from './subscription/catalog.js';
+export {
+  isSubscriptionPaymentLocked,
+  canViewBillingHistory,
+  lockedStateMessage,
+} from './subscription/billing.js';
 export {
   teamSchema,
   teamProfileInputSchema,
