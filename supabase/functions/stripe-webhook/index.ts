@@ -46,26 +46,92 @@ Deno.serve(async (request) => {
   }
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
-  const { error } = await supabase.rpc('sync_subscription_from_stripe', {
-    p_profile_id: result.upsert.profile_id,
-    p_tier: result.upsert.tier,
-    p_status: result.upsert.status,
-    p_stripe_customer_id: result.upsert.stripe_customer_id,
-    p_stripe_subscription_id: result.upsert.stripe_subscription_id,
-    p_current_period_end: result.upsert.current_period_end,
-    p_trial_ends_at: result.upsert.trial_ends_at,
-    p_event_id: result.idempotencyKey,
-    p_event_type: result.eventType,
-  });
 
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
+  if (result.kind === 'subscription_upsert') {
+    const { error } = await supabase.rpc('sync_subscription_from_stripe', {
+      p_profile_id: result.upsert.profile_id,
+      p_tier: result.upsert.tier,
+      p_status: result.upsert.status,
+      p_stripe_customer_id: result.upsert.stripe_customer_id,
+      p_stripe_subscription_id: result.upsert.stripe_subscription_id,
+      p_current_period_end: result.upsert.current_period_end,
+      p_trial_ends_at: result.upsert.trial_ends_at,
+      p_event_id: result.idempotencyKey,
+      p_event_type: result.eventType,
+    });
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ received: true, synced: true, kind: result.kind }), {
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  return new Response(JSON.stringify({ received: true, synced: true }), {
+  if (result.kind === 'payment_failed') {
+    const { error } = await supabase.rpc('mark_subscription_past_due_by_customer', {
+      p_stripe_customer_id: result.stripeCustomerId,
+      p_profile_id: result.profileId,
+      p_event_id: result.idempotencyKey,
+      p_event_type: result.eventType,
+    });
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(
+      JSON.stringify({
+        received: true,
+        synced: true,
+        kind: result.kind,
+        lockedStatus: result.lockedStatus,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  if (result.kind === 'invoice_upsert') {
+    const { error } = await supabase.rpc('sync_billing_invoice_from_stripe', {
+      p_profile_id: result.invoice.profile_id,
+      p_stripe_invoice_id: result.invoice.stripe_invoice_id,
+      p_amount_cents: result.invoice.amount_cents,
+      p_currency: result.invoice.currency,
+      p_status: result.invoice.status,
+      p_hosted_invoice_url: result.invoice.hosted_invoice_url,
+      p_invoice_pdf: result.invoice.invoice_pdf,
+      p_period_start: result.invoice.period_start,
+      p_period_end: result.invoice.period_end,
+      p_paid_at: result.invoice.paid_at,
+      p_event_id: result.idempotencyKey,
+      p_event_type: result.eventType,
+    });
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ received: true, synced: true, kind: result.kind }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  return new Response(JSON.stringify({ received: true, skipped: 'unhandled_kind' }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

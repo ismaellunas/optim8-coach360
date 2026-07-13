@@ -1,26 +1,14 @@
-const TIERS = [
-  {
-    id: 'basic',
-    label: 'Basic',
-    price: '$9/mo',
-    accent: 'green',
-    features: ['Profile setup', 'Purchase content', 'Track progress'],
-  },
-  {
-    id: 'advanced',
-    label: 'Advanced',
-    price: '$29/mo',
-    accent: 'blue',
-    features: ['All Basic +', 'Coach and chat', 'Distribute content', 'Plan and schedule'],
-  },
-  {
-    id: 'pro',
-    label: 'Pro',
-    price: '$49/mo',
-    accent: 'orange',
-    features: ['All Advanced +', 'AI personalization', 'Set objectives', 'Full MVP access'],
-  },
-];
+import { STRIPE_PRODUCT_CATALOG } from '@coach360/domain';
+
+const TIERS = STRIPE_PRODUCT_CATALOG.map(function (entry) {
+  return {
+    id: entry.tier,
+    label: entry.label,
+    price: entry.displayPrice,
+    accent: entry.accent,
+    features: [...entry.features],
+  };
+});
 
 const ACCENT = {
   green: {
