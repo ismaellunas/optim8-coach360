@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Subscription } from '@coach360/domain';
+import { normalizeTrialWarningDays, type Subscription } from '@coach360/domain';
 import type { SubscriptionRepository, SubscriptionSummary } from '../../ports/subscription-repository.js';
 import { mapSubscriptionRow, SUBSCRIPTION_SELECT } from './mappers/subscription-mapper.js';
 
@@ -68,5 +68,23 @@ export class SupabaseSubscriptionRepository implements SubscriptionRepository {
     }
 
     return mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0]);
+  }
+
+  async getTrialWarningDays(): Promise<number> {
+    const { data, error } = await this.client.rpc('get_trial_warning_days');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeTrialWarningDays(data);
+  }
+
+  async setTrialWarningDays(days: number): Promise<number> {
+    const { data, error } = await this.client.rpc('set_trial_warning_days', {
+      p_days: days,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeTrialWarningDays(data);
   }
 }

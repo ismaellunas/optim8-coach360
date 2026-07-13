@@ -21,4 +21,13 @@ export class RestSubscriptionRepository implements SubscriptionRepository {
     void profileId;
     throw new NotImplementedAdapterError('rest', 'deferToBasic');
   }
+
+  async getTrialWarningDays(): Promise<number> {
+    throw new NotImplementedAdapterError('rest', 'getTrialWarningDays');
+  }
+
+  async setTrialWarningDays(days: number): Promise<number> {
+    void days;
+    throw new NotImplementedAdapterError('rest', 'setTrialWarningDays');
+  }
 }

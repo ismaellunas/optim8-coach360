@@ -139,7 +139,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 9.1 | When trial ends without payment, confirm downgrade to **Basic** with Advanced/Pro features locked? | Italic rule in Flow 9 | | | |
 | 9.2 | Trial warning timing — **3 days** before expiry fixed, or configurable by admin? | Notification schedule | | | |
-| 9.3 | After trial expiry, is purchased marketplace content retained, or only subscription-gated features change? | Content ownership rules | | | |
+| 9.3 | After trial expiry, is purchased marketplace content retained, or only subscription-gated features change? | Content ownership rules | **Retain.** Purchased marketplace packages stay usable after trial → Basic. Only subscription-gated features (Advanced/Pro) lock; ownership of paid content does not. | product | 2026-07-13 |
 
 ---
 
@@ -229,7 +229,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 17.1 | Confirm **upgrade = immediate** with proration and **downgrade = end of billing cycle**? | Flow 17 italic rule | | | |
 | 17.2 | On downgrade, is **objective/AI history preserved but hidden** until re-upgrade? | Data retention | | | |
-| 17.3 | What happens to **coach-distributed content** and **purchased packages** on tier downgrade? | Content access rules | | | |
+| 17.3 | What happens to **coach-distributed content** and **purchased packages** on tier downgrade? | Content access rules | **Retain.** Purchased marketplace packages and coach-distributed content stay accessible after downgrade. Subscription-gated features lock; content ownership / prior assignments do not revoke. Aligns with OQ-9.3. | product | 2026-07-13 |
 | 17.4 | Refund policy — any self-serve refunds, or support-only? | Stripe + admin override | | | |
 
 ---

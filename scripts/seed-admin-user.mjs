@@ -70,7 +70,7 @@ Options:
 
 Required env:
   VITE_SUPABASE_URL
-  SUPABASE_SERVICE_ROLE_KEY
+  SUPABASE_SERVICE_ROLE_KEY (or SERVICE_ROLE_KEY from \`supabase status -o env\`)
 `);
 }
 
@@ -100,10 +100,12 @@ const envFile = await readDotEnv(ENV_PATH);
 const env = { ...envFile, ...process.env };
 
 const supabaseUrl = env.VITE_SUPABASE_URL;
-const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY ?? env.SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env/process env.');
+  console.error(
+    'Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/SERVICE_ROLE_KEY in .env/process env.',
+  );
   process.exit(1);
 }
 

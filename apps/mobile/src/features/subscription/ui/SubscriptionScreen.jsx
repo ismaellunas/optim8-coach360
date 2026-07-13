@@ -138,8 +138,14 @@ export function SubscriptionScreen({
           {user.tier}
         </div>
         {user.tier === 'trial' && (
-          <div className="mt-1 font-body text-xs text-coach-yellow">
-            {user.trialDays + ' days remaining'}
+          <div className="mt-2">
+            <Badge tone="yellow">Trial active</Badge>
+            <div className="mt-2 font-body text-sm font-semibold text-coach-yellow">
+              {user.trialDays + ' days remaining'}
+            </div>
+            <div className="mt-1 font-body text-[11px] text-coach-t3">
+              Full Pro access until your trial ends
+            </div>
           </div>
         )}
         {locked ? (
