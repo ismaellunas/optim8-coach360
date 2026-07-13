@@ -21,6 +21,8 @@ export const subscriptionSchema = z.object({
   stripeSubscriptionId: z.string().nullable(),
   currentPeriodEnd: z.string().nullable(),
   trialEndsAt: z.string().nullable(),
+  /** Set when the account activates its one-time trial; blocks re-activation. */
+  trialUsedAt: z.string().nullable().default(null),
 });
 
 export type Subscription = z.infer<typeof subscriptionSchema>;

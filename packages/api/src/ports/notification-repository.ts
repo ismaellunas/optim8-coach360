@@ -7,6 +7,14 @@ export type RosterNotificationPayload = {
   event: RosterNotificationEvent;
 };
 
+export type TrialExpiryWarningPayload = {
+  profileId: string;
+  trialEndsAt: string;
+  daysRemaining: number;
+  event: 'trial_expiry_warning';
+};
+
 export type NotificationRepository = {
   enqueueRosterChange(payload: RosterNotificationPayload): void;
+  enqueueTrialExpiryWarning(payload: TrialExpiryWarningPayload): void;
 };

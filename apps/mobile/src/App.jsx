@@ -11,6 +11,7 @@ import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
 import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
+import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
@@ -112,21 +113,6 @@ function IconSettings() { return <svg width="22" height="22" viewBox="0 0 24 24"
 function IconPlus() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
 
 /* ── Shared Components (imported from shared/ui/primitives.jsx) ── */
-
-function TrialBanner({ user, onUpgrade }) {
-  if (!user || user.tier !== "trial") return null;
-  return (
-    <div className="mb-3 flex items-center justify-between rounded-xl border border-coach-yellow/20 bg-coach-yellow/10 p-3">
-      <div>
-        <div className="font-body text-[13px] font-semibold text-coach-yellow">
-          Free Trial - {user.trialDays} days left
-        </div>
-        <div className="font-body text-[11px] text-coach-t3">Full Pro access</div>
-      </div>
-      <Btn small onClick={onUpgrade}>Subscribe</Btn>
-    </div>
-  );
-}
 
 function PaywallModal({ feature, user, onClose, onUpgrade }) {
   var needed = neededTier(user, feature);

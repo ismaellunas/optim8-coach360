@@ -68,6 +68,13 @@ export {
   trialDaysRemaining,
 } from './subscription/rules.js';
 export {
+  DEFAULT_TRIAL_WARNING_DAYS_BEFORE,
+  TRIAL_WARNING_SETTING_KEY,
+  canActivateTrial,
+  normalizeTrialWarningDays,
+  shouldSendTrialExpiryWarning,
+} from './subscription/trial.js';
+export {
   STRIPE_PRODUCT_CATALOG,
   paidSubscriptionTierSchema,
   getStripeCatalogEntry,

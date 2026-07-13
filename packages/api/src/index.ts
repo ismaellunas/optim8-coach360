@@ -24,6 +24,7 @@ export type {
   NotificationRepository,
   RosterNotificationEvent,
   RosterNotificationPayload,
+  TrialExpiryWarningPayload,
 } from './ports/notification-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type { BillingRepository } from './ports/billing-repository.js';

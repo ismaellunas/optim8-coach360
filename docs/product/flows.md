@@ -207,7 +207,7 @@ flowchart TD
     H --> I[Tier Features Unlocked]
 ```
 
-_Users who do not subscribe after trial expiration retain a Basic-level profile but lose access to Advanced and Pro features. They can upgrade at any time from account settings._
+_Users who do not subscribe after trial expiration retain a Basic-level profile but lose access to Advanced and Pro features. Purchased marketplace packages remain usable (OQ-9.3). They can upgrade at any time from account settings._
 
 ### Flow 10: Content Paywall Encounter
 
@@ -346,7 +346,7 @@ flowchart TD
     F --> G[Features Adjusted to New Tier]
 ```
 
-_Upgrades take effect immediately with prorated billing. Downgrades are applied at the end of the current billing cycle to ensure users retain paid access for the full period. Data from higher-tier features (e.g., objectives, AI history) is preserved but becomes inaccessible until re-upgrading._
+_Upgrades take effect immediately with prorated billing. Downgrades are applied at the end of the current billing cycle to ensure users retain paid access for the full period. Data from higher-tier features (e.g., objectives, AI history) is preserved but becomes inaccessible until re-upgrading. Purchased marketplace packages and coach-distributed content remain usable after downgrade (OQ-17.3); only subscription-gated features lock._
 
 ### Flow 18: Player-to-Player Knowledge Sharing
 

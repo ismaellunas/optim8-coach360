@@ -1,4 +1,4 @@
-import { STRIPE_PRODUCT_CATALOG } from '@coach360/domain';
+import { STRIPE_PRODUCT_CATALOG, canActivateTrial } from '@coach360/domain';
 
 const TIERS = STRIPE_PRODUCT_CATALOG.map(function (entry) {
   return {
@@ -48,10 +48,13 @@ function ChoiceBtn({ children, primary, disabled, onClick }) {
 export function SubscriptionChoiceScreen({
   submitting,
   error,
+  subscription = null,
   onActivateTrial,
   onDeferToBasic,
   onChoosePaidTier,
 }) {
+  const trialAvailable = canActivateTrial(subscription);
+
   return (
     <div className="px-6 py-10">
       <div className="mb-2 font-display text-2xl font-bold text-coach-t1">CHOOSE YOUR PLAN</div>
@@ -59,19 +62,31 @@ export function SubscriptionChoiceScreen({
         Start with a free trial for full Pro access, pick a paid tier, or continue on Basic for free.
       </p>
 
-      <div className="mb-4 rounded-[14px] border-2 border-coach-yellow bg-coach-yellow/10 p-5">
-        <div className="font-display text-lg font-bold text-coach-yellow">14-Day Free Trial</div>
-        <p className="mt-2 font-body text-xs leading-relaxed text-coach-t2">
-          Full Pro access — AI personalization, objectives, and all MVP features.
-        </p>
-        <div className="mt-4">
-          <ChoiceBtn primary disabled={submitting} onClick={onActivateTrial}>
-            Start free trial
-          </ChoiceBtn>
+      {trialAvailable ? (
+        <div className="mb-4 rounded-[14px] border-2 border-coach-yellow bg-coach-yellow/10 p-5">
+          <div className="font-display text-lg font-bold text-coach-yellow">14-Day Free Trial</div>
+          <p className="mt-2 font-body text-xs leading-relaxed text-coach-t2">
+            Full Pro access — AI personalization, objectives, and all MVP features. One trial per
+            account.
+          </p>
+          <div className="mt-4">
+            <ChoiceBtn primary disabled={submitting} onClick={onActivateTrial}>
+              Start free trial
+            </ChoiceBtn>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="mb-4 rounded-[14px] border border-coach-border bg-coach-card p-5">
+          <div className="font-display text-lg font-bold text-coach-t2">Free trial used</div>
+          <p className="mt-2 font-body text-xs leading-relaxed text-coach-t3">
+            Your one-time trial has already been activated on this account and cannot be restarted.
+          </p>
+        </div>
+      )}
 
-      <div className="mb-2 font-display text-sm font-semibold uppercase text-coach-t3">Or choose a subscription</div>
+      <div className="mb-2 font-display text-sm font-semibold uppercase text-coach-t3">
+        Or choose a subscription
+      </div>
       {TIERS.map(function (tier) {
         const accent = ACCENT[tier.accent];
         return (

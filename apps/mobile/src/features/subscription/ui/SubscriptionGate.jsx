@@ -138,6 +138,7 @@ export function SubscriptionGate({ children }) {
       <SubscriptionChoiceScreen
         submitting={submitting}
         error={error}
+        subscription={subscription}
         onActivateTrial={handleActivateTrial}
         onDeferToBasic={handleDeferToBasic}
         onChoosePaidTier={handleChoosePaidTier}
