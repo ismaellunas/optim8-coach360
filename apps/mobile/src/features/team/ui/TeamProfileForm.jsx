@@ -72,7 +72,7 @@ export function TeamProfileForm({
   const subtitle = canManageAgeRange
     ? mode === 'edit'
       ? 'Update team profile, age range, grade level, and division.'
-      : 'Set up your team profile including age range, grade level, and division.'
+      : 'Create your team profile including age range, grade level, and division. Invite players from Roster after your team exists.'
     : mode === 'edit'
       ? 'Update team name, logo, and season dates. Age range is managed by your team manager.'
       : 'Set up your team name, logo, and season dates.';

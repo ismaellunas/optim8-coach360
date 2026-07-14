@@ -33,7 +33,7 @@
 | 1.2 | For youth players, is parental consent or age verification required before account creation? | Legal/compliance and onboarding UX | | | |
 | 1.3 | Can one person hold multiple roles (e.g. coach + team manager), or is role selection permanent? | Profile and RBAC model | | | |
 | 1.4 | What profile fields are mandatory vs optional per role (photo, bio, credentials, team, age)? | Form design and data model | | | |
-| 1.5 | Should team managers be blocked from completing onboarding until a team is created, or only guided to do so? | Flow 1 vs Flow 11 boundary | | | |
+| 1.5 | Should team managers be blocked from completing onboarding until a team is created, or only guided to do so? | Flow 1 vs Flow 11 boundary | **Blocked.** Team managers must create a team (Create Team form, no skip) before subscription and the main app. Invite players only after a team exists (Roster). | product | 2026-07-14 |
 
 ---
 

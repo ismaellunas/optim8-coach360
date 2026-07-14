@@ -1,6 +1,3 @@
-import { useState } from 'react';
-import { TeamSetupPathScreen } from './TeamSetupPathScreen.jsx';
-
 function ProfileBtn({ children, primary, disabled, onClick, type = 'button' }) {
   return (
     <button
@@ -27,34 +24,20 @@ export function TeamManagerProfileFlow({
   onEnterTeamSetupPath,
 }) {
   const bioId = 'team-manager-profile-bio';
-  const [step, setStep] = useState('profile');
-  const [draftBio, setDraftBio] = useState('');
 
   async function handleProfileSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
     const bio = form.elements.namedItem(bioId)?.value?.trim() ?? '';
-    setDraftBio(bio);
-    setStep('team-setup-path');
-  }
-
-  if (step === 'team-setup-path') {
-    return (
-      <TeamSetupPathScreen
-        submitting={submitting}
-        error={error}
-        onContinue={function () {
-          onEnterTeamSetupPath({ bio: draftBio || undefined });
-        }}
-      />
-    );
+    await onEnterTeamSetupPath({ bio: bio || undefined });
   }
 
   return (
     <form onSubmit={handleProfileSubmit} className="px-6 py-10">
       <div className="mb-1 font-display text-2xl font-bold text-coach-t1">TEAM MANAGER PROFILE</div>
       <div className="mb-6 font-body text-sm text-coach-t2">
-        Set up your manager profile, then configure your team.
+        Set up your manager profile, then create your team. Inviting players happens after your
+        team exists.
       </div>
       <div className="mb-3.5">
         <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Bio (optional)</div>
@@ -68,7 +51,7 @@ export function TeamManagerProfileFlow({
       </div>
       {error ? <p className="mb-4 font-body text-sm text-coach-red">{error}</p> : null}
       <ProfileBtn primary type="submit" disabled={submitting}>
-        {submitting ? 'Saving…' : 'Continue to team setup'}
+        {submitting ? 'Saving…' : 'Continue to create team'}
       </ProfileBtn>
     </form>
   );

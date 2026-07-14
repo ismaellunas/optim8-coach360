@@ -78,15 +78,25 @@ const TEAM_MANAGER_FLOW_PATH = path.join(
   'ui',
   'TeamManagerProfileFlow.jsx',
 );
-const TEAM_SETUP_PATH = path.join(
+const TEAM_MANAGER_GATE_PATH = path.join(
   REPO_ROOT,
   'apps',
   'mobile',
   'src',
   'features',
-  'profile',
+  'team',
   'ui',
-  'TeamSetupPathScreen.jsx',
+  'TeamManagerTeamGate.jsx',
+);
+const TEAM_PROFILE_FORM_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'team',
+  'ui',
+  'TeamProfileForm.jsx',
 );
 const PROFILE_GATE_PATH = path.join(
   REPO_ROOT,
@@ -182,14 +192,22 @@ describe('STORY_2_2 AC4 — team manager requires team setup path', () => {
   it('test_STORY_2_2_AC4_team_manager_requires_team_setup_path: flow routes to mandatory team setup screen', () => {
     expect(existsSync(TEAM_MANAGER_FLOW_PATH)).toBe(true);
     const flow = readFileSync(TEAM_MANAGER_FLOW_PATH, 'utf8');
-    expect(flow).toMatch(/team-setup-path/);
-    expect(flow).toMatch(/TeamSetupPathScreen/);
     expect(flow).toMatch(/onEnterTeamSetupPath/);
+    expect(flow).toMatch(/Continue to create team/);
+    expect(flow).not.toMatch(/TeamSetupPathScreen/);
+    expect(flow).not.toMatch(/Skip/);
 
-    expect(existsSync(TEAM_SETUP_PATH)).toBe(true);
-    const setup = readFileSync(TEAM_SETUP_PATH, 'utf8');
-    expect(setup).toMatch(/SET UP YOUR TEAM/);
-    expect(setup).toMatch(/Continue to team setup/);
+    expect(existsSync(TEAM_MANAGER_GATE_PATH)).toBe(true);
+    const gate = readFileSync(TEAM_MANAGER_GATE_PATH, 'utf8');
+    expect(gate).toMatch(/needsTeamManagerTeamSetup/);
+    expect(gate).toMatch(/TeamProfileForm/);
+    expect(gate).not.toMatch(/Skip/);
+    expect(gate).not.toMatch(/onCancel/);
+
+    expect(existsSync(TEAM_PROFILE_FORM_PATH)).toBe(true);
+    const form = readFileSync(TEAM_PROFILE_FORM_PATH, 'utf8');
+    expect(form).toMatch(/CREATE TEAM/);
+    expect(form).toMatch(/Create team/);
 
     const sql = readFileSync(MIGRATION_PATH, 'utf8');
     expect(sql).toMatch(/team_setup_path_entered_at/);

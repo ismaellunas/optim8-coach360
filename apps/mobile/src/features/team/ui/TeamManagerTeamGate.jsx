@@ -107,14 +107,15 @@ export function TeamManagerTeamGate({ children }) {
 
   if (needsTeamManagerTeamSetup(teams)) {
     return (
-      <TeamProfileForm
-        mode="create"
-        canManageAgeRange
-        submitting={submitting}
-        error={error}
-        notice={notice}
-        onSubmit={handleCreateTeam}
-      />
+      <>
+        <TeamProfileForm
+          mode="create"
+          canManageAgeRange
+          submitting={submitting}
+          error={error}
+          onSubmit={handleCreateTeam}
+        />
+      </>
     );
   }
 
