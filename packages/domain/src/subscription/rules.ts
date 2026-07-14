@@ -6,26 +6,54 @@ export function needsSubscriptionGate(subscription: Subscription | null): boolea
   return subscription === null;
 }
 
-export function trialGrantsProAccess(tier: SubscriptionTier, status: SubscriptionStatus): boolean {
-  return tier === 'trial' && status === 'trialing';
+/**
+ * Active (non-expired) trial maps to Pro per Flow 2.
+ * Expired trials do not grant Pro even if the row has not been downgraded yet.
+ */
+export function trialGrantsProAccess(
+  tier: SubscriptionTier,
+  status: SubscriptionStatus,
+  trialEndsAt?: string | null,
+  now = new Date(),
+): boolean {
+  if (tier !== 'trial' || status !== 'trialing') {
+    return false;
+  }
+  if (trialEndsAt && new Date(trialEndsAt).getTime() <= now.getTime()) {
+    return false;
+  }
+  return true;
 }
 
 /** Tier used for feature gating — active trial maps to Pro per Flow 2. */
 export function effectiveTierForAccess(
-  subscription: Pick<Subscription, 'tier' | 'status'>,
+  subscription: Pick<Subscription, 'tier' | 'status'> & { trialEndsAt?: string | null },
+  now = new Date(),
 ): SubscriptionTier {
-  if (trialGrantsProAccess(subscription.tier, subscription.status)) {
+  if (
+    trialGrantsProAccess(subscription.tier, subscription.status, subscription.trialEndsAt, now)
+  ) {
     return 'pro';
+  }
+  // Still marked trial but expired (or not trialing) → Basic until paid upgrade.
+  if (subscription.tier === 'trial') {
+    return 'basic';
   }
   return subscription.tier;
 }
 
 /** Legacy mock display tier (`trial` badge) vs access tier. */
 export function legacyDisplayTier(
-  subscription: Pick<Subscription, 'tier' | 'status'>,
+  subscription: Pick<Subscription, 'tier' | 'status'> & { trialEndsAt?: string | null },
+  now = new Date(),
 ): 'trial' | 'basic' | 'advanced' | 'pro' {
-  if (trialGrantsProAccess(subscription.tier, subscription.status)) {
+  if (
+    trialGrantsProAccess(subscription.tier, subscription.status, subscription.trialEndsAt, now)
+  ) {
     return 'trial';
+  }
+  if (subscription.tier === 'trial') {
+    return 'basic';
   }
   return subscription.tier;
 }

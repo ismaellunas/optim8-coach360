@@ -70,6 +70,32 @@ export class SupabaseSubscriptionRepository implements SubscriptionRepository {
     return mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0]);
   }
 
+  async expireOwnTrialIfEnded(profileId: string): Promise<Subscription> {
+    const { data, error } = await this.client.rpc('expire_own_trial_if_ended');
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const row = data as Record<string, unknown>;
+    if (!row || row.profile_id !== profileId) {
+      throw new Error('expire_own_trial_failed');
+    }
+
+    return mapSubscriptionRow(row as Parameters<typeof mapSubscriptionRow>[0]);
+  }
+
+  async expireEndedTrials(): Promise<Subscription[]> {
+    const { data, error } = await this.client.rpc('expire_ended_trials');
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const rows = (data ?? []) as Array<Parameters<typeof mapSubscriptionRow>[0]>;
+    return rows.map(mapSubscriptionRow);
+  }
+
   async getTrialWarningDays(): Promise<number> {
     const { data, error } = await this.client.rpc('get_trial_warning_days');
     if (error) {
