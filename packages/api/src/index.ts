@@ -27,7 +27,11 @@ export type {
   TrialExpiryWarningPayload,
 } from './ports/notification-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
-export type { BillingRepository } from './ports/billing-repository.js';
+export type {
+  BillingRepository,
+  CreateCheckoutSessionInput,
+  CreateCheckoutSessionResult,
+} from './ports/billing-repository.js';
 export type { ContentRepository, ContentItem } from './ports/content-repository.js';
 export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-repository.js';
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';

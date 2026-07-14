@@ -103,6 +103,18 @@ export {
   lockedStateMessage,
 } from './subscription/billing.js';
 export {
+  FEATURE_TIER_REQUIREMENTS,
+  requiredTierForFeature,
+  tierDisplayLabel,
+  unlockedFeaturesForTier,
+  paywallCopyForFeature,
+  shouldShowPaywallTrialCta,
+  buildCheckoutSessionRequest,
+  type PaywallRole,
+  type PaywallEncounterCopy,
+  type CheckoutSessionRequest,
+} from './subscription/paywall.js';
+export {
   teamSchema,
   teamProfileInputSchema,
   rosterMemberSchema,

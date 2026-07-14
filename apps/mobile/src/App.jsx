@@ -12,10 +12,13 @@ import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
+import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
 import { useOnboardingNavigation } from "./features/onboarding/model/onboarding-navigation-context.jsx";
 import { useSubscription } from "./features/subscription/model/subscription-context.jsx";
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
+import { useRepositories } from "@coach360/api";
+import { paywallCopyForFeature } from "@coach360/domain";
 import {
   AppShell,
   Badge,
@@ -87,13 +90,6 @@ function canAccess(user, feature) {
   return tierIndex(effectiveTier) >= tierIndex(needed);
 }
 
-function neededTier(user, feature) {
-  if (!user) return null;
-  var reqs = FEATURE_REQS[feature];
-  if (!reqs) return null;
-  return reqs[user.role] || null;
-}
-
 /* ── Icons as functions ── */
 function IconHome() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>; }
 function IconUsers() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>; }
@@ -111,27 +107,6 @@ function IconChart() { return <svg width="22" height="22" viewBox="0 0 24 24" fi
 function IconTrophy() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/></svg>; }
 function IconSettings() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>; }
 function IconPlus() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
-
-/* ── Shared Components (imported from shared/ui/primitives.jsx) ── */
-
-function PaywallModal({ feature, user, onClose, onUpgrade }) {
-  var needed = neededTier(user, feature);
-  var names = { basic: "Basic", advanced: "Advanced", pro: "Pro" };
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6">
-      <div className="w-full max-w-[340px] rounded-[20px] border border-coach-border bg-coach-surface p-7 text-center">
-        <div className="mb-4 text-coach-orange"><IconLock /></div>
-        <div className="mb-2 font-display text-[22px] font-bold text-coach-t1">Feature Locked</div>
-        <div className="mb-5 font-body text-sm leading-relaxed text-coach-t2">
-          {"This requires " + (names[needed] || "a higher") + " or above."}
-        </div>
-        <Btn primary full onClick={onUpgrade}>Upgrade</Btn>
-        <div className="h-2.5" />
-        <Btn full onClick={onClose}>Maybe Later</Btn>
-      </div>
-    </div>
-  );
-}
 
 /* ── Onboarding ── */
 function OnboardingScreen({ user, onComplete }) {
@@ -733,6 +708,7 @@ function AdminDetailScreen({ screen, onBack }) {
 /* ══════════ MAIN APP ══════════ */
 function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var auth = useAuth();
+  var repos = useRepositories();
   var subscriptionState = useSubscription();
   var onboardingNav = useOnboardingNavigation();
   var session = auth.session;
@@ -745,6 +721,8 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
+  var _paywallBusy = useState(false), paywallBusy = _paywallBusy[0], setPaywallBusy = _paywallBusy[1];
+  var _paywallError = useState(null), paywallError = _paywallError[0], setPaywallError = _paywallError[1];
   useEffect(function() {
     // Coach/player use CoachOnboardingGate / PlayerOnboardingGate.
     // Team managers complete Create Team via TeamManagerTeamGate before subscription —
@@ -788,7 +766,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
 
   function tryA(feature, action) {
     if (canAccess(user, feature)) { action(); }
-    else { setPaywall(feature); }
+    else { setPaywallError(null); setPaywall(feature); }
   }
 
   function finishOnboarding() {
@@ -800,6 +778,63 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     await auth.signOut();
     setScreen("home");
     setOnboarding(false);
+  }
+
+  async function handlePaywallUpgrade() {
+    if (!user || !paywall || !session?.user?.id) {
+      return;
+    }
+    var copy = paywallCopyForFeature(paywall, user.role);
+    if (!copy) {
+      setPaywallError("upgrade_tier_unavailable");
+      return;
+    }
+    setPaywallBusy(true);
+    setPaywallError(null);
+    try {
+      var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+      var result = await repos.billing.createCheckoutSession({
+        tier: copy.requiredTier,
+        successUrl: origin + "/?checkout=success",
+        cancelUrl: origin + "/?checkout=cancel",
+      });
+      setPaywall(null);
+      if (typeof window !== "undefined" && result.url) {
+        window.location.assign(result.url);
+      }
+    } catch (cause) {
+      setPaywallError(cause instanceof Error ? cause.message : "checkout_failed");
+    } finally {
+      setPaywallBusy(false);
+    }
+  }
+
+  async function handlePaywallStartTrial() {
+    if (!session?.user?.id) {
+      return;
+    }
+    setPaywallBusy(true);
+    setPaywallError(null);
+    try {
+      await repos.subscriptions.activateTrial(session.user.id);
+      await subscriptionState.refreshSubscription();
+      setPaywall(null);
+    } catch (cause) {
+      setPaywallError(cause instanceof Error ? cause.message : "trial_activation_failed");
+    } finally {
+      setPaywallBusy(false);
+    }
+  }
+
+  function handlePaywallDismiss() {
+    setPaywall(null);
+    setPaywallError(null);
+  }
+
+  function handlePaywallBrowseFree() {
+    setPaywall(null);
+    setPaywallError(null);
+    setScreen("marketplace");
   }
 
   var tabs;
@@ -850,8 +885,13 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
           <PaywallModal
             feature={paywall}
             user={user}
-            onClose={function () { setPaywall(null); }}
-            onUpgrade={function () { setPaywall(null); go("subscription"); }}
+            subscription={subscriptionState.subscription}
+            submitting={paywallBusy}
+            error={paywallError}
+            onClose={handlePaywallDismiss}
+            onUpgrade={handlePaywallUpgrade}
+            onStartTrial={handlePaywallStartTrial}
+            onBrowseFree={handlePaywallBrowseFree}
           />
         ) : null
       }

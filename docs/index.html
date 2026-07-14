@@ -1447,34 +1447,52 @@
         {
           "id": "AC-1",
           "statement": "Paywall names the specific tier required and features unlocked",
-          "test": null
+          "test": "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC1_paywall_names_tier_and_unlocked_features"
         },
         {
           "id": "AC-2",
           "statement": "Trial CTA shown only if user has not used trial",
-          "test": null
+          "test": "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC2_trial_cta_only_if_unused"
         },
         {
           "id": "AC-3",
           "statement": "User can dismiss paywall and continue browsing elsewhere",
-          "test": null
+          "test": "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC3_dismiss_paywall_continues_browsing"
         },
         {
           "id": "AC-4",
           "statement": "Upgrade flow launches Stripe checkout from paywall",
-          "test": null
+          "test": "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC4_upgrade_launches_stripe_checkout"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx"
+        "tests": [
+          "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC1_paywall_names_tier_and_unlocked_features",
+          "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC2_trial_cta_only_if_unused",
+          "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC3_dismiss_paywall_continues_browsing",
+          "tests/subscription/story-4.4.test.js::test_STORY_4_4_AC4_upgrade_launches_stripe_checkout"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/subscription/paywall.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/billing-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-billing-repository.ts",
+          "packages/api/src/adapters/rest/rest-billing-repository.ts",
+          "packages/api/src/index.ts",
+          "apps/mobile/src/features/subscription/ui/PaywallModal.jsx",
+          "apps/mobile/src/App.jsx",
+          "supabase/functions/create-checkout-session/handler.ts",
+          "supabase/functions/create-checkout-session/index.ts",
+          "tests/subscription/story-4.4.test.js",
+          "tests/subscription/story-4.3.test.js",
+          "docs/product/stakeholder-questions.md",
+          "package.json"
+        ],
+        "command": "npm run test:story-4.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-14T00:00:00Z",
+      "audit_notes": "Flow 10 paywall: tier+features copy, trial CTA if unused (OQ-10.1), non-blocking dismiss (OQ-10.2), Stripe Checkout from paywall. vitest -t STORY_4_4: 4/4 PASS. → DONE."
     },
     {
       "id": "STORY-4.5",
