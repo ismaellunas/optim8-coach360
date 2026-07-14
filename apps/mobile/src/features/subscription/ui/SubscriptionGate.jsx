@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { needsSubscriptionGate } from '@coach360/domain';
+import {
+  isTrialExpired,
+  needsSubscriptionGate,
+  needsTrialExpiredUpgradePrompt,
+} from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { SubscriptionContext } from '../model/subscription-context.jsx';
 import { SubscriptionChoiceScreen } from './SubscriptionChoiceScreen.jsx';
+import { TrialExpiredUpgradePrompt } from './TrialExpiredUpgradePrompt.jsx';
 
 export function SubscriptionGate({ children }) {
   const { session } = useAuth();
@@ -13,6 +18,7 @@ export function SubscriptionGate({ children }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [redirectToSubscription, setRedirectToSubscription] = useState(false);
+  const [dismissedExpiryPrompt, setDismissedExpiryPrompt] = useState(false);
 
   const userId = session?.user.id;
 
@@ -27,7 +33,11 @@ export function SubscriptionGate({ children }) {
       setLoading(true);
       setError(null);
       try {
-        const nextSubscription = await repos.subscriptions.getByProfileId(userId);
+        let nextSubscription = await repos.subscriptions.getByProfileId(userId);
+        if (nextSubscription && isTrialExpired(nextSubscription)) {
+          nextSubscription = await repos.subscriptions.expireOwnTrialIfEnded(userId);
+          setDismissedExpiryPrompt(false);
+        }
         setSubscription(nextSubscription);
       } catch (cause) {
         setSubscription(null);
@@ -110,6 +120,19 @@ export function SubscriptionGate({ children }) {
     }
   }
 
+  function handleExpiryChooseTier(tierId) {
+    if (tierId === 'basic') {
+      setDismissedExpiryPrompt(true);
+      return;
+    }
+    setDismissedExpiryPrompt(true);
+    setRedirectToSubscription(true);
+  }
+
+  function handleContinueBasic() {
+    setDismissedExpiryPrompt(true);
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-6 text-coach-t2">
@@ -143,6 +166,22 @@ export function SubscriptionGate({ children }) {
         onDeferToBasic={handleDeferToBasic}
         onChoosePaidTier={handleChoosePaidTier}
       />
+    );
+  }
+
+  const showExpiryPrompt =
+    !dismissedExpiryPrompt && needsTrialExpiredUpgradePrompt(subscription);
+
+  if (showExpiryPrompt) {
+    return (
+      <SubscriptionContext.Provider value={contextValue}>
+        <TrialExpiredUpgradePrompt
+          submitting={submitting}
+          error={error}
+          onChooseTier={handleExpiryChooseTier}
+          onContinueBasic={handleContinueBasic}
+        />
+      </SubscriptionContext.Provider>
     );
   }
 

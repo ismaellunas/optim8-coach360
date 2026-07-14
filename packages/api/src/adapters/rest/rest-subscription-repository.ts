@@ -22,6 +22,15 @@ export class RestSubscriptionRepository implements SubscriptionRepository {
     throw new NotImplementedAdapterError('rest', 'deferToBasic');
   }
 
+  async expireOwnTrialIfEnded(profileId: string): Promise<Subscription> {
+    void profileId;
+    throw new NotImplementedAdapterError('rest', 'expireOwnTrialIfEnded');
+  }
+
+  async expireEndedTrials(): Promise<Subscription[]> {
+    throw new NotImplementedAdapterError('rest', 'expireEndedTrials');
+  }
+
   async getTrialWarningDays(): Promise<number> {
     throw new NotImplementedAdapterError('rest', 'getTrialWarningDays');
   }

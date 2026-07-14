@@ -75,6 +75,20 @@ export {
   shouldSendTrialExpiryWarning,
 } from './subscription/trial.js';
 export {
+  ADVANCED_OR_PRO_FEATURES,
+  isTrialExpired,
+  expiredTrialDowngrade,
+  applyExpiredTrialDowngrade,
+  needsTrialExpiredUpgradePrompt,
+  retainsPurchasedMarketplaceContent,
+  meetsTierMinimum,
+  isAdvancedOrProFeatureLocked,
+  selectTrialsToExpire,
+  type AdvancedOrProFeature,
+  type ExpiredTrialDowngrade,
+  type TrialExpiryCandidate,
+} from './subscription/expiry.js';
+export {
   STRIPE_PRODUCT_CATALOG,
   paidSubscriptionTierSchema,
   getStripeCatalogEntry,
