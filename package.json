@@ -12,6 +12,7 @@
     "dev:mobile": "npm run dev -w @coach360/mobile",
     "dev:admin": "npm run dev -w @coach360/admin",
     "seed:admin": "node scripts/seed-admin-user.mjs",
+    "expire:trials": "node scripts/expire-all-trials.mjs",
     "build": "npm run build:mobile",
     "build:mobile": "npm run build -w @coach360/mobile",
     "build:admin": "npm run build -w @coach360/admin",
