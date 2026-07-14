@@ -18,7 +18,7 @@ import { useSubscription } from "./features/subscription/model/subscription-cont
 import { useAuth } from "./features/auth/model/use-auth.js";
 import { mapAppUserToLegacy } from "./features/auth/lib/map-app-user.js";
 import { useRepositories } from "@coach360/api";
-import { paywallCopyForFeature } from "@coach360/domain";
+import { paywallTierOptionsForFeature } from "@coach360/domain";
 import {
   AppShell,
   Badge,
@@ -780,12 +780,15 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     setOnboarding(false);
   }
 
-  async function handlePaywallUpgrade() {
-    if (!user || !paywall || !session?.user?.id) {
+  async function handlePaywallUpgrade(tierId) {
+    if (!user || !paywall || !session?.user?.id || !tierId) {
       return;
     }
-    var copy = paywallCopyForFeature(paywall, user.role);
-    if (!copy) {
+    var plan = paywallTierOptionsForFeature(paywall, user.role);
+    var selected = plan && plan.options.find(function (option) {
+      return option.tier === tierId && option.selectable;
+    });
+    if (!selected) {
       setPaywallError("upgrade_tier_unavailable");
       return;
     }
@@ -794,7 +797,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     try {
       var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
       var result = await repos.billing.createCheckoutSession({
-        tier: copy.requiredTier,
+        tier: selected.tier,
         successUrl: origin + "/?checkout=success",
         cancelUrl: origin + "/?checkout=cancel",
       });

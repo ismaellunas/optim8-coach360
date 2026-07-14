@@ -8,6 +8,8 @@ import {
   buildCheckoutSessionRequest,
   canActivateTrial,
   paywallCopyForFeature,
+  paywallTierOptionsForFeature,
+  paywallRequirementPhrase,
   requiredTierForFeature,
   shouldShowPaywallTrialCta,
   unlockedFeaturesForTier,
@@ -89,14 +91,30 @@ describe('STORY_4_4 AC1 — paywall names tier and unlocked features', () => {
     expect(requiredTierForFeature('objectives', 'coach')).toBe('pro');
     expect(requiredTierForFeature('createSession', 'coach')).toBe('advanced');
 
+    // All catalog tiers listed; below-required plans disabled (e.g. Basic for chat).
+    const chatPlans = paywallTierOptionsForFeature('chat', 'coach');
+    expect(chatPlans.options).toHaveLength(STRIPE_PRODUCT_CATALOG.length);
+    expect(chatPlans.options.find((o) => o.tier === 'basic').selectable).toBe(false);
+    expect(chatPlans.options.find((o) => o.tier === 'advanced').selectable).toBe(true);
+    expect(chatPlans.options.find((o) => o.tier === 'pro').selectable).toBe(true);
+    expect(chatPlans.requirementPhrase).toBe('Advanced or above');
+
+    const proPlans = paywallTierOptionsForFeature('ai', 'coach');
+    expect(proPlans.options.find((o) => o.tier === 'basic').selectable).toBe(false);
+    expect(proPlans.options.find((o) => o.tier === 'advanced').selectable).toBe(false);
+    expect(proPlans.options.find((o) => o.tier === 'pro').selectable).toBe(true);
+    expect(proPlans.requirementPhrase).toBe('Pro');
+    expect(paywallRequirementPhrase('pro')).toBe('Pro');
+    expect(paywallRequirementPhrase('advanced')).toBe('Advanced or above');
+
     expect(existsSync(PAYWALL_DOMAIN_PATH)).toBe(true);
     expect(existsSync(PAYWALL_MODAL_PATH)).toBe(true);
     const modal = readFileSync(PAYWALL_MODAL_PATH, 'utf8');
-    expect(modal).toMatch(/paywallCopyForFeature/);
-    expect(modal).toMatch(/tierLabel/);
-    expect(modal).toMatch(/unlockedFeatures/);
+    expect(modal).toMatch(/paywallTierOptionsForFeature/);
+    expect(modal).toMatch(/requirementPhrase/);
+    expect(modal).toMatch(/selectable/);
     expect(modal).toMatch(/This requires/);
-    expect(modal).toMatch(/unlocks/);
+    expect(modal).toMatch(/Below required|unavailable/);
   });
 });
 

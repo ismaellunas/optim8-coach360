@@ -1,6 +1,6 @@
 import {
   canActivateTrial,
-  paywallCopyForFeature,
+  paywallTierOptionsForFeature,
   shouldShowPaywallTrialCta,
 } from '@coach360/domain';
 import { Button as Btn } from '@/shared/ui/primitives.jsx';
@@ -14,9 +14,25 @@ function IconLock() {
   );
 }
 
+const ACCENT = {
+  green: {
+    border: 'border-coach-green',
+    text: 'text-coach-green',
+  },
+  blue: {
+    border: 'border-coach-blue',
+    text: 'text-coach-blue',
+  },
+  orange: {
+    border: 'border-coach-orange',
+    text: 'text-coach-orange',
+  },
+};
+
 /**
  * Flow 10 — content paywall encounter (modal, non-blocking).
- * Names required tier + unlocked features; trial CTA only if unused (OQ-10.1).
+ * Shows all catalog tiers; plans below the required minimum are disabled.
+ * Trial CTA only if unused (OQ-10.1).
  */
 export function PaywallModal({
   feature,
@@ -29,54 +45,87 @@ export function PaywallModal({
   onStartTrial,
   onBrowseFree,
 }) {
-  const copy = user ? paywallCopyForFeature(feature, user.role) : null;
-  const tierLabel = copy?.tierLabel || 'a higher tier';
-  const unlocked = copy?.unlockedFeatures || [];
+  const plan = user ? paywallTierOptionsForFeature(feature, user.role) : null;
+  const requirementPhrase = plan?.requirementPhrase || 'a higher tier';
+  const options = plan?.options || [];
   const showTrial = shouldShowPaywallTrialCta(subscription);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6">
-      <div className="w-full max-w-[340px] rounded-[20px] border border-coach-border bg-coach-surface p-7 text-center">
-        <div className="mb-4 text-coach-orange">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4">
+      <div className="max-h-[90svh] w-full max-w-[340px] overflow-y-auto rounded-[20px] border border-coach-border bg-coach-surface p-5 text-center">
+        <div className="mb-3 text-coach-orange">
           <IconLock />
         </div>
         <div className="mb-2 font-display text-[22px] font-bold text-coach-t1">Feature Locked</div>
-        <div className="mb-3 font-body text-sm leading-relaxed text-coach-t2">
+        <div className="mb-4 font-body text-sm leading-relaxed text-coach-t2">
           {'This requires '}
-          <span className="font-semibold text-coach-t1">{tierLabel}</span>
-          {' or above.'}
+          <span className="font-semibold text-coach-t1">{requirementPhrase}</span>
+          {'. Choose a plan:'}
         </div>
-        {unlocked.length > 0 ? (
-          <div className="mb-5 rounded-[12px] border border-coach-border bg-coach-card p-3 text-left">
-            <div className="mb-2 font-display text-[11px] font-semibold uppercase tracking-wider text-coach-t3">
-              {tierLabel} unlocks
-            </div>
-            {unlocked.map(function (item) {
-              return (
-                <div key={item} className="mb-1 font-body text-xs text-coach-t2">
-                  {item}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="mb-5" />
-        )}
 
-        <Btn primary full disabled={submitting} onClick={onUpgrade}>
-          Upgrade to {tierLabel}
-        </Btn>
+        <div className="mb-3 text-left">
+          {options.map(function (option) {
+            const accent = ACCENT[option.accent];
+            return (
+              <div
+                key={option.tier}
+                className={[
+                  'mb-2.5 rounded-[14px] border bg-coach-card p-3.5',
+                  accent.border,
+                  option.selectable ? '' : 'opacity-50',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <div className="font-display text-base font-semibold text-coach-t1">
+                      {option.label}
+                    </div>
+                    <div className={`font-display text-sm ${accent.text}`}>{option.displayPrice}</div>
+                  </div>
+                  {!option.selectable ? (
+                    <span className="font-body text-[10px] font-semibold uppercase text-coach-t3">
+                      Below required
+                    </span>
+                  ) : null}
+                </div>
+                {option.features.map(function (item) {
+                  return (
+                    <div key={item} className="mb-1 font-body text-xs text-coach-t2">
+                      {item}
+                    </div>
+                  );
+                })}
+                <div className="mt-3">
+                  <Btn
+                    primary={option.selectable}
+                    full
+                    disabled={submitting || !option.selectable}
+                    onClick={function () {
+                      if (!option.selectable) {
+                        return;
+                      }
+                      onUpgrade(option.tier);
+                    }}
+                  >
+                    {option.selectable ? `Upgrade to ${option.label}` : `${option.label} unavailable`}
+                  </Btn>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {showTrial && onStartTrial ? (
           <>
-            <div className="h-2.5" />
             <Btn full disabled={submitting} onClick={onStartTrial}>
               Start free trial
             </Btn>
+            <div className="h-2.5" />
           </>
         ) : null}
 
-        <div className="h-2.5" />
         <Btn
           full
           disabled={submitting}

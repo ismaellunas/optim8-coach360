@@ -1,10 +1,12 @@
 import { canActivateTrial } from './trial.js';
 import {
+  STRIPE_PRODUCT_CATALOG,
   getStripeCatalogEntry,
   isPaidSubscriptionTier,
   type PaidSubscriptionTier,
 } from './catalog.js';
 import type { Subscription, SubscriptionTier } from './schema.js';
+import { meetsTierMinimum } from './expiry.js';
 
 /** Role keys used by mobile access checks (legacy App roles). */
 export type PaywallRole = 'coach' | 'player' | 'team' | 'admin';
@@ -89,6 +91,66 @@ export function paywallCopyForFeature(
     tierLabel: entry.label,
     unlockedFeatures: [...entry.features],
     displayPrice: entry.displayPrice,
+  };
+}
+
+export type PaywallTierOption = {
+  tier: PaidSubscriptionTier;
+  label: string;
+  displayPrice: string;
+  accent: 'green' | 'blue' | 'orange';
+  features: string[];
+  /** False when this plan is below the feature's required tier. */
+  selectable: boolean;
+};
+
+/** True when at least one paid catalog tier ranks above the given tier. */
+export function hasHigherPaidTier(tier: PaidSubscriptionTier): boolean {
+  return STRIPE_PRODUCT_CATALOG.some((entry) => meetsTierMinimum(entry.tier, tier) && entry.tier !== tier);
+}
+
+/**
+ * Requirement line for the paywall: "Pro" when max tier; otherwise "Advanced or above".
+ */
+export function paywallRequirementPhrase(requiredTier: PaidSubscriptionTier): string {
+  const label = getStripeCatalogEntry(requiredTier).label;
+  if (!hasHigherPaidTier(requiredTier)) {
+    return label;
+  }
+  return `${label} or above`;
+}
+
+/**
+ * Full catalog for the paywall: tiers below the minimum stay visible but disabled.
+ */
+export function paywallTierOptionsForFeature(
+  feature: string,
+  role: PaywallRole,
+): {
+  requiredTier: PaidSubscriptionTier;
+  tierLabel: string;
+  requirementPhrase: string;
+  options: PaywallTierOption[];
+} | null {
+  const requiredTier = requiredTierForFeature(feature, role);
+  if (!requiredTier) {
+    return null;
+  }
+
+  const options = STRIPE_PRODUCT_CATALOG.map((entry) => ({
+    tier: entry.tier,
+    label: entry.label,
+    displayPrice: entry.displayPrice,
+    accent: entry.accent,
+    features: [...entry.features],
+    selectable: meetsTierMinimum(entry.tier, requiredTier),
+  }));
+
+  return {
+    requiredTier,
+    tierLabel: getStripeCatalogEntry(requiredTier).label,
+    requirementPhrase: paywallRequirementPhrase(requiredTier),
+    options,
   };
 }
 
