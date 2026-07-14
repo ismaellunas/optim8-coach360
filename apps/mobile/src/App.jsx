@@ -136,7 +136,7 @@ function PaywallModal({ feature, user, onClose, onUpgrade }) {
 /* ── Onboarding ── */
 function OnboardingScreen({ user, onComplete }) {
   var _s = useState(0), step = _s[0], setStep = _s[1];
-  var steps = user.role === "coach" ? ["Welcome!", "Set up your profile", "Browse training packages", "Plan your first session"] : user.role === "player" ? ["Welcome!", "Set up your profile", "Browse training content", "Start your first drill"] : user.role === "team" ? ["Welcome!", "Set up your team profile", "Invite players", "Browse packages"] : ["Welcome!", "Platform overview", "Management tools"];
+  var steps = user.role === "coach" ? ["Welcome!", "Set up your profile", "Browse training packages", "Plan your first session"] : user.role === "player" ? ["Welcome!", "Set up your profile", "Browse training content", "Start your first drill"] : ["Welcome!", "Platform overview", "Management tools"];
   var descs = {
     coach: [
       "Welcome to Coach360, " + user.name + "! Let's get you set up.",
@@ -149,12 +149,6 @@ function OnboardingScreen({ user, onComplete }) {
       "Complete your profile. You can join a team later via invite, or train independently.",
       "Browse and purchase training content from the marketplace.",
       "Complete drills to start tracking your progress."
-    ],
-    team: [
-      "Welcome to Coach360, " + user.name + "!",
-      "Create your team profile with name and age group.",
-      "Invite players via code or link to build your roster.",
-      "Browse training packages to distribute to your team."
     ],
     admin: [
       "Welcome, Admin!",
@@ -752,11 +746,13 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
   useEffect(function() {
-    if (auth.justRegistered && session && session.user.role !== 'coach' && session.user.role !== 'player') {
-      setOnboarding(true);
+    // Coach/player use CoachOnboardingGate / PlayerOnboardingGate.
+    // Team managers complete Create Team via TeamManagerTeamGate before subscription —
+    // do not reopen the prototype Skip/Next OnboardingScreen stub.
+    if (auth.justRegistered) {
       auth.clearJustRegistered();
     }
-  }, [auth, session, setOnboarding]);
+  }, [auth]);
 
   useEffect(function() {
     if (onboardingNav.redirectToSchedule) {
@@ -888,8 +884,8 @@ export default function Coach360() {
   return (
     <AuthGate>
       <ProfileGate>
-        <SubscriptionGate>
-          <TeamManagerTeamGate>
+        <TeamManagerTeamGate>
+          <SubscriptionGate>
             <CoachOnboardingGate>
               <PlayerOnboardingGate
                 pendingInviteCode={pendingInviteCode}
@@ -901,8 +897,8 @@ export default function Coach360() {
                 />
               </PlayerOnboardingGate>
             </CoachOnboardingGate>
-          </TeamManagerTeamGate>
-        </SubscriptionGate>
+          </SubscriptionGate>
+        </TeamManagerTeamGate>
       </ProfileGate>
     </AuthGate>
   );

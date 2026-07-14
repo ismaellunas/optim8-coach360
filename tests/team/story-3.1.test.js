@@ -114,7 +114,11 @@ describe('STORY_3_1 AC1 — team manager creates team in core workflow', () => {
 
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/TeamManagerTeamGate/);
-    expect(app).toMatch(/SubscriptionGate[\s\S]*TeamManagerTeamGate/);
+    // Create Team is required before subscription (Flow 1 + Q1.5).
+    const teamGateOpen = app.indexOf('<TeamManagerTeamGate>');
+    const subscriptionGateOpen = app.indexOf('<SubscriptionGate>');
+    expect(teamGateOpen).toBeGreaterThan(-1);
+    expect(subscriptionGateOpen).toBeGreaterThan(teamGateOpen);
 
     expect(gate).toMatch(/canManageAgeRange/);
 
