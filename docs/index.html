@@ -73,7 +73,66 @@
       font-size: 0.8125rem;
     }
     .stat strong { display: block; font-size: 1.125rem; }
+    .progress-wrap { margin-top: 1rem; }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .progress-label strong { color: var(--text); }
+    .progress-track {
+      display: flex;
+      height: 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-seg { height: 100%; }
+    .progress-seg.done { background: var(--done); }
+    .progress-seg.in-review { background: var(--in-review); }
+    .progress-seg.in-progress { background: var(--in-progress); }
+    .progress-seg.blocked { background: var(--blocked); }
+    .progress-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.4rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .progress-legend .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.3rem;
+      vertical-align: middle;
+    }
     main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+    .burndown {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .burndown h2 { font-size: 0.9375rem; margin-bottom: 0.25rem; }
+    .burndown .subtitle { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .burndown svg { width: 100%; height: auto; display: block; }
+    .burndown .axis-label { fill: var(--muted); font-size: 10px; font-family: var(--font); }
+    .burndown .grid-line { stroke: var(--border); stroke-width: 1; }
+    .burndown .legend { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; }
+    .burndown .legend .swatch {
+      display: inline-block;
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
     .open-questions {
       background: var(--warning-bg);
       border: 1px solid var(--warning-border);
@@ -174,6 +233,7 @@
     .badge-IN_REVIEW { background: #2d1f4e; color: var(--in-review); border-color: #6e40c9; }
     .badge-DONE { background: #0f2d1a; color: var(--done); border-color: #238636; }
     .badge-BLOCKED { background: #3d1418; color: var(--blocked); border-color: #da3633; }
+    .badge-parallel { background: #032f3c; color: #39c5cf; border-color: #1b7c8c; cursor: help; }
     .story-title { font-size: 0.9375rem; font-weight: 600; width: 100%; margin-top: 0.25rem; }
     .story-desc {
       font-size: 0.8125rem;
@@ -268,8 +328,10 @@
     </div>
     <p>JIRA-style board — canonical data in <code>&lt;script id="tracker-data"&gt;</code></p>
     <div class="stats" id="stats"></div>
+    <div class="progress-wrap" id="progress"></div>
   </header>
   <main>
+    <section class="burndown" id="burndown"></section>
     <section class="open-questions" id="open-questions"></section>
     <div class="filters" id="filters"></div>
     <div id="board"></div>
@@ -1593,35 +1655,46 @@
         {
           "id": "AC-1",
           "statement": "Utility function accepts role, tier, feature key and returns allow/deny",
-          "test": null
+          "test": "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC1_check_feature_access_allow_deny"
         },
         {
           "id": "AC-2",
           "statement": "Supabase RLS policies align with application RBAC rules",
-          "test": null
+          "test": "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC2_rls_policies_align_with_rbac_rules"
         },
         {
           "id": "AC-3",
           "statement": "Deny responses return 403 with tier upgrade hint where applicable",
-          "test": null
+          "test": "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC3_deny_403_with_upgrade_hint"
         },
         {
           "id": "AC-4",
           "statement": "Unit tests cover Player, Coach, Team Manager, Admin for sample features",
-          "test": null
+          "test": "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC4_role_matrix_player_coach_team_manager_admin"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "supabase/migrations/ (inferred)",
-          "lib/rbac/ (inferred)"
+        "tests": [
+          "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC1_check_feature_access_allow_deny",
+          "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC2_rls_policies_align_with_rbac_rules",
+          "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC3_deny_403_with_upgrade_hint",
+          "tests/rbac/story-5.1.test.js::test_STORY_5_1_AC4_role_matrix_player_coach_team_manager_admin"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/rbac/policy.ts",
+          "packages/domain/src/index.ts",
+          "supabase/functions/_shared/rbac.ts",
+          "supabase/migrations/20260715120000_rbac_tier_policies.sql",
+          "apps/mobile/src/App.jsx",
+          "tests/rbac/story-5.1.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-5.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "parallel_ready": true,
+      "status": "DONE",
+      "last_updated": "2026-07-15T00:00:00Z",
+      "audit_notes": "Centralized checkFeatureAccess(role, tier, feature) in packages/domain/src/rbac (AC1); effective_tier/has_feature_access SQL helpers + tier-gated sessions/team_invites insert policies mirroring FEATURE_TIER_REQUIREMENTS (AC2); requireFeatureAccess edge guard returns 403 with upgrade hint (AC3); role×tier×feature matrix tests incl. admin bypass (AC4). App.jsx canAccess now delegates to domain. vitest -t STORY_5_1: 4/4 PASS. → DONE."
     },
     {
       "id": "STORY-5.2",
@@ -1713,6 +1786,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -2081,6 +2155,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -2304,6 +2379,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -2763,6 +2839,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -2969,6 +3046,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -3015,6 +3093,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -3161,6 +3240,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -3229,6 +3309,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -3382,6 +3463,7 @@
         ],
         "command": null
       },
+      "parallel_ready": true,
       "status": "TODO",
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
@@ -3415,6 +3497,97 @@
           { label: 'Blocked', value: counts.BLOCKED },
           { label: 'Stakeholder Questions', value: data.open_questions.length }
         ].map(s => `<div class="stat"><strong>${s.value}</strong>${s.label}</div>`).join('');
+      }
+
+      function renderProgress() {
+        const stories = data.tickets.filter(t => t.type === 'STORY');
+        const total = stories.length;
+        const counts = {};
+        STATUSES.forEach(s => counts[s] = stories.filter(t => t.status === s).length);
+        const pct = total ? Math.round((counts.DONE / total) * 100) : 0;
+        const seg = (n, cls) => n ? `<div class="progress-seg ${cls}" style="width:${(n / total) * 100}%"></div>` : '';
+        document.getElementById('progress').innerHTML = `
+          <div class="progress-label">
+            <span><strong>${pct}%</strong> complete</span>
+            <span>${counts.DONE} of ${total} stories done</span>
+          </div>
+          <div class="progress-track">
+            ${seg(counts.DONE, 'done')}${seg(counts.IN_REVIEW, 'in-review')}${seg(counts.IN_PROGRESS, 'in-progress')}${seg(counts.BLOCKED, 'blocked')}
+          </div>
+          <div class="progress-legend">
+            <span><span class="dot" style="background:var(--done)"></span>Done ${counts.DONE}</span>
+            <span><span class="dot" style="background:var(--in-review)"></span>In Review ${counts.IN_REVIEW}</span>
+            <span><span class="dot" style="background:var(--in-progress)"></span>In Progress ${counts.IN_PROGRESS}</span>
+            <span><span class="dot" style="background:var(--blocked)"></span>Blocked ${counts.BLOCKED}</span>
+            <span><span class="dot" style="background:var(--todo)"></span>Todo ${counts.TODO}</span>
+          </div>
+        `;
+      }
+
+      function renderBurndown() {
+        const stories = data.tickets.filter(t => t.type === 'STORY');
+        const total = stories.length;
+        const DAY = 86400000;
+        const toDay = d => Math.floor(new Date(d).getTime() / DAY) * DAY;
+
+        const start = Math.min(...data.tickets.map(t => toDay(t.last_updated)));
+        const end = Math.max(toDay(Date.now()), Math.max(...data.tickets.map(t => toDay(t.last_updated))));
+
+        // Completions per day, approximated by each DONE story's last_updated date
+        const doneByDay = {};
+        stories.filter(s => s.status === 'DONE').forEach(s => {
+          const d = toDay(s.last_updated);
+          doneByDay[d] = (doneByDay[d] || 0) + 1;
+        });
+
+        const points = [];
+        let remaining = total;
+        for (let d = start; d <= end; d += DAY) {
+          remaining -= doneByDay[d] || 0;
+          points.push({ day: d, remaining });
+        }
+
+        const W = 900, H = 260, padL = 36, padR = 16, padT = 14, padB = 28;
+        const plotW = W - padL - padR, plotH = H - padT - padB;
+        const x = d => padL + ((d - start) / Math.max(end - start, DAY)) * plotW;
+        const y = v => padT + (1 - v / total) * plotH;
+
+        // Horizontal grid lines at ~5 intervals
+        const yStep = Math.max(1, Math.ceil(total / 5));
+        let grid = '';
+        for (let v = 0; v <= total; v += yStep) {
+          grid += `<line class="grid-line" x1="${padL}" y1="${y(v)}" x2="${W - padR}" y2="${y(v)}"/>`;
+          grid += `<text class="axis-label" x="${padL - 6}" y="${y(v) + 3}" text-anchor="end">${v}</text>`;
+        }
+
+        // Date labels: first, last, and a few in between
+        const fmt = d => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const nLabels = Math.min(6, points.length);
+        let xLabels = '';
+        for (let i = 0; i < nLabels; i++) {
+          const d = start + Math.round((end - start) * (i / Math.max(nLabels - 1, 1)));
+          xLabels += `<text class="axis-label" x="${x(d)}" y="${H - padB + 14}" text-anchor="middle">${fmt(d)}</text>`;
+        }
+
+        const actualPath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(p.day).toFixed(1)},${y(p.remaining).toFixed(1)}`).join(' ');
+        const idealPath = `M${x(start).toFixed(1)},${y(total).toFixed(1)} L${x(end).toFixed(1)},${y(0).toFixed(1)}`;
+        const last = points[points.length - 1];
+
+        document.getElementById('burndown').innerHTML = `
+          <h2>Burndown</h2>
+          <div class="subtitle">Remaining stories over time (completion dates approximated from last update of DONE stories) · ${last.remaining} of ${total} remaining</div>
+          <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Burndown chart of remaining stories over time">
+            ${grid}
+            ${xLabels}
+            <path d="${idealPath}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <path d="${actualPath}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+            <circle cx="${x(last.day)}" cy="${y(last.remaining)}" r="4" fill="var(--accent)"/>
+          </svg>
+          <div class="legend">
+            <span><span class="swatch" style="background:var(--accent)"></span>Actual remaining</span>
+            <span><span class="swatch" style="background:var(--muted)"></span>Ideal</span>
+          </div>
+        `;
       }
 
       function renderOpenQuestions() {
@@ -3459,6 +3632,7 @@
           <article class="story" data-id="${story.id}" data-status="${story.status}">
             <div class="story-header">
               <span class="story-id">${story.id}</span>
+              ${story.parallel_ready && story.status !== 'DONE' ? '<span class="badge badge-parallel" title="No prerequisites — can start now alongside other parallel-ready stories. See docs/delivery/parallel-work-plan.md">⇉ PARALLEL READY</span>' : ''}
               <span class="badge badge-${story.status}">${story.status.replace('_', ' ')}</span>
             </div>
             <div class="story-title">${story.title}</div>
@@ -3521,6 +3695,8 @@
       }
 
       renderStats();
+      renderProgress();
+      renderBurndown();
       renderOpenQuestions();
       renderFilters();
       renderBoard();
