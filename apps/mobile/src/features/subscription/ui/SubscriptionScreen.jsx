@@ -1,7 +1,13 @@
+import { useState } from 'react';
 import {
+  accountPlanOverview,
+  accountUsageSummary,
   canViewBillingHistory,
+  classifyTierChange,
+  downgradeRetentionNotice,
   isSubscriptionPaymentLocked,
   lockedStateMessage,
+  pendingTierChange,
   STRIPE_PRODUCT_CATALOG,
 } from '@coach360/domain';
 import { Badge, Button as Btn, Card, PageHeader, ScreenContainer } from '@/shared/ui/primitives.jsx';
@@ -36,7 +42,7 @@ function formatCents(amountCents, currency) {
   }
 }
 
-function formatInvoiceDate(iso) {
+function formatDate(iso) {
   if (!iso) return '—';
   try {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -73,7 +79,7 @@ export function BillingHistorySection({ invoices }) {
                 {formatCents(invoice.amountCents, invoice.currency)}
               </div>
               <div className="font-body text-[11px] text-coach-t3">
-                {formatInvoiceDate(invoice.paidAt || invoice.createdAt)}
+                {formatDate(invoice.paidAt || invoice.createdAt)}
               </div>
             </div>
             <Badge tone={invoice.status === 'paid' ? 'green' : 'yellow'}>{invoice.status}</Badge>
@@ -84,11 +90,39 @@ export function BillingHistorySection({ invoices }) {
   );
 }
 
+export function UsageSummarySection({ subscription }) {
+  if (!subscription) {
+    return null;
+  }
+  const items = accountUsageSummary(subscription);
+  return (
+    <Card>
+      <div className="mb-3 font-display text-sm font-semibold text-coach-t1">Usage summary</div>
+      {items.map(function (item) {
+        return (
+          <div
+            key={item.key}
+            className="mb-2 flex items-start justify-between gap-3 last:mb-0"
+          >
+            <span className="font-body text-xs text-coach-t3">{item.label}</span>
+            <span className="text-right font-body text-xs text-coach-t2">{item.value}</span>
+          </div>
+        );
+      })}
+    </Card>
+  );
+}
+
 /**
- * Subscription management + billing history (Basic+).
+ * Account settings: current plan, usage summary, billing info, and Flow 17
+ * tier changes (immediate prorated upgrade / end-of-cycle downgrade).
  * @param {object} props
  * @param {object} props.user
- * @param {Function} [props.setUser]
+ * @param {object} [props.subscription] - domain subscription (real wiring)
+ * @param {Function} [props.onChangeTier] - (tierId) => Promise; Flow 17 change
+ * @param {boolean} [props.busy] - tier change in flight
+ * @param {string} [props.error] - tier change error message
+ * @param {Function} [props.setUser] - legacy mock fallback when no onChangeTier
  * @param {Function} props.onBack
  * @param {string} [props.subscriptionStatus] - raw subscription status for locked banner
  * @param {Array} [props.billingHistory]
@@ -96,22 +130,37 @@ export function BillingHistorySection({ invoices }) {
  */
 export function SubscriptionScreen({
   user,
+  subscription,
+  onChangeTier,
+  busy,
+  error,
   setUser,
   onBack,
   subscriptionStatus,
   billingHistory = [],
   showBillingHistory,
 }) {
-  const status = subscriptionStatus || (user.tier === 'trial' ? 'trialing' : 'active');
+  const [confirmDowngradeTier, setConfirmDowngradeTier] = useState(null);
+
+  const overview = subscription ? accountPlanOverview(subscription) : null;
+  const pending = subscription ? pendingTierChange(subscription) : null;
+  const currentTier = subscription ? subscription.tier : user.tier;
+
+  const status =
+    subscriptionStatus ||
+    (subscription ? subscription.status : user.tier === 'trial' ? 'trialing' : 'active');
   const locked = isSubscriptionPaymentLocked(status);
   const lockMessage = lockedStateMessage(status);
   const canShowBilling =
     typeof showBillingHistory === 'boolean'
       ? showBillingHistory
       : canViewBillingHistory({
-          tier: user.tier === 'trial' ? 'trial' : user.tier,
+          tier: currentTier === 'trial' ? 'trial' : currentTier,
           status,
         });
+
+  const trialDays = overview ? overview.trialDaysRemaining : user.trialDays || 0;
+  const showTrialInfo = overview ? overview.isTrial : user.tier === 'trial';
 
   const tiers = STRIPE_PRODUCT_CATALOG.map(function (entry) {
     return {
@@ -123,6 +172,31 @@ export function SubscriptionScreen({
     };
   });
 
+  function changeKindFor(tierId) {
+    if (subscription) {
+      return classifyTierChange(currentTier, tierId);
+    }
+    return tierIndex(tierId) < tierIndex(user.tier) && user.tier !== 'trial'
+      ? 'downgrade'
+      : 'upgrade';
+  }
+
+  function handleTierAction(tierId) {
+    const kind = changeKindFor(tierId);
+    if (kind === 'downgrade' && confirmDowngradeTier !== tierId) {
+      setConfirmDowngradeTier(tierId);
+      return;
+    }
+    setConfirmDowngradeTier(null);
+    if (onChangeTier) {
+      onChangeTier(tierId);
+      return;
+    }
+    if (setUser) {
+      setUser(Object.assign({}, user, { tier: tierId, trialDays: 0 }));
+    }
+  }
+
   return (
     <ScreenContainer>
       <PageHeader title="SUBSCRIPTION" onBack={onBack} />
@@ -132,16 +206,29 @@ export function SubscriptionScreen({
           <div className="mt-1 font-body text-xs text-coach-t2">{lockMessage}</div>
         </Card>
       ) : null}
+      {error ? (
+        <Card className="border border-coach-red/40 bg-coach-red/10">
+          <div className="font-body text-xs text-coach-red">{error}</div>
+        </Card>
+      ) : null}
       <Card className="p-5 text-center">
         <div className="font-body text-xs uppercase text-coach-t3">Current Plan</div>
         <div className="mt-1 font-display text-[28px] font-bold capitalize text-coach-orange">
-          {user.tier}
+          {overview ? overview.tierLabel : user.tier}
         </div>
-        {user.tier === 'trial' && (
+        {overview && overview.displayPrice ? (
+          <div className="mt-1 font-body text-sm text-coach-t2">{overview.displayPrice}</div>
+        ) : null}
+        {overview && overview.renewsAt && !showTrialInfo ? (
+          <div className="mt-1 font-body text-[11px] text-coach-t3">
+            {'Renews on ' + formatDate(overview.renewsAt)}
+          </div>
+        ) : null}
+        {showTrialInfo && (
           <div className="mt-2">
             <Badge tone="yellow">Trial active</Badge>
             <div className="mt-2 font-body text-sm font-semibold text-coach-yellow">
-              {user.trialDays + ' days remaining'}
+              {trialDays + ' days remaining'}
             </div>
             <div className="mt-1 font-body text-[11px] text-coach-t3">
               Full Pro access until your trial ends
@@ -154,9 +241,27 @@ export function SubscriptionScreen({
           </div>
         ) : null}
       </Card>
+      {pending ? (
+        <Card className="border border-coach-yellow/40 bg-coach-yellow/10">
+          <div className="font-display text-sm font-semibold text-coach-yellow">
+            Downgrade scheduled
+          </div>
+          <div className="mt-1 font-body text-xs text-coach-t2">
+            {'Switching to ' +
+              pending.tierLabel +
+              ' on ' +
+              formatDate(pending.effectiveAt) +
+              '. You keep full access until then. Objectives and AI history are preserved but hidden until you upgrade again.'}
+          </div>
+        </Card>
+      ) : null}
+      <UsageSummarySection subscription={subscription} />
       {canShowBilling ? <BillingHistorySection invoices={billingHistory} /> : null}
       {tiers.map(function (t) {
-        const isCurrent = t.id === user.tier;
+        const isCurrent = t.id === currentTier;
+        const isPendingTarget = pending && pending.tier === t.id;
+        const kind = isCurrent ? 'same' : changeKindFor(t.id);
+        const confirming = confirmDowngradeTier === t.id;
         return (
           <Card key={t.id} className={isCurrent ? `border-2 ${bdcx(t.c)}` : ''}>
             <div className="mb-2.5 flex items-center justify-between">
@@ -165,6 +270,7 @@ export function SubscriptionScreen({
                 <div className={`font-display text-base ${tcx(t.c)}`}>{t.p}</div>
               </div>
               {isCurrent && <Badge color={t.c}>Current</Badge>}
+              {isPendingTarget && <Badge tone="yellow">Scheduled</Badge>}
             </div>
             {t.f.map(function (feat, i) {
               return (
@@ -176,19 +282,32 @@ export function SubscriptionScreen({
                 </div>
               );
             })}
-            {!isCurrent && setUser ? (
+            {!isCurrent && !isPendingTarget && (onChangeTier || setUser) ? (
               <div className="mt-3">
+                {confirming ? (
+                  <div className="mb-2 font-body text-[11px] text-coach-t3">
+                    {downgradeRetentionNotice(t.id)}
+                  </div>
+                ) : null}
                 <Btn
                   primary
                   full
+                  disabled={busy}
                   onClick={function () {
-                    setUser(Object.assign({}, user, { tier: t.id, trialDays: 0 }));
+                    handleTierAction(t.id);
                   }}
                 >
-                  {tierIndex(t.id) < tierIndex(user.tier) && user.tier !== 'trial'
-                    ? 'Downgrade'
+                  {kind === 'downgrade'
+                    ? confirming
+                      ? 'Confirm downgrade'
+                      : 'Downgrade'
                     : 'Upgrade'}
                 </Btn>
+                {kind === 'upgrade' ? (
+                  <div className="mt-1 text-center font-body text-[10px] text-coach-t3">
+                    Applies immediately with prorated billing
+                  </div>
+                ) : null}
               </div>
             ) : null}
           </Card>

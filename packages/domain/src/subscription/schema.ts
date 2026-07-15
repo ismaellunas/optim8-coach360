@@ -23,6 +23,9 @@ export const subscriptionSchema = z.object({
   trialEndsAt: z.string().nullable(),
   /** Set when the account activates its one-time trial; blocks re-activation. */
   trialUsedAt: z.string().nullable().default(null),
+  /** Scheduled end-of-cycle tier change (Flow 17 downgrade rule). */
+  pendingTier: subscriptionTierSchema.nullable().default(null),
+  pendingTierEffectiveAt: z.string().nullable().default(null),
 });
 
 export type Subscription = z.infer<typeof subscriptionSchema>;

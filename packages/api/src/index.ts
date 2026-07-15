@@ -29,6 +29,8 @@ export type {
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
+  ChangeSubscriptionTierInput,
+  ChangeSubscriptionTierResult,
   CreateCheckoutSessionInput,
   CreateCheckoutSessionResult,
 } from './ports/billing-repository.js';

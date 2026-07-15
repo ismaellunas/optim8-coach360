@@ -723,6 +723,9 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
   var _paywallBusy = useState(false), paywallBusy = _paywallBusy[0], setPaywallBusy = _paywallBusy[1];
   var _paywallError = useState(null), paywallError = _paywallError[0], setPaywallError = _paywallError[1];
+  var _billingHistory = useState([]), billingHistory = _billingHistory[0], setBillingHistory = _billingHistory[1];
+  var _tierChangeBusy = useState(false), tierChangeBusy = _tierChangeBusy[0], setTierChangeBusy = _tierChangeBusy[1];
+  var _tierChangeError = useState(null), tierChangeError = _tierChangeError[0], setTierChangeError = _tierChangeError[1];
   useEffect(function() {
     // Coach/player use CoachOnboardingGate / PlayerOnboardingGate.
     // Team managers complete Create Team via TeamManagerTeamGate before subscription —
@@ -751,6 +754,26 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       setScreen("join-team");
     }
   }, [pendingInviteCode, user, setScreen]);
+
+  // Account settings billing info (STORY-4.5 AC-1).
+  var profileId = session?.user?.id;
+  useEffect(function () {
+    if (screen !== "subscription" || !profileId) {
+      return;
+    }
+    var cancelled = false;
+    repos.billing
+      .listByProfileId(profileId)
+      .then(function (invoices) {
+        if (!cancelled) setBillingHistory(invoices);
+      })
+      .catch(function () {
+        if (!cancelled) setBillingHistory([]);
+      });
+    return function () {
+      cancelled = true;
+    };
+  }, [screen, profileId, repos.billing, setBillingHistory]);
 
   function go(s) { setScreen(s); }
 
@@ -829,6 +852,37 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     }
   }
 
+  // Flow 17 (STORY-4.5): immediate prorated upgrade / end-of-cycle downgrade.
+  async function handleChangeSubscriptionTier(tierId) {
+    if (!session?.user?.id || !tierId) {
+      return;
+    }
+    setTierChangeBusy(true);
+    setTierChangeError(null);
+    try {
+      var subscription = subscriptionState.subscription;
+      if (subscription && subscription.stripeSubscriptionId) {
+        await repos.billing.changeSubscriptionTier({ tier: tierId });
+        await subscriptionState.refreshSubscription();
+      } else {
+        // No Stripe subscription yet (trial / deferred Basic) — start checkout.
+        var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+        var result = await repos.billing.createCheckoutSession({
+          tier: tierId,
+          successUrl: origin + "/?checkout=success",
+          cancelUrl: origin + "/?checkout=cancel",
+        });
+        if (typeof window !== "undefined" && result.url) {
+          window.location.assign(result.url);
+        }
+      }
+    } catch (cause) {
+      setTierChangeError(cause instanceof Error ? cause.message : "tier_change_failed");
+    } finally {
+      setTierChangeBusy(false);
+    }
+  }
+
   function handlePaywallDismiss() {
     setPaywall(null);
     setPaywallError(null);
@@ -874,7 +928,20 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       );
     }
     if (screen === "profile") return <ProfileScreen user={user} go={go} onSignOut={handleSignOut} />;
-    if (screen === "subscription") return <SubscriptionScreen user={user} setUser={function() {}} onBack={function() { go("profile"); }} />;
+    if (screen === "subscription") {
+      return (
+        <SubscriptionScreen
+          user={user}
+          subscription={subscriptionState.subscription}
+          billingHistory={billingHistory}
+          subscriptionStatus={subscriptionState.subscription?.status}
+          busy={tierChangeBusy}
+          error={tierChangeError}
+          onChangeTier={handleChangeSubscriptionTier}
+          onBack={function() { go("profile"); }}
+        />
+      );
+    }
     if (screen === "objectives") return <ObjectivesScreen user={user} onBack={function() { go("home"); }} />;
     if (screen === "create-content") return <CreateContentScreen onBack={function() { go("home"); }} />;
     if (screen.indexOf("admin-") === 0) return <AdminDetailScreen screen={screen} onBack={function() { go("home"); }} />;

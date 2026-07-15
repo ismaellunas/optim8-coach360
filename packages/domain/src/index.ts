@@ -103,6 +103,26 @@ export {
   lockedStateMessage,
 } from './subscription/billing.js';
 export {
+  HISTORY_RETAINED_FEATURES,
+  classifyTierChange,
+  applyImmediateUpgrade,
+  scheduleDowngradeAtPeriodEnd,
+  pendingTierChange,
+  accountPlanOverview,
+  accountUsageSummary,
+  downgradeHistoryRetention,
+  isHistoryFeatureVisible,
+  downgradeRetentionNotice,
+  type TierChangeKind,
+  type ImmediateUpgrade,
+  type ScheduledDowngrade,
+  type PendingTierChange,
+  type AccountPlanOverview,
+  type AccountUsageItem,
+  type DowngradeHistoryRetention,
+  type HistoryRetainedFeature,
+} from './subscription/tier-change.js';
+export {
   FEATURE_TIER_REQUIREMENTS,
   requiredTierForFeature,
   tierDisplayLabel,

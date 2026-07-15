@@ -1510,35 +1510,53 @@
         {
           "id": "AC-1",
           "statement": "Account settings shows current plan, usage summary, billing info",
-          "test": null
+          "test": "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC1_account_settings_shows_plan_usage_billing"
         },
         {
           "id": "AC-2",
           "statement": "Upgrade processes payment and unlocks tier immediately with proration",
-          "test": null
+          "test": "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC2_upgrade_immediate_with_proration"
         },
         {
           "id": "AC-3",
           "statement": "Downgrade scheduled for end of current billing period",
-          "test": null
+          "test": "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC3_downgrade_scheduled_end_of_cycle"
         },
         {
           "id": "AC-4",
           "statement": "Objective and AI history preserved but hidden on downgrade until re-upgrade",
-          "test": null
+          "test": "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC4_history_preserved_hidden_until_reupgrade"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC1_account_settings_shows_plan_usage_billing",
+          "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC2_upgrade_immediate_with_proration",
+          "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC3_downgrade_scheduled_end_of_cycle",
+          "tests/subscription/story-4.5.test.js::test_STORY_4_5_AC4_history_preserved_hidden_until_reupgrade"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/subscription/tier-change.ts",
+          "packages/domain/src/subscription/schema.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/billing-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-billing-repository.ts",
+          "packages/api/src/adapters/rest/rest-billing-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/subscription-mapper.ts",
+          "packages/api/src/index.ts",
+          "supabase/migrations/20260715100000_pending_tier_change.sql",
+          "supabase/functions/change-subscription-tier/handler.ts",
+          "supabase/functions/change-subscription-tier/index.ts",
+          "apps/mobile/src/features/subscription/ui/SubscriptionScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "tests/subscription/story-4.5.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-4.5"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-15T00:00:00Z",
+      "audit_notes": "Flow 17: account settings plan/usage/billing (AC1), immediate prorated Stripe upgrade via change-subscription-tier edge fn (AC2), end-of-cycle downgrade via subscription schedule + pending_tier columns/trigger (AC3), preserve-hidden retention rules for objectives/AI history (AC4, per flows.md — OQ-17.1/17.2 still unanswered in stakeholder doc). vitest -t STORY_4_5: 4/4 PASS. → DONE."
     },
     {
       "id": "EPIC-5",

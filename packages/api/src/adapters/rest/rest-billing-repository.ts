@@ -2,6 +2,8 @@ import { NotImplementedAdapterError } from '../../client/types.js';
 import type { BillingInvoice } from '@coach360/domain';
 import type {
   BillingRepository,
+  ChangeSubscriptionTierInput,
+  ChangeSubscriptionTierResult,
   CreateCheckoutSessionInput,
   CreateCheckoutSessionResult,
 } from '../../ports/billing-repository.js';
@@ -17,5 +19,12 @@ export class RestBillingRepository implements BillingRepository {
   ): Promise<CreateCheckoutSessionResult> {
     void input;
     throw new NotImplementedAdapterError('rest', 'createCheckoutSession');
+  }
+
+  async changeSubscriptionTier(
+    input: ChangeSubscriptionTierInput,
+  ): Promise<ChangeSubscriptionTierResult> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'changeSubscriptionTier');
   }
 }

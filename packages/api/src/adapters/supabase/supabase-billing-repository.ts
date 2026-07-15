@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { BillingInvoice, PaidSubscriptionTier } from '@coach360/domain';
 import type {
   BillingRepository,
+  ChangeSubscriptionTierInput,
+  ChangeSubscriptionTierResult,
   CreateCheckoutSessionInput,
   CreateCheckoutSessionResult,
 } from '../../ports/billing-repository.js';
@@ -57,6 +59,37 @@ export class SupabaseBillingRepository implements BillingRepository {
       url: payload.url,
       sessionId: payload.sessionId,
       tier: payload.tier as PaidSubscriptionTier,
+      profileId: payload.profileId,
+    };
+  }
+
+  async changeSubscriptionTier(
+    input: ChangeSubscriptionTierInput,
+  ): Promise<ChangeSubscriptionTierResult> {
+    const { data, error } = await this.client.functions.invoke('change-subscription-tier', {
+      body: { tier: input.tier },
+    });
+
+    const payload = data as
+      | (ChangeSubscriptionTierResult & { error?: string; hint?: string })
+      | null;
+
+    if (error) {
+      const detail = payload?.error
+        ? `${payload.error}${payload.hint ? ` (${payload.hint})` : ''}`
+        : error.message;
+      throw new Error(detail);
+    }
+
+    if (!payload?.kind) {
+      throw new Error(payload?.error || 'tier_change_failed');
+    }
+
+    return {
+      kind: payload.kind,
+      tier: payload.tier as PaidSubscriptionTier,
+      pendingTier: (payload.pendingTier as PaidSubscriptionTier | null) ?? null,
+      pendingTierEffectiveAt: payload.pendingTierEffectiveAt ?? null,
       profileId: payload.profileId,
     };
   }
