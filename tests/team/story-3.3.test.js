@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  FEATURE_TIER_REQUIREMENTS,
   canAssignCoachToTeam,
   canManageFullRoster,
   canRemoveRosterPlayer,
@@ -55,8 +56,6 @@ const CREATE_REPOS_PATH = path.join(
   'di',
   'create-repositories.ts',
 );
-const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
-
 describe('STORY_3_3 AC1 — coach advanced can remove players', () => {
   it('test_STORY_3_3_AC1_coach_advanced_can_remove_players: access helper and roster removal wired', () => {
     expect(canRemoveRosterPlayer('coach', { tier: 'advanced', status: 'active' })).toBe(true);
@@ -81,8 +80,8 @@ describe('STORY_3_3 AC1 — coach advanced can remove players', () => {
     expect(rosterScreen).toMatch(/Remove/);
     expect(rosterScreen).toMatch(/repos\.rosters\.removeMember/);
 
-    const app = readFileSync(APP_PATH, 'utf8');
-    expect(app).toMatch(/removePlayers: \{ coach: "advanced", team: "basic" \}/);
+    // Centralized RBAC map (STORY-5.1) keeps removal at coach Advanced+ / manager Basic+.
+    expect(FEATURE_TIER_REQUIREMENTS.removePlayers).toEqual({ coach: 'advanced', team: 'basic' });
   });
 });
 
@@ -128,8 +127,8 @@ describe('STORY_3_3 AC3 — assign coach gated by tier', () => {
     expect(manageScreen).toMatch(/assign-coach-email/);
     expect(manageScreen).toMatch(/Coach email/);
 
-    const app = readFileSync(APP_PATH, 'utf8');
-    expect(app).toMatch(/assignCoach: \{ coach: "pro", team: "advanced" \}/);
+    // Centralized RBAC map (STORY-5.1) keeps assignment at coach Pro / manager Advanced+.
+    expect(FEATURE_TIER_REQUIREMENTS.assignCoach).toEqual({ coach: 'pro', team: 'advanced' });
   });
 });
 

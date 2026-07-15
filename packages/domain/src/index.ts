@@ -139,6 +139,18 @@ export {
   type CheckoutSessionRequest,
 } from './subscription/paywall.js';
 export {
+  normalizeRbacRole,
+  checkFeatureAccess,
+  canAccessFeature,
+  featureAccessDenial,
+  upgradeHintForFeature,
+  type RbacRole,
+  type FeatureAccessDecision,
+  type FeatureAccessDenialReason,
+  type FeatureAccessInput,
+  type FeatureAccessDenial,
+} from './rbac/policy.js';
+export {
   teamSchema,
   teamProfileInputSchema,
   rosterMemberSchema,

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   ADVANCED_OR_PRO_FEATURES,
+  FEATURE_TIER_REQUIREMENTS,
   STRIPE_PRODUCT_CATALOG,
   applyExpiredTrialDowngrade,
   effectiveTierForAccess,
@@ -221,10 +222,11 @@ describe('STORY_4_3 AC2 — Advanced and Pro features show paywall', () => {
     expect(app).toMatch(/PaywallModal/);
     expect(app).toMatch(/function tryA/);
     expect(app).toMatch(/setPaywall\(feature\)/);
-    expect(app).toMatch(/FEATURE_REQS/);
-    expect(app).toMatch(/objectives:.*pro/);
-    expect(app).toMatch(/ai:.*pro/);
-    expect(app).toMatch(/chat:.*advanced/);
+    // App guards route through the centralized RBAC map (STORY-5.1).
+    expect(app).toMatch(/checkFeatureAccess/);
+    expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro' });
+    expect(FEATURE_TIER_REQUIREMENTS.ai).toEqual({ coach: 'pro', player: 'pro' });
+    expect(FEATURE_TIER_REQUIREMENTS.chat).toEqual({ coach: 'advanced', player: 'advanced' });
 
     expect(existsSync(PAYWALL_MODAL_PATH)).toBe(true);
     const paywall = readFileSync(PAYWALL_MODAL_PATH, 'utf8');

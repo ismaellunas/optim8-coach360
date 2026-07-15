@@ -14,6 +14,7 @@ import {
   SupabaseTeamRepository,
 } from '@coach360/api';
 import {
+  FEATURE_TIER_REQUIREMENTS,
   allowsMultipleTeamMembership,
   buildInviteLink,
   canGenerateTeamInvite,
@@ -147,8 +148,8 @@ describe('STORY_3_2 AC1 — coach advanced generates invite link or code', () =>
     expect(roster).toMatch(/type: 'invite'/);
     expect(roster).toMatch(/tryA\('invitePlayers'/);
 
-    const app = readFileSync(APP_PATH, 'utf8');
-    expect(app).toMatch(/invitePlayers: \{ coach: "advanced"/);
+    // Centralized RBAC map (STORY-5.1) keeps invite gating at coach Advanced+.
+    expect(FEATURE_TIER_REQUIREMENTS.invitePlayers).toEqual({ coach: 'advanced', team: 'basic' });
   });
 });
 

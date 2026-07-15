@@ -1637,9 +1637,9 @@
         "Paywall triggered consistently when tier insufficient",
         "Admin role bypasses tier restrictions for management actions"
       ],
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "BLOCKED",
+      "last_updated": "2026-07-15T00:00:00Z",
+      "audit_notes": "Roll-up: STORY-5.1 DONE (core policy layer); STORY-5.2 BLOCKED (OQ-6.5 AI tier decision); STORY-5.3 TODO. Epic BLOCKED per roll-up rule while OQ-6.5 is unresolved."
     },
     {
       "id": "STORY-5.1",
@@ -1694,7 +1694,7 @@
       "parallel_ready": true,
       "status": "DONE",
       "last_updated": "2026-07-15T00:00:00Z",
-      "audit_notes": "Centralized checkFeatureAccess(role, tier, feature) in packages/domain/src/rbac (AC1); effective_tier/has_feature_access SQL helpers + tier-gated sessions/team_invites insert policies mirroring FEATURE_TIER_REQUIREMENTS (AC2); requireFeatureAccess edge guard returns 403 with upgrade hint (AC3); role×tier×feature matrix tests incl. admin bypass (AC4). App.jsx canAccess now delegates to domain. vitest -t STORY_5_1: 4/4 PASS. → DONE."
+      "audit_notes": "Centralized checkFeatureAccess(role, tier, feature) in packages/domain/src/rbac (AC1); effective_tier/has_feature_access SQL helpers + tier-gated sessions/team_invites insert policies mirroring FEATURE_TIER_REQUIREMENTS (AC2); requireFeatureAccess edge guard returns 403 with upgrade hint (AC3); role×tier×feature matrix tests incl. admin bypass (AC4). App.jsx canAccess now delegates to domain. Migration applied to local + remote DB. vitest -t STORY_5_1: 4/4 PASS. → DONE."
     },
     {
       "id": "STORY-5.2",
