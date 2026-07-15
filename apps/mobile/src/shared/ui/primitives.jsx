@@ -160,7 +160,7 @@ export function AppShell({ children, footer, overlay }) {
   return (
     <div className="relative min-h-svh w-full bg-coach-bg font-body text-coach-t1">
       <div className="min-h-svh w-full pt-[env(safe-area-inset-top)]">
-        <div className="w-full overflow-y-auto overscroll-y-contain">
+        <div className="w-full">
           {children}
         </div>
       </div>

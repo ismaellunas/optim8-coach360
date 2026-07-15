@@ -19,7 +19,6 @@
   },
   "ios": {
     "contentInset": "always",
-    "scrollEnabled": false,
     "limitsNavigationsToAppBoundDomains": true
   },
   "android": {
