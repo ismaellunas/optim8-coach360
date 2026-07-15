@@ -74,6 +74,16 @@ const PROMPT_PATH = path.join(
   'ui',
   'TrialExpiredUpgradePrompt.jsx',
 );
+const PAYWALL_MODAL_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'subscription',
+  'ui',
+  'PaywallModal.jsx',
+);
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
 
 function daysFromNow(days) {
@@ -208,13 +218,18 @@ describe('STORY_4_3 AC2 — Advanced and Pro features show paywall', () => {
 
     expect(existsSync(APP_PATH)).toBe(true);
     const app = readFileSync(APP_PATH, 'utf8');
-    expect(app).toMatch(/function PaywallModal/);
+    expect(app).toMatch(/PaywallModal/);
     expect(app).toMatch(/function tryA/);
     expect(app).toMatch(/setPaywall\(feature\)/);
     expect(app).toMatch(/FEATURE_REQS/);
     expect(app).toMatch(/objectives:.*pro/);
     expect(app).toMatch(/ai:.*pro/);
     expect(app).toMatch(/chat:.*advanced/);
+
+    expect(existsSync(PAYWALL_MODAL_PATH)).toBe(true);
+    const paywall = readFileSync(PAYWALL_MODAL_PATH, 'utf8');
+    expect(paywall).toMatch(/export function PaywallModal/);
+    expect(paywall).toMatch(/Feature Locked/);
   });
 });
 
