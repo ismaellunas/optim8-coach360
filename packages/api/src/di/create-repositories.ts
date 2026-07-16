@@ -105,7 +105,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     rosters: new SupabaseRosterRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     billing: new SupabaseBillingRepository(appClient),
-    content: new SupabaseContentRepository(),
+    content: new SupabaseContentRepository(appClient),
     analytics: new ConsoleAnalyticsRepository(),
     notifications: new ConsoleNotificationRepository(),
   };

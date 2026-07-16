@@ -1749,35 +1749,48 @@
         {
           "id": "AC-1",
           "statement": "Admin can configure which tier unlocks each feature flag",
-          "test": null
+          "test": "tests/admin/story-5.3.test.js::test_STORY_5_3_AC1_admin_can_configure_feature_tier_per_role"
         },
         {
           "id": "AC-2",
           "statement": "Paywall messaging editable from admin Content Paywall section",
-          "test": null
+          "test": "tests/admin/story-5.3.test.js::test_STORY_5_3_AC2_paywall_messaging_editable"
         },
         {
           "id": "AC-3",
           "statement": "Free content catalog definable for Basic tier browsing",
-          "test": null
+          "test": "tests/admin/story-5.3.test.js::test_STORY_5_3_AC3_free_content_catalog_definable"
         },
         {
           "id": "AC-4",
           "statement": "Changes propagate to mobile without app redeploy (remote config or DB)",
-          "test": null
+          "test": "tests/admin/story-5.3.test.js::test_STORY_5_3_AC4_changes_propagate_without_redeploy"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "tests/admin/story-5.3.test.js::test_STORY_5_3_AC1_admin_can_configure_feature_tier_per_role",
+          "tests/admin/story-5.3.test.js::test_STORY_5_3_AC2_paywall_messaging_editable",
+          "tests/admin/story-5.3.test.js::test_STORY_5_3_AC3_free_content_catalog_definable",
+          "tests/admin/story-5.3.test.js::test_STORY_5_3_AC4_changes_propagate_without_redeploy"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260715120000_feature_gating.sql",
+          "packages/domain/src/subscription/paywall.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-content-repository.ts",
+          "packages/api/src/adapters/rest/rest-content-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/admin/src/pages/content/ContentPage.tsx",
+          "tests/admin/story-5.3.test.js"
+        ],
+        "command": "npx vitest run --reporter=json -t STORY_5_3"
       },
       "parallel_ready": true,
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "last_updated": "2026-07-16T00:00:00Z",
-      "audit_notes": "2026-07-16: in parallel development, scoped strictly admin-side (overrides table, admin UI, paywall messaging config). Read pattern: consumers resolve admin override else FEATURE_TIER_REQUIREMENTS default. AC-4 split: write side (overrides in DB, reachable without redeploy) lands here; mobile read side moved to STORY-5.4. Server-side has_feature_access override alignment also in STORY-5.4."
+      "audit_notes": "2026-07-16: scoped strictly admin-side (overrides table, admin UI, paywall messaging config). Added feature_flags (feature_key+role override, admin-write RLS via is_admin) and free_content_catalog tables; domain applyFeatureFlagOverrides/isFreeAtBasicTier merge overrides into FEATURE_TIER_REQUIREMENTS per (feature,role); admin ContentPage gained a Content Paywall section for tier/paywall-copy edits and free-catalog CRUD. AC-4 split: write side (overrides in DB, reachable without redeploy via authenticated select RLS) lands here; mobile read side plus server-side has_feature_access alignment moved to STORY-5.4. All 4 admin-side ACs have passing tests (tests/admin/story-5.3.test.js)."
     },
     {
       "id": "STORY-5.4",
