@@ -3475,7 +3475,14 @@
     (function () {
       const data = JSON.parse(document.getElementById('tracker-data').textContent);
       const STATUSES = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE', 'BLOCKED'];
-      let activeFilter = 'ALL';
+      // Default to NOT_DONE so the initial view surfaces what still needs work.
+      let activeFilter = 'NOT_DONE';
+
+      function matchesFilter(status) {
+        if (activeFilter === 'ALL') return true;
+        if (activeFilter === 'NOT_DONE') return status !== 'DONE';
+        return status === activeFilter;
+      }
 
       function formatDate(iso) {
         try {
@@ -3607,9 +3614,9 @@
 
       function renderFilters() {
         const el = document.getElementById('filters');
-        const buttons = ['ALL', ...STATUSES];
+        const buttons = ['ALL', 'NOT_DONE', ...STATUSES];
         el.innerHTML = buttons.map(s =>
-          `<button class="filter-btn${activeFilter === s ? ' active' : ''}" data-filter="${s}">${s === 'ALL' ? 'All' : s.replace('_', ' ')}</button>`
+          `<button class="filter-btn${activeFilter === s ? ' active' : ''}" data-filter="${s}">${s === 'ALL' ? 'All' : s.replace(/_/g, ' ')}</button>`
         ).join('');
         el.querySelectorAll('.filter-btn').forEach(btn => {
           btn.addEventListener('click', () => {
@@ -3627,7 +3634,7 @@
       }
 
       function renderStory(story) {
-        if (activeFilter !== 'ALL' && story.status !== activeFilter) return '';
+        if (!matchesFilter(story.status)) return '';
         return `
           <article class="story" data-id="${story.id}" data-status="${story.status}">
             <div class="story-header">
