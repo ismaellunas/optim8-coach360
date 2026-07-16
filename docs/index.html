@@ -367,7 +367,6 @@
       "source": "docs/product/stakeholder-questions.md#flow-2",
       "status": "sent",
       "blocks": [
-        "STORY-5.4",
         "STORY-11.3"
       ]
     },
@@ -401,17 +400,6 @@
       "status": "sent",
       "blocks": [
         "STORY-6.1"
-      ]
-    },
-    {
-      "id": "OQ-6.5",
-      "question": "AI features show ○ partial at Advanced in the access matrix but principles say 'AI exclusively at Pro' — which is correct for MVP?",
-      "source": "docs/product/stakeholder-questions.md#flow-6",
-      "status": "sent",
-      "blocks": [
-        "STORY-5.2",
-        "STORY-11.3",
-        "STORY-11.4"
       ]
     }
   ],
@@ -1637,9 +1625,9 @@
         "Paywall triggered consistently when tier insufficient",
         "Admin role bypasses tier restrictions for management actions"
       ],
-      "status": "BLOCKED",
-      "last_updated": "2026-07-15T00:00:00Z",
-      "audit_notes": "Roll-up: STORY-5.1 DONE (core policy layer); STORY-5.2 BLOCKED (OQ-6.5 AI tier decision); STORY-5.3 TODO. Epic BLOCKED per roll-up rule while OQ-6.5 is unresolved."
+      "status": "IN_PROGRESS",
+      "last_updated": "2026-07-16T00:00:00Z",
+      "audit_notes": "Roll-up: STORY-5.1 DONE (core policy layer); STORY-5.2 TODO (OQ-6.5 resolved 2026-07-16: AI Pro-only per legend + design principle); STORY-5.3 IN_PROGRESS (admin-side only); STORY-5.4 TODO (added 2026-07-16: mobile read of admin overrides, split from 5.3 AC-4). Epic IN_PROGRESS."
     },
     {
       "id": "STORY-5.1",
@@ -1742,9 +1730,9 @@
         ],
         "command": null
       },
-      "status": "BLOCKED",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Blocked pending OQ-6.5 (AI tier). Launch rule subset is internal per DEP-06."
+      "status": "TODO",
+      "last_updated": "2026-07-16T00:00:00Z",
+      "audit_notes": "Unblocked: OQ-6.5 answered 2026-07-16 (stakeholder-questions.md#6.5) — AI is Pro-only for MVP; matrix legend defines ○ as 'available at higher tier' (not partial), so matrix and principles agree. STORY-5.1 FEATURE_TIER_REQUIREMENTS already gates ai at Pro. AC-2 target: Pro. AC-4 '○ partial' reads as '○ available at higher tier' per legend. Launch rule subset is internal per DEP-06."
     },
     {
       "id": "STORY-5.3",
@@ -1787,9 +1775,61 @@
         "command": null
       },
       "parallel_ready": true,
+      "status": "IN_PROGRESS",
+      "last_updated": "2026-07-16T00:00:00Z",
+      "audit_notes": "2026-07-16: in parallel development, scoped strictly admin-side (overrides table, admin UI, paywall messaging config). Read pattern: consumers resolve admin override else FEATURE_TIER_REQUIREMENTS default. AC-4 split: write side (overrides in DB, reachable without redeploy) lands here; mobile read side moved to STORY-5.4. Server-side has_feature_access override alignment also in STORY-5.4."
+    },
+    {
+      "id": "STORY-5.4",
+      "type": "STORY",
+      "parent": "EPIC-5",
+      "title": "Mobile consumption of admin gating overrides",
+      "description": "Mobile app reads admin feature-tier overrides merged over FEATURE_TIER_REQUIREMENTS defaults so gating changes propagate without app redeploy.",
+      "requirements": [
+        "Flow-7",
+        "Flow-10",
+        "docs/product/stakeholder-questions.md#10.3"
+      ],
+      "acceptance_criteria": [
+        {
+          "id": "AC-1",
+          "statement": "Mobile fetches merged feature-tier map (admin override else FEATURE_TIER_REQUIREMENTS default) at session load and on refresh",
+          "test": null
+        },
+        {
+          "id": "AC-2",
+          "statement": "checkFeatureAccess accepts an injected requirements map; static FEATURE_TIER_REQUIREMENTS remains the offline/unfetched fallback",
+          "test": null
+        },
+        {
+          "id": "AC-3",
+          "statement": "Server-side has_feature_access consults the same overrides so RLS and mobile guards agree",
+          "test": null
+        },
+        {
+          "id": "AC-4",
+          "statement": "Paywall copy sources admin-configured messaging when present",
+          "test": null
+        },
+        {
+          "id": "AC-5",
+          "statement": "Admin gating change reflects on mobile without app redeploy",
+          "test": null
+        }
+      ],
+      "verify": {
+        "tests": [],
+        "files": [
+          "packages/domain/src/rbac/policy.ts",
+          "supabase/migrations/20260715120000_rbac_tier_policies.sql",
+          "apps/mobile/src/App.jsx"
+        ],
+        "command": null
+      },
+      "parallel_ready": false,
       "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "last_updated": "2026-07-16T00:00:00Z",
+      "audit_notes": "Created 2026-07-16 as the mobile-read half of STORY-5.3 AC-4 (5.3 scoped strictly admin-side). Depends on the STORY-5.3 overrides table schema — not parallel_ready until it lands. Note: OQ-2.2 blocks previously referenced a never-created STORY-5.4 (Pro full-access scope); that dangling reference was removed and does not apply to this ticket."
     },
     {
       "id": "EPIC-6",

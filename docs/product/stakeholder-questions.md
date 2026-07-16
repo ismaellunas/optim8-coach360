@@ -21,7 +21,7 @@
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? | 3 |
 | 4.1 | Who creates marketplace packages — admins, coaches, or both? | 4, 7, 12 |
 | 6.1 | What does “set objectives” at Pro include? | 6 |
-| 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? | 6, Part 3 |
+| 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
 
 ---
 
@@ -102,7 +102,7 @@
 | 6.2 | Which **AI provider** is approved (Mistral per tech stack, or OpenAI/Anthropic)? | DEP-01 | | | |
 | 6.3 | What inputs drive **package recommendations** — objectives, progress, age, behavior, all of the above? | RAG design (DEP-02) | | | |
 | 6.4 | Is **RAG required at MVP**, or can v1 use metadata filters + simple ranking? | DEP-02 scope (+10–20 h risk) | | | |
-| 6.5 | **P0** — AI features show **○ partial at Advanced** in the matrix but principles say **“AI exclusively at Pro”** — which is correct? | Tier gating contradiction | | | |
+| 6.5 | **P0** — AI features show **○ partial at Advanced** in the matrix but principles say **“AI exclusively at Pro”** — which is correct? | Tier gating contradiction | **Pro only — no contradiction.** The matrix legend defines ○ as “available at higher tier”, not partial access: AI rows showing ○ at Advanced mean AI unlocks at Pro. Matches the design principle “AI exclusively at Pro” and the shipped STORY-5.1 gating (`ai` requires Pro for coach and player). MVP gates all AI features at Pro for every role; admin bypasses tiers. | product | 2026-07-16 |
 | 6.6 | Should AI suggestions include a **human-readable “why”** shown to the user? | Marketplace + objectives UX | | | |
 | 6.7 | What player/coach data may be sent to the AI provider (PII, minors)? | Privacy and vendor agreements | | | |
 | 6.8 | Who can configure AI parameters — admin only, or coaches too? | Flow 7 admin matrix | | | |
