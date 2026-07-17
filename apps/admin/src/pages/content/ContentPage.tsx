@@ -7,7 +7,7 @@ import {
   type GatedRole,
 } from '@coach360/domain';
 import { PageHeader, Card, Badge, Button } from '@coach360/ui';
-import { readSanityStudioUrl } from '@/shared/config/env.js';
+import { tryReadSanityStudioUrl } from '@/shared/config/env.js';
 
 const PAID_TIERS = ['basic', 'advanced', 'pro'] as const;
 
@@ -261,7 +261,7 @@ function FreeContentCatalogSection() {
 
 export function ContentPage() {
   const repos = useRepositories();
-  const studioUrl = readSanityStudioUrl();
+  const studioUrl = tryReadSanityStudioUrl();
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'content'],
     queryFn: () => repos.content.list(),
@@ -273,15 +273,22 @@ export function ContentPage() {
         title="Content"
         subtitle="Marketplace operations and Sanity Studio authoring."
       />
-      <div className="mb-6">
-        <Button
-          onClick={() => {
-            window.open(studioUrl, '_blank', 'noopener,noreferrer');
-          }}
-        >
-          Open Sanity Studio
-        </Button>
-      </div>
+      {studioUrl ? (
+        <div className="mb-6">
+          <Button
+            onClick={() => {
+              window.open(studioUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Open Sanity Studio
+          </Button>
+        </div>
+      ) : (
+        <p className="mb-6 font-body text-sm text-coach-t3">
+          Set <code className="text-coach-t2">VITE_SANITY_STUDIO_URL</code> in{' '}
+          <code className="text-coach-t2">.env</code> to enable the Sanity Studio link.
+        </p>
+      )}
       {isLoading ? <p className="text-coach-t2">Loading content…</p> : null}
       <div className="space-y-3">
         {(data ?? []).map((item) => (

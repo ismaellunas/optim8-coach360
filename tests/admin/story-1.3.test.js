@@ -94,7 +94,7 @@ describe('STORY_1_3 AC4 — content links sanity studio', () => {
     const env = read('apps/admin/src/shared/config/env.ts');
 
     expect(contentPage).toMatch(/Open Sanity Studio/);
-    expect(contentPage).toMatch(/readSanityStudioUrl/);
+    expect(contentPage).toMatch(/tryReadSanityStudioUrl/);
     expect(env).toMatch(/VITE_SANITY_STUDIO_URL/);
   });
 });

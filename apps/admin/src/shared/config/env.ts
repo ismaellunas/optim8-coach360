@@ -38,3 +38,9 @@ export function readSupabaseEnvForRuntime(): { url: string; anonKey: string } {
 export function readSanityStudioUrl(): string {
   return required('VITE_SANITY_STUDIO_URL', readAdminEnv().sanityStudioUrl);
 }
+
+/** Returns null when unset — Content page gating works without Sanity configured. */
+export function tryReadSanityStudioUrl(): string | null {
+  const url = readAdminEnv().sanityStudioUrl.trim();
+  return url || null;
+}
