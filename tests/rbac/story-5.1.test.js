@@ -21,6 +21,12 @@ const MIGRATION_PATH = path.join(
   REPO_ROOT,
   'supabase',
   'migrations',
+  '20260717120000_rbac_launch_matrix.sql',
+);
+const RBAC_HELPERS_MIGRATION_PATH = path.join(
+  REPO_ROOT,
+  'supabase',
+  'migrations',
   '20260715120000_rbac_tier_policies.sql',
 );
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
@@ -28,7 +34,7 @@ const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
 describe('STORY_5_1 AC1 — utility accepts role, tier, feature key and returns allow/deny', () => {
   it('test_STORY_5_1_AC1_check_feature_access_allow_deny: allow and deny per role/tier/feature', () => {
     // Allow at or above the minimum tier.
-    expect(checkFeatureAccess({ role: 'coach', tier: 'advanced', feature: 'chat' })).toEqual({
+    expect(checkFeatureAccess({ role: 'coach', tier: 'advanced', feature: 'chat' })).toMatchObject({
       allowed: true,
     });
     expect(checkFeatureAccess({ role: 'player', tier: 'pro', feature: 'ai' }).allowed).toBe(true);
@@ -73,7 +79,10 @@ describe('STORY_5_1 AC1 — utility accepts role, tier, feature key and returns 
 describe('STORY_5_1 AC2 — Supabase RLS policies align with application RBAC rules', () => {
   it('test_STORY_5_1_AC2_rls_policies_align_with_rbac_rules: SQL helpers mirror domain rules', () => {
     expect(existsSync(MIGRATION_PATH)).toBe(true);
+    expect(existsSync(RBAC_HELPERS_MIGRATION_PATH)).toBe(true);
+    // Current has_feature_access CASE lives in the launch-matrix migration (STORY-5.2).
     const sql = readFileSync(MIGRATION_PATH, 'utf8');
+    const helpersSql = readFileSync(RBAC_HELPERS_MIGRATION_PATH, 'utf8');
 
     // Every application rule appears verbatim in has_feature_access, and the
     // SQL contains no extra rules beyond the application map.
@@ -92,21 +101,21 @@ describe('STORY_5_1 AC2 — Supabase RLS policies align with application RBAC ru
 
     // effective_tier mirrors effectiveTierForAccess: active trial → pro,
     // stale/expired trial → basic, no subscription row → basic.
-    expect(sql).toMatch(/create or replace function public\.effective_tier/);
-    expect(sql).toMatch(
+    expect(helpersSql).toMatch(/create or replace function public\.effective_tier/);
+    expect(helpersSql).toMatch(
       /s\.tier = 'trial'\s+and s\.status = 'trialing'\s+and \(s\.trial_ends_at is null or s\.trial_ends_at > now\(\)\)\s+then 'pro'/,
     );
-    expect(sql).toMatch(/when s\.tier = 'trial'\s+then 'basic'/);
-    expect(sql).toMatch(/'basic'::public\.subscription_tier\s*\n\s*\);/);
+    expect(helpersSql).toMatch(/when s\.tier = 'trial'\s+then 'basic'/);
+    expect(helpersSql).toMatch(/'basic'::public\.subscription_tier\s*\n\s*\);/);
 
     // Admin bypasses tier restrictions in SQL, like the application layer.
     expect(sql).toMatch(/if v_role = 'admin' then\s+return true;/);
 
     // Representative policies enforce the same feature keys server-side.
-    expect(sql).toMatch(/drop policy "sessions_coach_insert" on public\.sessions/);
-    expect(sql).toMatch(/public\.has_feature_access\(auth\.uid\(\), 'createSession'\)/);
-    expect(sql).toMatch(/drop policy "team_invites_coach_insert" on public\.team_invites/);
-    expect(sql).toMatch(/public\.has_feature_access\(auth\.uid\(\), 'invitePlayers'\)/);
+    expect(helpersSql).toMatch(/drop policy "sessions_coach_insert" on public\.sessions/);
+    expect(helpersSql).toMatch(/public\.has_feature_access\(auth\.uid\(\), 'createSession'\)/);
+    expect(helpersSql).toMatch(/drop policy "team_invites_coach_insert" on public\.team_invites/);
+    expect(helpersSql).toMatch(/public\.has_feature_access\(auth\.uid\(\), 'invitePlayers'\)/);
 
     // Edge middleware carries the identical tier map (no drift between the
     // Deno copy and the domain source of truth).
@@ -186,8 +195,8 @@ describe('STORY_5_1 AC4 — unit tests cover Player, Coach, Team Manager, Admin 
     // Minimum tier per role for sample features, per Part 3 of flows.md
     // (null = feature never available to the role).
     const SAMPLE_FEATURES = {
-      chat: { player: 'advanced', coach: 'advanced', team_manager: null },
-      ai: { player: 'pro', coach: 'pro', team_manager: null },
+      chat: { player: 'advanced', coach: 'advanced', team_manager: 'advanced' },
+      ai: { player: 'pro', coach: 'pro', team_manager: 'pro' },
       createContent: { player: null, coach: 'advanced', team_manager: null },
       invitePlayers: { player: null, coach: 'advanced', team_manager: 'basic' },
     };

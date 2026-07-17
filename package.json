@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "npm run dev -w @coach360/mobile",
     "dev:mobile": "npm run dev -w @coach360/mobile",
+    "functions:serve": "supabase functions serve --env-file .env",
     "dev:admin": "npm run dev -w @coach360/admin",
     "seed:admin": "node scripts/seed-admin-user.mjs",
     "expire:trials": "node scripts/expire-all-trials.mjs",
@@ -43,6 +44,8 @@
     "test:story-4.4": "vitest run --reporter=json -t STORY_4_4",
     "test:story-4.5": "vitest run --reporter=json -t STORY_4_5",
     "test:story-5.1": "vitest run --reporter=json -t STORY_5_1",
+    "test:story-5.2": "vitest run --reporter=json -t STORY_5_2",
+    "test:story-5.3": "vitest run --reporter=json -t STORY_5_3",
     "typecheck": "npm run typecheck -w @coach360/admin && npm run typecheck -w @coach360/api && npm run typecheck -w @coach360/domain && npm run typecheck -w @coach360/ui",
     "db:types": "mkdir -p apps/mobile/src/types && supabase gen types typescript --local --schema public > apps/mobile/src/types/database.ts",
     "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",

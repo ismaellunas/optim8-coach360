@@ -157,6 +157,20 @@ export {
   type FeatureAccessDenial,
 } from './rbac/policy.js';
 export {
+  FULL_MATRIX_DEFERRED,
+  LAUNCH_ACCESS_BANDS,
+  LAUNCH_CRITICAL_FEATURE_KEYS,
+  countLaunchCriticalRules,
+  resolveLaunchFeatureAccess,
+  featureAccessLevel,
+  canAccessFeatureFully,
+  canAccessFeatureReadonlyOrFull,
+  launchBandFor,
+  type LaunchAccessBand,
+  type LaunchAccessLevel,
+  type ResolvedFeatureAccess,
+} from './rbac/launch-matrix.js';
+export {
   teamSchema,
   teamProfileInputSchema,
   rosterMemberSchema,
