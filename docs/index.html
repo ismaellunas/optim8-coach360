@@ -1820,42 +1820,54 @@
         {
           "id": "AC-1",
           "statement": "Mobile fetches merged feature-tier map (admin override else FEATURE_TIER_REQUIREMENTS default) at session load and on refresh",
-          "test": null
+          "test": "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC1_mobile_fetches_merged_map_at_session_load_and_refresh"
         },
         {
           "id": "AC-2",
           "statement": "checkFeatureAccess accepts an injected requirements map; static FEATURE_TIER_REQUIREMENTS remains the offline/unfetched fallback",
-          "test": null
+          "test": "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC2_check_feature_access_injected_map_with_static_fallback"
         },
         {
           "id": "AC-3",
           "statement": "Server-side has_feature_access consults the same overrides so RLS and mobile guards agree",
-          "test": null
+          "test": "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC3_has_feature_access_consults_feature_flags"
         },
         {
           "id": "AC-4",
           "statement": "Paywall copy sources admin-configured messaging when present",
-          "test": null
+          "test": "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC4_paywall_copy_sources_admin_messaging"
         },
         {
           "id": "AC-5",
           "statement": "Admin gating change reflects on mobile without app redeploy",
-          "test": null
+          "test": "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC5_admin_change_reflects_without_redeploy"
         }
       ],
       "verify": {
-        "tests": [],
+        "tests": [
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC1_mobile_fetches_merged_map_at_session_load_and_refresh",
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC2_check_feature_access_injected_map_with_static_fallback",
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC3_has_feature_access_consults_feature_flags",
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC4_paywall_copy_sources_admin_messaging",
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC5_admin_change_reflects_without_redeploy"
+        ],
         "files": [
           "packages/domain/src/rbac/policy.ts",
-          "supabase/migrations/20260715120000_rbac_tier_policies.sql",
-          "apps/mobile/src/App.jsx"
+          "packages/domain/src/rbac/launch-matrix.ts",
+          "packages/domain/src/subscription/paywall.ts",
+          "packages/domain/src/index.ts",
+          "supabase/migrations/20260717130000_has_feature_access_overrides.sql",
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/features/subscription/ui/PaywallModal.jsx",
+          "tests/rbac/story-5.4.test.js",
+          "package.json"
         ],
-        "command": null
+        "command": "npm run test:story-5.4"
       },
       "parallel_ready": false,
-      "status": "TODO",
+      "status": "DONE",
       "last_updated": "2026-07-17T00:00:00Z",
-      "audit_notes": "Re-audit WT: policy.ts/App.jsx changed for STORY-5.2 access levels only — no override fetch, no injected requirements map, has_feature_access still ignores feature_flags. AC1–AC5 unmet. → TODO."
+      "audit_notes": "Mobile listFeatureFlags + applyFeatureFlagOverrides; checkFeatureAccess injected requirements; has_feature_access reads feature_flags; PaywallModal admin copy. npm run test:story-5.4 → 5/5 PASS (AC1–AC5). → DONE."
     },
     {
       "id": "EPIC-6",

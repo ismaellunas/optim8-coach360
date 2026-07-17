@@ -1,5 +1,6 @@
 import {
   canActivateTrial,
+  paywallCopyForFeature,
   paywallTierOptionsForFeature,
   shouldShowPaywallTrialCta,
 } from '@coach360/domain';
@@ -33,10 +34,12 @@ const ACCENT = {
  * Flow 10 — content paywall encounter (modal, non-blocking).
  * Shows all catalog tiers; plans below the required minimum are disabled.
  * Trial CTA only if unused (OQ-10.1).
+ * STORY-5.4: admin paywall_title / paywall_message override default copy when set.
  */
 export function PaywallModal({
   feature,
   user,
+  featureFlagOverrides = [],
   subscription = null,
   submitting = false,
   error = null,
@@ -45,10 +48,15 @@ export function PaywallModal({
   onStartTrial,
   onBrowseFree,
 }) {
-  const plan = user ? paywallTierOptionsForFeature(feature, user.role) : null;
+  const plan = user
+    ? paywallTierOptionsForFeature(feature, user.role, featureFlagOverrides)
+    : null;
+  const copy = user ? paywallCopyForFeature(feature, user.role, featureFlagOverrides) : null;
   const requirementPhrase = plan?.requirementPhrase || 'a higher tier';
   const options = plan?.options || [];
   const showTrial = shouldShowPaywallTrialCta(subscription);
+  const title = copy?.paywallTitle || 'Feature Locked';
+  const message = copy?.paywallMessage || null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4">
@@ -56,11 +64,17 @@ export function PaywallModal({
         <div className="mb-3 text-coach-orange">
           <IconLock />
         </div>
-        <div className="mb-2 font-display text-[22px] font-bold text-coach-t1">Feature Locked</div>
+        <div className="mb-2 font-display text-[22px] font-bold text-coach-t1">{title}</div>
         <div className="mb-4 font-body text-sm leading-relaxed text-coach-t2">
-          {'This requires '}
-          <span className="font-semibold text-coach-t1">{requirementPhrase}</span>
-          {'. Choose a plan:'}
+          {message ? (
+            message
+          ) : (
+            <>
+              {'This requires '}
+              <span className="font-semibold text-coach-t1">{requirementPhrase}</span>
+              {'. Choose a plan:'}
+            </>
+          )}
         </div>
 
         <div className="mb-3 text-left">

@@ -56,6 +56,12 @@ export type GatedRole = Exclude<PaywallRole, 'admin'>;
 /** Feature keys the base matrix gates — the only keys an admin override may target (STORY-5.3). */
 export const GATED_FEATURE_KEYS: string[] = Object.keys(FEATURE_TIER_REQUIREMENTS);
 
+/** Merged (or static) feature → role → min tier map used by gating (STORY-5.4). */
+export type FeatureTierRequirements = Record<
+  string,
+  Partial<Record<GatedRole, PaidSubscriptionTier>>
+>;
+
 /** Admin-configured override for one (feature, role) pair (STORY-5.3 AC-1/AC-2). */
 export type FeatureFlagOverride = {
   feature: string;
@@ -72,8 +78,8 @@ export type FeatureFlagOverride = {
  */
 export function applyFeatureFlagOverrides(
   overrides: readonly FeatureFlagOverride[],
-): Record<string, Partial<Record<GatedRole, PaidSubscriptionTier>>> {
-  const merged: Record<string, Partial<Record<GatedRole, PaidSubscriptionTier>>> = {};
+): FeatureTierRequirements {
+  const merged: FeatureTierRequirements = {};
   for (const [feature, reqs] of Object.entries(FEATURE_TIER_REQUIREMENTS)) {
     merged[feature] = { ...reqs };
   }

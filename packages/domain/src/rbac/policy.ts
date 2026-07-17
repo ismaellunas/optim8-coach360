@@ -3,6 +3,7 @@ import type { SubscriptionTier } from '../subscription/schema.js';
 import {
   FEATURE_TIER_REQUIREMENTS,
   tierDisplayLabel,
+  type FeatureTierRequirements,
   type PaywallRole,
 } from '../subscription/paywall.js';
 import type { PaidSubscriptionTier } from '../subscription/catalog.js';
@@ -62,11 +63,17 @@ export type FeatureAccessInput = {
    */
   tier: SubscriptionTier;
   feature: string;
+  /**
+   * STORY-5.4: merged admin+default requirements map.
+   * Omit/null → static FEATURE_TIER_REQUIREMENTS (offline / unfetched fallback).
+   */
+  requirements?: FeatureTierRequirements | null;
 };
 
 /**
  * Role + tier + feature key → allow/deny with denial detail.
  * STORY-5.2: ◎ readonly counts as allowed; ○ mid-tier denies until fullFrom.
+ * STORY-5.4: optional injected `requirements` map; static map is the fallback.
  */
 export function checkFeatureAccess(input: FeatureAccessInput): FeatureAccessDecision {
   const role = normalizeRbacRole(input.role);
@@ -74,12 +81,13 @@ export function checkFeatureAccess(input: FeatureAccessInput): FeatureAccessDeci
     return { allowed: true, accessLevel: 'full' };
   }
 
+  const reqs = input.requirements ?? FEATURE_TIER_REQUIREMENTS;
   const resolved = resolveLaunchFeatureAccess(input);
   if (resolved.allowed) {
     return { allowed: true, accessLevel: resolved.accessLevel };
   }
 
-  const minFromMap = FEATURE_TIER_REQUIREMENTS[input.feature]?.[role] ?? null;
+  const minFromMap = reqs[input.feature]?.[role] ?? null;
   if (!minFromMap && !resolved.requiredTier) {
     return {
       allowed: false,
@@ -111,8 +119,13 @@ export function checkFeatureAccess(input: FeatureAccessInput): FeatureAccessDeci
 }
 
 /** Boolean convenience wrapper for UI guards (readonly or full). */
-export function canAccessFeature(role: RbacRole, tier: SubscriptionTier, feature: string): boolean {
-  return checkFeatureAccess({ role, tier, feature }).allowed;
+export function canAccessFeature(
+  role: RbacRole,
+  tier: SubscriptionTier,
+  feature: string,
+  requirements?: FeatureTierRequirements | null,
+): boolean {
+  return checkFeatureAccess({ role, tier, feature, requirements }).allowed;
 }
 
 export type FeatureAccessDenial = {

@@ -138,6 +138,7 @@ export {
   buildCheckoutSessionRequest,
   type PaywallRole,
   type GatedRole,
+  type FeatureTierRequirements,
   type FeatureFlagOverride,
   type FreeContentCatalogItem,
   type PaywallEncounterCopy,
