@@ -11,6 +11,7 @@ import {
   BILLING_INVOICE_SELECT,
   mapBillingInvoiceRow,
 } from './mappers/billing-invoice-mapper.js';
+import { edgeFunctionErrorDetail } from './edge-function-error.js';
 
 export class SupabaseBillingRepository implements BillingRepository {
   constructor(private readonly client: SupabaseClient) {}
@@ -45,10 +46,7 @@ export class SupabaseBillingRepository implements BillingRepository {
     const payload = data as (CreateCheckoutSessionResult & { error?: string; hint?: string }) | null;
 
     if (error) {
-      const detail = payload?.error
-        ? `${payload.error}${payload.hint ? ` (${payload.hint})` : ''}`
-        : error.message;
-      throw new Error(detail);
+      throw new Error(await edgeFunctionErrorDetail(error, payload));
     }
 
     if (!payload?.url) {
@@ -75,10 +73,7 @@ export class SupabaseBillingRepository implements BillingRepository {
       | null;
 
     if (error) {
-      const detail = payload?.error
-        ? `${payload.error}${payload.hint ? ` (${payload.hint})` : ''}`
-        : error.message;
-      throw new Error(detail);
+      throw new Error(await edgeFunctionErrorDetail(error, payload));
     }
 
     if (!payload?.kind) {

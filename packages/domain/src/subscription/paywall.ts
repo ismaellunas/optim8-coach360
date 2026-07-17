@@ -19,20 +19,29 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   string,
   Partial<Record<Exclude<PaywallRole, 'admin'>, PaidSubscriptionTier>>
 > = {
-  chat: { coach: 'advanced', player: 'advanced' },
+  // STORY-5.2 AC-1: chat Advanced+ for coach, player, and team manager.
+  chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
   createSession: { coach: 'advanced' },
   distribute: { coach: 'advanced' },
   objectives: { coach: 'pro', player: 'pro' },
-  ai: { coach: 'pro', player: 'pro' },
+  // STORY-5.2 AC-2 / OQ-6.5: AI Pro-only for all gated roles.
+  ai: { coach: 'pro', player: 'pro', team: 'pro' },
+  // STORY-5.2 AC-3: coach content creation Advanced+.
   createContent: { coach: 'advanced' },
   teamManage: { coach: 'basic', team: 'basic' },
   invitePlayers: { coach: 'advanced', team: 'basic' },
   removePlayers: { coach: 'advanced', team: 'basic' },
   assignCoach: { coach: 'pro', team: 'advanced' },
-  viewProgress: { coach: 'advanced', player: 'basic' },
-  purchase: { coach: 'basic', player: 'basic' },
+  // Coach Basic is ◎ read-only (full at Advanced+); player Basic is ◎ (full at Pro).
+  viewProgress: { coach: 'basic', player: 'basic' },
+  purchase: { coach: 'basic', player: 'basic', team: 'basic' },
   peerShare: { coach: 'advanced', player: 'advanced' },
   feedback: { coach: 'advanced', player: 'advanced' },
+  // STORY-5.2 AC-4 launch ◎ subset — minimum tier for any access (readonly or full).
+  browseMarketplace: { coach: 'basic', player: 'basic', team: 'basic' },
+  viewTrainingMaterials: { player: 'basic' },
+  watchSharedVideo: { player: 'basic' },
+  teamRoster: { coach: 'basic' },
 };
 
 const TIER_LABELS: Record<PaidSubscriptionTier, string> = {

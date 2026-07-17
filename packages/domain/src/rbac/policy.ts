@@ -1,18 +1,25 @@
 import type { AppRole } from '../user/schema.js';
 import type { SubscriptionTier } from '../subscription/schema.js';
-import { meetsTierMinimum } from '../subscription/expiry.js';
 import {
   FEATURE_TIER_REQUIREMENTS,
   tierDisplayLabel,
   type PaywallRole,
 } from '../subscription/paywall.js';
 import type { PaidSubscriptionTier } from '../subscription/catalog.js';
+import {
+  resolveLaunchFeatureAccess,
+  type LaunchAccessLevel,
+} from './launch-matrix.js';
 
 /**
  * STORY-5.1 — core RBAC policy layer.
  * Single allow/deny utility consumed by API routes (edge functions) and
  * mobile guards. Accepts both canonical AppRole ('team_manager') and the
  * legacy mobile role key ('team').
+ *
+ * STORY-5.2 extends resolution with ◎ read-only / ○ higher-tier bands via
+ * resolveLaunchFeatureAccess — checkFeatureAccess remains the binary gate
+ * (readonly counts as allowed).
  */
 export type RbacRole = AppRole | PaywallRole;
 
@@ -23,13 +30,20 @@ export function normalizeRbacRole(role: RbacRole): PaywallRole {
 export type FeatureAccessDenialReason = 'role_not_permitted' | 'tier_insufficient';
 
 export type FeatureAccessDecision =
-  | { allowed: true }
-  | { allowed: false; reason: 'role_not_permitted'; requiredTier: null; upgradeHint: null }
+  | { allowed: true; accessLevel: LaunchAccessLevel }
+  | {
+      allowed: false;
+      reason: 'role_not_permitted';
+      requiredTier: null;
+      upgradeHint: null;
+      accessLevel: 'none';
+    }
   | {
       allowed: false;
       reason: 'tier_insufficient';
       requiredTier: PaidSubscriptionTier;
       upgradeHint: string;
+      accessLevel: 'none';
     };
 
 export function upgradeHintForFeature(
@@ -42,37 +56,61 @@ export function upgradeHintForFeature(
 export type FeatureAccessInput = {
   role: RbacRole;
   /**
-   * Effective access tier. 'trial' means an active (non-expired) trial and
-   * maps to Pro per Flow 2; callers holding a subscription row should pass
-   * effectiveTierForAccess(subscription), which already resolves expiry.
+   * Access tier. Active trial callers that still hold tier 'trial' should pass
+   * 'trial' so ◎ bands that list trial as readonly can apply; otherwise pass
+   * effectiveTierForAccess(subscription) (trial → pro).
    */
   tier: SubscriptionTier;
   feature: string;
 };
 
-/** AC-1: role + tier + feature key → allow/deny with denial detail. */
+/**
+ * Role + tier + feature key → allow/deny with denial detail.
+ * STORY-5.2: ◎ readonly counts as allowed; ○ mid-tier denies until fullFrom.
+ */
 export function checkFeatureAccess(input: FeatureAccessInput): FeatureAccessDecision {
   const role = normalizeRbacRole(input.role);
   if (role === 'admin') {
-    return { allowed: true };
+    return { allowed: true, accessLevel: 'full' };
   }
-  const requiredTier = FEATURE_TIER_REQUIREMENTS[input.feature]?.[role] ?? null;
+
+  const resolved = resolveLaunchFeatureAccess(input);
+  if (resolved.allowed) {
+    return { allowed: true, accessLevel: resolved.accessLevel };
+  }
+
+  const minFromMap = FEATURE_TIER_REQUIREMENTS[input.feature]?.[role] ?? null;
+  if (!minFromMap && !resolved.requiredTier) {
+    return {
+      allowed: false,
+      reason: 'role_not_permitted',
+      requiredTier: null,
+      upgradeHint: null,
+      accessLevel: 'none',
+    };
+  }
+
+  const requiredTier = resolved.requiredTier ?? minFromMap;
   if (!requiredTier) {
-    return { allowed: false, reason: 'role_not_permitted', requiredTier: null, upgradeHint: null };
+    return {
+      allowed: false,
+      reason: 'role_not_permitted',
+      requiredTier: null,
+      upgradeHint: null,
+      accessLevel: 'none',
+    };
   }
-  const effectiveTier = input.tier === 'trial' ? 'pro' : input.tier;
-  if (meetsTierMinimum(effectiveTier, requiredTier)) {
-    return { allowed: true };
-  }
+
   return {
     allowed: false,
     reason: 'tier_insufficient',
     requiredTier,
     upgradeHint: upgradeHintForFeature(input.feature, requiredTier),
+    accessLevel: 'none',
   };
 }
 
-/** Boolean convenience wrapper for UI guards. */
+/** Boolean convenience wrapper for UI guards (readonly or full). */
 export function canAccessFeature(role: RbacRole, tier: SubscriptionTier, feature: string): boolean {
   return checkFeatureAccess({ role, tier, feature }).allowed;
 }
@@ -82,13 +120,11 @@ export type FeatureAccessDenial = {
   error: FeatureAccessDenialReason;
   feature: string;
   requiredTier: PaidSubscriptionTier | null;
-  /** Present only when upgrading a tier would grant access (AC-3). */
+  /** Present only when upgrading a tier would grant access. */
   hint: string | null;
 };
 
-/**
- * AC-3: HTTP-shaped 403 payload for deny decisions; null when allowed.
- */
+/** HTTP-shaped 403 payload for deny decisions; null when allowed. */
 export function featureAccessDenial(input: FeatureAccessInput): FeatureAccessDenial | null {
   const decision = checkFeatureAccess(input);
   if (decision.allowed) {

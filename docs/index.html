@@ -1541,8 +1541,8 @@
         "command": "npm run test:story-4.4"
       },
       "status": "DONE",
-      "last_updated": "2026-07-14T00:00:00Z",
-      "audit_notes": "Flow 10 paywall: tier+features copy, trial CTA if unused (OQ-10.1), non-blocking dismiss (OQ-10.2), Stripe Checkout from paywall. vitest -t STORY_4_4: 4/4 PASS. → DONE."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT: billing invoke error detail helper + paywall.ts map. npm run test:story-4.4 → 4/4 PASS. → DONE."
     },
     {
       "id": "STORY-4.5",
@@ -1605,8 +1605,8 @@
         "command": "npm run test:story-4.5"
       },
       "status": "DONE",
-      "last_updated": "2026-07-15T00:00:00Z",
-      "audit_notes": "Flow 17: account settings plan/usage/billing (AC1), immediate prorated Stripe upgrade via change-subscription-tier edge fn (AC2), end-of-cycle downgrade via subscription schedule + pending_tier columns/trigger (AC3), preserve-hidden retention rules for objectives/AI history (AC4, per flows.md — OQ-17.1/17.2 still unanswered in stakeholder doc). vitest -t STORY_4_5: 4/4 PASS. → DONE."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT: changeSubscriptionTier uses edgeFunctionErrorDetail. npm run test:story-4.5 → 4/4 PASS. → DONE."
     },
     {
       "id": "EPIC-5",
@@ -1626,8 +1626,8 @@
         "Admin role bypasses tier restrictions for management actions"
       ],
       "status": "IN_PROGRESS",
-      "last_updated": "2026-07-16T00:00:00Z",
-      "audit_notes": "Roll-up: STORY-5.1 DONE (core policy layer); STORY-5.2 TODO (OQ-6.5 resolved 2026-07-16: AI Pro-only per legend + design principle); STORY-5.3 IN_PROGRESS (admin-side only); STORY-5.4 TODO (added 2026-07-16: mobile read of admin overrides, split from 5.3 AC-4). Epic IN_PROGRESS."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Child rollup: STORY-5.1 DONE; STORY-5.2 DONE; STORY-5.3 DONE; STORY-5.4 TODO. → epic IN_PROGRESS."
     },
     {
       "id": "STORY-5.1",
@@ -1681,8 +1681,8 @@
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-15T00:00:00Z",
-      "audit_notes": "Centralized checkFeatureAccess(role, tier, feature) in packages/domain/src/rbac (AC1); effective_tier/has_feature_access SQL helpers + tier-gated sessions/team_invites insert policies mirroring FEATURE_TIER_REQUIREMENTS (AC2); requireFeatureAccess edge guard returns 403 with upgrade hint (AC3); role×tier×feature matrix tests incl. admin bypass (AC4). App.jsx canAccess now delegates to domain. Migration applied to local + remote DB. vitest -t STORY_5_1: 4/4 PASS. → DONE."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT vs main: verify.files touched (policy, paywall map sync, App.jsx, story-5.1 tests, launch SQL). npm run test:story-5.1 → 4/4 PASS (AC1–AC4). → DONE."
     },
     {
       "id": "STORY-5.2",
@@ -1699,40 +1699,53 @@
         {
           "id": "AC-1",
           "statement": "Chat features gated at Advanced+ for all roles per matrix",
-          "test": null
+          "test": "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC1_chat_gated_advanced_plus_all_roles"
         },
         {
           "id": "AC-2",
           "statement": "AI features gated at Pro per resolved OQ-6.5 decision",
-          "test": null
+          "test": "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC2_ai_gated_pro_oq_6_5"
         },
         {
           "id": "AC-3",
           "statement": "Coach content creation gated at Advanced+",
-          "test": null
+          "test": "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC3_coach_create_content_advanced_plus"
         },
         {
           "id": "AC-4",
           "statement": "◎ read-only and ○ partial behaviors documented and implemented per feature list",
-          "test": null
+          "test": "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC4_readonly_and_higher_tier_behaviors"
         },
         {
           "id": "AC-5",
           "statement": "Full 223-rule matrix expansion deferred post-MVP",
-          "test": null
+          "test": "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC5_full_matrix_deferred_post_mvp"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "lib/rbac/ (inferred)"
+        "tests": [
+          "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC1_chat_gated_advanced_plus_all_roles",
+          "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC2_ai_gated_pro_oq_6_5",
+          "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC3_coach_create_content_advanced_plus",
+          "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC4_readonly_and_higher_tier_behaviors",
+          "tests/rbac/story-5.2.test.js::test_STORY_5_2_AC5_full_matrix_deferred_post_mvp"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/subscription/paywall.ts",
+          "packages/domain/src/rbac/launch-matrix.ts",
+          "packages/domain/src/rbac/policy.ts",
+          "packages/domain/src/index.ts",
+          "supabase/functions/_shared/rbac.ts",
+          "supabase/migrations/20260717120000_rbac_launch_matrix.sql",
+          "apps/mobile/src/App.jsx",
+          "tests/rbac/story-5.2.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-5.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-07-16T00:00:00Z",
-      "audit_notes": "Unblocked: OQ-6.5 answered 2026-07-16 (stakeholder-questions.md#6.5) — AI is Pro-only for MVP; matrix legend defines ○ as 'available at higher tier' (not partial), so matrix and principles agree. STORY-5.1 FEATURE_TIER_REQUIREMENTS already gates ai at Pro. AC-2 target: Pro. AC-4 '○ partial' reads as '○ available at higher tier' per legend. Launch rule subset is internal per DEP-06."
+      "status": "DONE",
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT: launch matrix + FEATURE_TIER_REQUIREMENTS + SQL 20260717120000 + Store ◎ browse. npm run test:story-5.2 → 5/5 PASS (AC1–AC5). → DONE."
     },
     {
       "id": "STORY-5.3",
@@ -1775,7 +1788,7 @@
           "tests/admin/story-5.3.test.js::test_STORY_5_3_AC4_changes_propagate_without_redeploy"
         ],
         "files": [
-          "supabase/migrations/20260715120000_feature_gating.sql",
+          "supabase/migrations/20260716120000_feature_gating.sql",
           "packages/domain/src/subscription/paywall.ts",
           "packages/domain/src/index.ts",
           "packages/api/src/ports/content-repository.ts",
@@ -1789,8 +1802,8 @@
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-16T00:00:00Z",
-      "audit_notes": "2026-07-16: scoped strictly admin-side (overrides table, admin UI, paywall messaging config). Added feature_flags (feature_key+role override, admin-write RLS via is_admin) and free_content_catalog tables; domain applyFeatureFlagOverrides/isFreeAtBasicTier merge overrides into FEATURE_TIER_REQUIREMENTS per (feature,role); admin ContentPage gained a Content Paywall section for tier/paywall-copy edits and free-catalog CRUD. AC-4 split: write side (overrides in DB, reachable without redeploy via authenticated select RLS) lands here; mobile read side plus server-side has_feature_access alignment moved to STORY-5.4. All 4 admin-side ACs have passing tests (tests/admin/story-5.3.test.js)."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT: feature_gating migration renamed 20260716120000 (unique version); tests path updated. npx vitest -t STORY_5_3 → 4/4 PASS (AC1–AC4). → DONE."
     },
     {
       "id": "STORY-5.4",
@@ -1841,8 +1854,8 @@
       },
       "parallel_ready": false,
       "status": "TODO",
-      "last_updated": "2026-07-16T00:00:00Z",
-      "audit_notes": "Created 2026-07-16 as the mobile-read half of STORY-5.3 AC-4 (5.3 scoped strictly admin-side). Depends on the STORY-5.3 overrides table schema — not parallel_ready until it lands. Note: OQ-2.2 blocks previously referenced a never-created STORY-5.4 (Pro full-access scope); that dangling reference was removed and does not apply to this ticket."
+      "last_updated": "2026-07-17T00:00:00Z",
+      "audit_notes": "Re-audit WT: policy.ts/App.jsx changed for STORY-5.2 access levels only — no override fetch, no injected requirements map, has_feature_access still ignores feature_flags. AC1–AC5 unmet. → TODO."
     },
     {
       "id": "EPIC-6",
@@ -3522,7 +3535,8 @@
       "audit_notes": ""
     }
   ]
-}</script>
+}
+</script>
 
   <script>
     (function () {

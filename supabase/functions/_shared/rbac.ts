@@ -15,20 +15,25 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   string,
   Partial<Record<PaywallRoleKey, PaidTier>>
 > = {
-  chat: { coach: 'advanced', player: 'advanced' },
+  // Mirrors packages/domain/src/subscription/paywall.ts (STORY-5.2 launch subset).
+  chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
   createSession: { coach: 'advanced' },
   distribute: { coach: 'advanced' },
   objectives: { coach: 'pro', player: 'pro' },
-  ai: { coach: 'pro', player: 'pro' },
+  ai: { coach: 'pro', player: 'pro', team: 'pro' },
   createContent: { coach: 'advanced' },
   teamManage: { coach: 'basic', team: 'basic' },
   invitePlayers: { coach: 'advanced', team: 'basic' },
   removePlayers: { coach: 'advanced', team: 'basic' },
   assignCoach: { coach: 'pro', team: 'advanced' },
-  viewProgress: { coach: 'advanced', player: 'basic' },
-  purchase: { coach: 'basic', player: 'basic' },
+  viewProgress: { coach: 'basic', player: 'basic' },
+  purchase: { coach: 'basic', player: 'basic', team: 'basic' },
   peerShare: { coach: 'advanced', player: 'advanced' },
   feedback: { coach: 'advanced', player: 'advanced' },
+  browseMarketplace: { coach: 'basic', player: 'basic', team: 'basic' },
+  viewTrainingMaterials: { player: 'basic' },
+  watchSharedVideo: { player: 'basic' },
+  teamRoster: { coach: 'basic' },
 };
 
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];

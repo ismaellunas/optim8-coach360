@@ -19,7 +19,7 @@ function read(relPath) {
   return readFileSync(path.join(REPO_ROOT, relPath), 'utf8');
 }
 
-const MIGRATION_PATH = 'supabase/migrations/20260715120000_feature_gating.sql';
+const MIGRATION_PATH = 'supabase/migrations/20260716120000_feature_gating.sql';
 const PORT_PATH = 'packages/api/src/ports/content-repository.ts';
 const SUPABASE_REPO_PATH = 'packages/api/src/adapters/supabase/supabase-content-repository.ts';
 const REST_REPO_PATH = 'packages/api/src/adapters/rest/rest-content-repository.ts';
@@ -44,9 +44,9 @@ describe('STORY_5_3 AC1 — admin can configure which tier unlocks each feature 
     expect(merged.objectives).toEqual(FEATURE_TIER_REQUIREMENTS.objectives);
 
     // An override cannot newly gate a role that wasn't gated before.
-    const ungatedOverride = [{ feature: 'chat', role: 'team', requiredTier: 'pro' }];
+    const ungatedOverride = [{ feature: 'createContent', role: 'team', requiredTier: 'pro' }];
     const mergedUngated = applyFeatureFlagOverrides(ungatedOverride);
-    expect(mergedUngated.chat.team).toBeUndefined();
+    expect(mergedUngated.createContent.team).toBeUndefined();
 
     expect(existsSync(path.join(REPO_ROOT, MIGRATION_PATH))).toBe(true);
     const sql = read(MIGRATION_PATH);
