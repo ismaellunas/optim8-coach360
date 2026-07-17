@@ -149,8 +149,8 @@
 | --- | --- | --- | --- | --- | --- |
 | 10.1 | Should paywall always offer **trial** if unused, or hide trial on certain screens? | Flow 10 italic rule | **Always offer** Start Trial on every paywall when the account has not used its one trial (`canActivateTrial`). Do not hide trial on specific screens. | product | 2026-07-14 |
 | 10.2 | Does tapping a locked feature **block navigation** or show a modal and allow browsing elsewhere? | Design principle: non-blocking | **Modal, non-blocking.** Show paywall overlay; dismiss (Maybe Later / Browse free content) clears the modal and leaves the user on their current screen/tabs. | product | 2026-07-14 |
-| 10.3 | Who defines **which features** map to which tier — hardcoded, admin-configurable, or both? | Admin “set feature gating per tier” | | | |
-| 10.4 | Is there a **free content catalog** at Basic, and who maintains it? | Admin matrix Flow 10 | | | |
+| 10.3 | Who defines **which features** map to which tier — hardcoded, admin-configurable, or both? | Admin “set feature gating per tier” | **Both.** Code keeps a default `FEATURE_TIER_REQUIREMENTS` matrix; admin can override the required tier per feature **per role** in the DB (e.g. `chat` for coach vs. player independently). Uncustomized role/feature pairs keep the code default. | product | 2026-07-15 |
+| 10.4 | Is there a **free content catalog** at Basic, and who maintains it? | Admin matrix Flow 10 | **Yes, admin-maintained freeform list** (title/category), not yet tied to real marketplace content records since that data model doesn't exist in Supabase yet. | product | 2026-07-15 |
 
 ---
 

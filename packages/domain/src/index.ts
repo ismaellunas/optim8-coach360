@@ -124,7 +124,10 @@ export {
 } from './subscription/tier-change.js';
 export {
   FEATURE_TIER_REQUIREMENTS,
+  GATED_FEATURE_KEYS,
   requiredTierForFeature,
+  applyFeatureFlagOverrides,
+  isFreeAtBasicTier,
   tierDisplayLabel,
   unlockedFeaturesForTier,
   paywallCopyForFeature,
@@ -134,6 +137,9 @@ export {
   shouldShowPaywallTrialCta,
   buildCheckoutSessionRequest,
   type PaywallRole,
+  type GatedRole,
+  type FeatureFlagOverride,
+  type FreeContentCatalogItem,
   type PaywallEncounterCopy,
   type PaywallTierOption,
   type CheckoutSessionRequest,

@@ -41,14 +41,61 @@ const TIER_LABELS: Record<PaidSubscriptionTier, string> = {
   pro: 'Pro',
 };
 
+/** Roles a feature flag override can target (admin bypasses gating, so excluded). */
+export type GatedRole = Exclude<PaywallRole, 'admin'>;
+
+/** Feature keys the base matrix gates — the only keys an admin override may target (STORY-5.3). */
+export const GATED_FEATURE_KEYS: string[] = Object.keys(FEATURE_TIER_REQUIREMENTS);
+
+/** Admin-configured override for one (feature, role) pair (STORY-5.3 AC-1/AC-2). */
+export type FeatureFlagOverride = {
+  feature: string;
+  role: GatedRole;
+  requiredTier: PaidSubscriptionTier;
+  paywallTitle?: string | null;
+  paywallMessage?: string | null;
+};
+
+/**
+ * Merge admin overrides into the code-defined FEATURE_TIER_REQUIREMENTS.
+ * Only (feature, role) pairs already present in the base matrix can be
+ * overridden — an override cannot newly gate a role that wasn't gated before.
+ */
+export function applyFeatureFlagOverrides(
+  overrides: readonly FeatureFlagOverride[],
+): Record<string, Partial<Record<GatedRole, PaidSubscriptionTier>>> {
+  const merged: Record<string, Partial<Record<GatedRole, PaidSubscriptionTier>>> = {};
+  for (const [feature, reqs] of Object.entries(FEATURE_TIER_REQUIREMENTS)) {
+    merged[feature] = { ...reqs };
+  }
+  for (const override of overrides) {
+    const reqs = merged[override.feature];
+    if (!reqs || !(override.role in reqs)) {
+      continue;
+    }
+    reqs[override.role] = override.requiredTier;
+  }
+  return merged;
+}
+
+/** Paywall copy override lookup, keyed by feature + role (STORY-5.3 AC-2). */
+function findCopyOverride(
+  overrides: readonly FeatureFlagOverride[],
+  feature: string,
+  role: GatedRole,
+): FeatureFlagOverride | null {
+  return overrides.find((entry) => entry.feature === feature && entry.role === role) ?? null;
+}
+
 export function requiredTierForFeature(
   feature: string,
   role: PaywallRole,
+  overrides: readonly FeatureFlagOverride[] = [],
 ): PaidSubscriptionTier | null {
   if (role === 'admin') {
     return null;
   }
-  const reqs = FEATURE_TIER_REQUIREMENTS[feature];
+  const reqs = applyFeatureFlagOverrides(overrides)[feature];
   if (!reqs) {
     return null;
   }
@@ -75,22 +122,30 @@ export type PaywallEncounterCopy = {
   tierLabel: string;
   unlockedFeatures: string[];
   displayPrice: string;
+  /** Admin-edited paywall copy override (STORY-5.3 AC-2), null when unset. */
+  paywallTitle: string | null;
+  paywallMessage: string | null;
 };
 
 export function paywallCopyForFeature(
   feature: string,
   role: PaywallRole,
+  overrides: readonly FeatureFlagOverride[] = [],
 ): PaywallEncounterCopy | null {
-  const requiredTier = requiredTierForFeature(feature, role);
+  const requiredTier = requiredTierForFeature(feature, role, overrides);
   if (!requiredTier) {
     return null;
   }
   const entry = getStripeCatalogEntry(requiredTier);
+  const copyOverride =
+    role === 'admin' ? null : findCopyOverride(overrides, feature, role);
   return {
     requiredTier,
     tierLabel: entry.label,
     unlockedFeatures: [...entry.features],
     displayPrice: entry.displayPrice,
+    paywallTitle: copyOverride?.paywallTitle ?? null,
+    paywallMessage: copyOverride?.paywallMessage ?? null,
   };
 }
 
@@ -126,13 +181,14 @@ export function paywallRequirementPhrase(requiredTier: PaidSubscriptionTier): st
 export function paywallTierOptionsForFeature(
   feature: string,
   role: PaywallRole,
+  overrides: readonly FeatureFlagOverride[] = [],
 ): {
   requiredTier: PaidSubscriptionTier;
   tierLabel: string;
   requirementPhrase: string;
   options: PaywallTierOption[];
 } | null {
-  const requiredTier = requiredTierForFeature(feature, role);
+  const requiredTier = requiredTierForFeature(feature, role, overrides);
   if (!requiredTier) {
     return null;
   }
@@ -152,6 +208,24 @@ export function paywallTierOptionsForFeature(
     requirementPhrase: paywallRequirementPhrase(requiredTier),
     options,
   };
+}
+
+/** Admin-maintained free-to-browse item at Basic tier (STORY-5.3 AC-3). */
+export type FreeContentCatalogItem = {
+  id: string;
+  title: string;
+  category: string | null;
+};
+
+/**
+ * OQ-10.4: whether a catalog item is free to browse at Basic tier —
+ * true when the admin-maintained catalog lists it by id.
+ */
+export function isFreeAtBasicTier(
+  contentId: string,
+  catalog: readonly FreeContentCatalogItem[],
+): boolean {
+  return catalog.some((item) => item.id === contentId);
 }
 
 /**
