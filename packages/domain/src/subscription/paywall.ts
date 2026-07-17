@@ -62,44 +62,95 @@ export type FeatureTierRequirements = Record<
   Partial<Record<GatedRole, PaidSubscriptionTier>>
 >;
 
-/** Admin-configured override for one (feature, role) pair (STORY-5.3 AC-1/AC-2). */
+/** Admin-configured override for one (feature, role) pair (STORY-5.3 AC-1). */
 export type FeatureFlagOverride = {
   feature: string;
   role: GatedRole;
   requiredTier: PaidSubscriptionTier;
+  /** Legacy DB columns; mobile uses generic paywall copy only. */
   paywallTitle?: string | null;
   paywallMessage?: string | null;
 };
 
+const GATED_ROLES: readonly GatedRole[] = ['coach', 'player', 'team'];
+
+/** camelCase feature key → Title Case label for admin tables. */
+export function formatFeatureLabel(featureKey: string): string {
+  return featureKey
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (char) => char.toUpperCase())
+    .trim();
+}
+
+function adminOverrideFor(
+  overrides: readonly FeatureFlagOverride[],
+  feature: string,
+  role: GatedRole,
+): FeatureFlagOverride | undefined {
+  return overrides.find((entry) => entry.feature === feature && entry.role === role);
+}
+
 /**
- * Merge admin overrides into the code-defined FEATURE_TIER_REQUIREMENTS.
- * Only (feature, role) pairs already present in the base matrix can be
- * overridden — an override cannot newly gate a role that wasn't gated before.
+ * Per-cell tier: admin row wins, else code default, else not gated.
+ */
+export function resolvedTierForFeatureRole(
+  feature: string,
+  role: GatedRole,
+  overrides: readonly FeatureFlagOverride[] = [],
+): PaidSubscriptionTier | null {
+  const admin = adminOverrideFor(overrides, feature, role);
+  if (admin) {
+    return admin.requiredTier;
+  }
+  return FEATURE_TIER_REQUIREMENTS[feature]?.[role] ?? null;
+}
+
+/** Feature keys to show on an admin role tab (defaults ∪ saved overrides). */
+export function gatedFeaturesForRole(
+  role: GatedRole,
+  overrides: readonly FeatureFlagOverride[] = [],
+): string[] {
+  const keys = new Set<string>();
+  for (const [feature, reqs] of Object.entries(FEATURE_TIER_REQUIREMENTS)) {
+    if (reqs[role]) {
+      keys.add(feature);
+    }
+  }
+  for (const override of overrides) {
+    if (override.role === role) {
+      keys.add(override.feature);
+    }
+  }
+  return [...keys].sort((a, b) => formatFeatureLabel(a).localeCompare(formatFeatureLabel(b)));
+}
+
+/**
+ * Build merged feature → role → tier map for mobile gating.
+ * Admin overrides win per cell; code defaults fill gaps; new admin pairs are included.
  */
 export function applyFeatureFlagOverrides(
   overrides: readonly FeatureFlagOverride[],
 ): FeatureTierRequirements {
   const merged: FeatureTierRequirements = {};
-  for (const [feature, reqs] of Object.entries(FEATURE_TIER_REQUIREMENTS)) {
-    merged[feature] = { ...reqs };
-  }
-  for (const override of overrides) {
-    const reqs = merged[override.feature];
-    if (!reqs || !(override.role in reqs)) {
-      continue;
-    }
-    reqs[override.role] = override.requiredTier;
-  }
-  return merged;
-}
+  const featureKeys = new Set([
+    ...GATED_FEATURE_KEYS,
+    ...overrides.map((override) => override.feature),
+  ]);
 
-/** Paywall copy override lookup, keyed by feature + role (STORY-5.3 AC-2). */
-function findCopyOverride(
-  overrides: readonly FeatureFlagOverride[],
-  feature: string,
-  role: GatedRole,
-): FeatureFlagOverride | null {
-  return overrides.find((entry) => entry.feature === feature && entry.role === role) ?? null;
+  for (const feature of featureKeys) {
+    const reqs: Partial<Record<GatedRole, PaidSubscriptionTier>> = {};
+    for (const role of GATED_ROLES) {
+      const tier = resolvedTierForFeatureRole(feature, role, overrides);
+      if (tier) {
+        reqs[role] = tier;
+      }
+    }
+    if (Object.keys(reqs).length > 0) {
+      merged[feature] = reqs;
+    }
+  }
+
+  return merged;
 }
 
 export function requiredTierForFeature(
@@ -110,11 +161,7 @@ export function requiredTierForFeature(
   if (role === 'admin') {
     return null;
   }
-  const reqs = applyFeatureFlagOverrides(overrides)[feature];
-  if (!reqs) {
-    return null;
-  }
-  return reqs[role] ?? null;
+  return resolvedTierForFeatureRole(feature, role, overrides);
 }
 
 export function tierDisplayLabel(tier: PaidSubscriptionTier | SubscriptionTier): string {
@@ -152,15 +199,13 @@ export function paywallCopyForFeature(
     return null;
   }
   const entry = getStripeCatalogEntry(requiredTier);
-  const copyOverride =
-    role === 'admin' ? null : findCopyOverride(overrides, feature, role);
   return {
     requiredTier,
     tierLabel: entry.label,
     unlockedFeatures: [...entry.features],
     displayPrice: entry.displayPrice,
-    paywallTitle: copyOverride?.paywallTitle ?? null,
-    paywallMessage: copyOverride?.paywallMessage ?? null,
+    paywallTitle: null,
+    paywallMessage: null,
   };
 }
 

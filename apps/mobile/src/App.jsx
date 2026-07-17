@@ -776,7 +776,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
         setFeatureRequirements(null);
         setGatingState({ requirements: null, overrides: [] });
       });
-  }, [session?.user?.id, repos.content]);
+  }, [session?.user?.id, repos.content, setFeatureFlagOverrides, setFeatureRequirements]);
 
   useEffect(function () {
     // Session load — fetch merged feature-tier map (AC-1).

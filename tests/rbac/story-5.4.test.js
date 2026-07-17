@@ -35,7 +35,7 @@ describe('STORY_5_4 AC1 — mobile fetches merged feature-tier map at session lo
     const app = read(APP_PATH);
     expect(app).toMatch(/listFeatureFlags/);
     expect(app).toMatch(/applyFeatureFlagOverrides/);
-    expect(app).toMatch(/function refreshFeatureFlags/);
+    expect(app).toMatch(/refreshFeatureFlags = useCallback/);
     // Session load triggers refresh.
     expect(app).toMatch(/refreshFeatureFlags\(\)/);
     expect(app).toMatch(/session\?\.user\?\.id/);
@@ -115,8 +115,8 @@ describe('STORY_5_4 AC3 — has_feature_access consults feature_flags overrides'
   });
 });
 
-describe('STORY_5_4 AC4 — paywall copy sources admin-configured messaging when present', () => {
-  it('test_STORY_5_4_AC4_paywall_copy_sources_admin_messaging', () => {
+describe('STORY_5_4 AC4 — paywall uses generic template; tier floors honor admin overrides', () => {
+  it('test_STORY_5_4_AC4_paywall_generic_template_with_admin_tier_overrides', () => {
     const without = paywallCopyForFeature('ai', 'coach');
     expect(without.paywallTitle).toBeNull();
     expect(without.paywallMessage).toBeNull();
@@ -131,20 +131,21 @@ describe('STORY_5_4 AC4 — paywall copy sources admin-configured messaging when
       },
     ];
     const withCopy = paywallCopyForFeature('ai', 'coach', overrides);
-    expect(withCopy.paywallTitle).toBe('Unlock AI Coaching');
-    expect(withCopy.paywallMessage).toBe('Upgrade to Pro for personalized AI plans.');
+    expect(withCopy.paywallTitle).toBeNull();
+    expect(withCopy.paywallMessage).toBeNull();
 
-    // Tier options also honor override (pro floor).
+    // Tier options honor override (pro floor).
     const plan = paywallTierOptionsForFeature('chat', 'coach', [
       { feature: 'chat', role: 'coach', requiredTier: 'pro' },
     ]);
     expect(plan.requiredTier).toBe('pro');
 
     const modal = read(PAYWALL_MODAL_PATH);
-    expect(modal).toMatch(/paywallCopyForFeature/);
+    expect(modal).toMatch(/paywallTierOptionsForFeature/);
     expect(modal).toMatch(/featureFlagOverrides/);
-    expect(modal).toMatch(/copy\?\.paywallTitle/);
-    expect(modal).toMatch(/copy\?\.paywallMessage/);
+    expect(modal).toMatch(/Feature Locked/);
+    expect(modal).not.toMatch(/paywallCopyForFeature/);
+    expect(modal).not.toMatch(/copy\?\.paywallTitle/);
 
     const app = read(APP_PATH);
     expect(app).toMatch(/featureFlagOverrides=\{featureFlagOverrides\}/);
@@ -160,7 +161,7 @@ describe('STORY_5_4 AC5 — admin gating change reflects on mobile without app r
     expect(app).not.toMatch(/const HARDCODED_FEATURE_OVERRIDES/);
 
     // Re-fetch on refresh picks up admin edits without shipping a new build.
-    expect(app).toMatch(/function refreshFeatureFlags/);
+    expect(app).toMatch(/refreshFeatureFlags = useCallback/);
     expect(app).toMatch(/await refreshFeatureFlags\(\)/);
 
     // Before fetch / on error, requirements stay null → static defaults (offline fallback).
