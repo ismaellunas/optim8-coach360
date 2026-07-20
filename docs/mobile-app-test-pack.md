@@ -8,7 +8,7 @@ Complete click-through instructions for Epics 1–6, plus reference sheets you c
 
 Version: July 2026 · Document: mobile-app-test-pack
 
-Regenerate HTML: `npm run docs:test-pack` → `docs/Coach360-Manual-Test-Pack.html`
+Regenerate HTML: `npm run docs:test-pack` → `docs/mobile-app-test-pack.html`
 
 </div>
 

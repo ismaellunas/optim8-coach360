@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-20T12:25:47.878Z",
+  "generated": "2026-07-20T15:55:02.496Z",
   "root": "docs",
   "tree": [
     {
@@ -111,11 +111,6 @@
           "path": "prototype/README.md"
         }
       ]
-    },
-    {
-      "type": "file",
-      "name": "mobile-app-test-instructions.md",
-      "path": "mobile-app-test-instructions.md"
     },
     {
       "type": "file",

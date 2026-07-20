@@ -11,10 +11,7 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DOCS = join(ROOT, 'docs');
 const SOURCE = join(DOCS, 'mobile-app-test-pack.md');
 const CSS_PATH = join(DOCS, 'mobile-app-test-pack.css');
-const OUTPUTS = [
-  join(DOCS, 'Coach360-Manual-Test-Pack.html'),
-  join(DOCS, 'mobile-app-test-pack.html'),
-];
+const OUTPUTS = [join(DOCS, 'mobile-app-test-pack.html')];
 
 function escapeHtml(value) {
   return value

@@ -228,7 +228,7 @@ describe('STORY_6_1 regression — manual QA bugs from Epic 6', () => {
 
   it('test_STORY_6_1_REGRESSION_manual_test_pack_covers_epic_6: docs include Epic 6 schedule cases', () => {
     const manual = readFileSync(MANUAL_TEST_PACK_PATH, 'utf8');
-    const htmlPath = path.join(REPO_ROOT, 'docs', 'Coach360-Manual-Test-Pack.html');
+    const htmlPath = path.join(REPO_ROOT, 'docs', 'mobile-app-test-pack.html');
     const html = readFileSync(htmlPath, 'utf8');
     expect(manual).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1\)/);
     expect(manual).toMatch(/E6-T1: Schedule tab loads without error/);
