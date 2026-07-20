@@ -111,7 +111,8 @@ export function resolveLaunchFeatureAccess(input: {
   role: RbacRole;
   tier: SubscriptionTier;
   feature: string;
-  requirements?: FeatureTierRequirements | null;
+  /** Omit/null/undefined → static FEATURE_TIER_REQUIREMENTS. */
+  requirements?: FeatureTierRequirements | null | undefined;
 }): ResolvedFeatureAccess {
   const role = normalizeRole(input.role);
   if (role === 'admin') {

@@ -65,9 +65,11 @@ export type FeatureAccessInput = {
   feature: string;
   /**
    * STORY-5.4: merged admin+default requirements map.
-   * Omit/null → static FEATURE_TIER_REQUIREMENTS (offline / unfetched fallback).
+   * Omit/null/undefined → static FEATURE_TIER_REQUIREMENTS (offline / unfetched fallback).
+   * `| undefined` is required under exactOptionalPropertyTypes when callers forward
+   * an optional `requirements?` parameter into this object.
    */
-  requirements?: FeatureTierRequirements | null;
+  requirements?: FeatureTierRequirements | null | undefined;
 };
 
 /**
