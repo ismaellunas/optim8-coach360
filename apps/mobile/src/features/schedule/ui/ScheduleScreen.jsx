@@ -3,7 +3,7 @@ import { useRepositories } from '@coach360/api';
 import {
   SESSION_MVP_TYPES,
   canCreateIndividualSession,
-  canCreateTeamSession,
+  canEditSession,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
@@ -53,8 +53,23 @@ function uniqueTeams(teams) {
   });
 }
 
+function subscriptionFromLegacyUser(user) {
+  if (!user) {
+    return null;
+  }
+  return {
+    tier: user.tier === 'trial' ? 'trial' : user.tier,
+    status: user.tier === 'trial' ? 'trialing' : 'active',
+  };
+}
+
+function canShowScheduleCreateAction(role) {
+  return role === 'coach' || role === 'team_manager' || role === 'admin';
+}
+
 function SessionForm({
   mode,
+  readOnly = false,
   initialSession,
   teams,
   players,
@@ -101,19 +116,27 @@ function SessionForm({
     });
   }
 
+  const pageTitle = readOnly
+    ? 'SESSION DETAILS'
+    : mode === 'edit'
+      ? 'EDIT SESSION'
+      : 'NEW SESSION';
+
   return (
     <ScreenContainer>
       <PageHeader
-        title={mode === 'edit' ? 'EDIT SESSION' : 'NEW SESSION'}
+        title={pageTitle}
         onBack={onCancel}
       />
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={readOnly ? undefined : handleSubmit}>
         <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-title">
           Session title
         </label>
         <input
           id="session-title"
           value={title}
+          readOnly={readOnly}
+          disabled={readOnly}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="e.g. Shooting Drills"
           className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
@@ -128,6 +151,8 @@ function SessionForm({
               id="session-date"
               type="date"
               value={date}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(event) => setDate(event.target.value)}
               className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
             />
@@ -140,6 +165,8 @@ function SessionForm({
               id="session-time"
               type="time"
               value={time}
+              readOnly={readOnly}
+              disabled={readOnly}
               onChange={(event) => setTime(event.target.value)}
               className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
             />
@@ -152,6 +179,7 @@ function SessionForm({
         <select
           id="session-type"
           value={effectiveSessionType}
+          disabled={readOnly}
           onChange={(event) => setSessionType(event.target.value)}
           className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
         >
@@ -172,6 +200,7 @@ function SessionForm({
             <select
               id="session-player"
               value={playerId}
+              disabled={readOnly}
               onChange={(event) => setPlayerId(event.target.value)}
               className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
             >
@@ -191,6 +220,7 @@ function SessionForm({
             <select
               id="session-team"
               value={effectiveTeamId}
+              disabled={readOnly}
               onChange={(event) => setTeamId(event.target.value)}
               className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
             >
@@ -210,6 +240,8 @@ function SessionForm({
         <textarea
           id="session-notes"
           value={notes}
+          readOnly={readOnly}
+          disabled={readOnly}
           onChange={(event) => setNotes(event.target.value)}
           rows={4}
           className="mb-4 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
@@ -217,17 +249,21 @@ function SessionForm({
 
         {error ? <p className="mb-3 font-body text-sm text-coach-red">{error}</p> : null}
 
-        <Btn primary full type="submit" disabled={saving}>
-          {saving ? 'Saving…' : mode === 'edit' ? 'Save Session' : 'Create Session'}
-        </Btn>
-        {canCancel ? (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="mt-3 w-full cursor-pointer rounded-xl border border-coach-red bg-transparent px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-coach-red"
-          >
-            Cancel session
-          </button>
+        {!readOnly ? (
+          <>
+            <Btn primary full type="submit" disabled={saving}>
+              {saving ? 'Saving…' : mode === 'edit' ? 'Save Session' : 'Create Session'}
+            </Btn>
+            {canCancel ? (
+              <button
+                type="button"
+                onClick={onDelete}
+                className="mt-3 w-full cursor-pointer rounded-xl border border-coach-red bg-transparent px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-coach-red"
+              >
+                Cancel session
+              </button>
+            ) : null}
+          </>
         ) : null}
       </form>
     </ScreenContainer>
@@ -236,9 +272,13 @@ function SessionForm({
 
 export function ScheduleScreen({ user, tryA }) {
   const repos = useRepositories();
-  const { session, subscription } = useAuth();
+  const { session } = useAuth();
   const userId = session?.user?.id ?? null;
   const appRole = session?.user?.role ?? null;
+  const accessSubscription = useMemo(
+    () => subscriptionFromLegacyUser(user),
+    [user],
+  );
 
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
   const [sessions, setSessions] = useState([]);
@@ -248,22 +288,17 @@ export function ScheduleScreen({ user, tryA }) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
+  const [viewingSession, setViewingSession] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  const canCreateTeam = useMemo(
-    () =>
-      appRole
-        ? canCreateTeamSession(appRole, subscription)
-        : false,
-    [appRole, subscription],
-  );
   const canCreateIndividual = useMemo(
     () =>
       appRole
-        ? canCreateIndividualSession(appRole, subscription)
+        ? canCreateIndividualSession(appRole, accessSubscription)
         : false,
-    [appRole, subscription],
+    [appRole, accessSubscription],
   );
+  const showCreateAction = canShowScheduleCreateAction(appRole);
 
   const loadBaseData = useCallback(
     async function () {
@@ -287,14 +322,31 @@ export function ScheduleScreen({ user, tryA }) {
         setSessions(sessionRows.filter((entry) => entry.status !== 'cancelled'));
         setTeams(nextTeams);
 
-        if (nextTeams[0]?.id) {
-          const roster = await repos.rosters.listMembers(nextTeams[0].id);
-          setPlayers(roster.filter((member) => member.rosterRole === 'player' && member.status === 'active'));
+        if (nextTeams.length > 0) {
+          const rosterLists = await Promise.all(
+            nextTeams.map((team) => repos.rosters.listMembers(team.id)),
+          );
+          const seenPlayers = new Set();
+          setPlayers(
+            rosterLists
+              .flat()
+              .filter(function (member) {
+                return (
+                  member.rosterRole === 'player'
+                  && member.status === 'active'
+                  && !seenPlayers.has(member.profileId)
+                  && seenPlayers.add(member.profileId)
+                );
+              }),
+          );
         } else {
           setPlayers([]);
         }
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'session_load_failed');
+        const message =
+          cause instanceof Error ? cause.message : 'session_load_failed';
+        console.error('[ScheduleScreen] load failed:', cause);
+        setError(message);
         setSessions([]);
         setTeams([]);
         setPlayers([]);
@@ -368,21 +420,25 @@ export function ScheduleScreen({ user, tryA }) {
     }
   }
 
-  if (showCreate || editingSession) {
+  if (showCreate || editingSession || viewingSession) {
+    const activeSession = editingSession ?? viewingSession;
+    const isReadOnly = Boolean(viewingSession);
     return (
       <SessionForm
         mode={editingSession ? 'edit' : 'create'}
-        initialSession={editingSession}
+        readOnly={isReadOnly}
+        initialSession={activeSession}
         teams={teams}
         players={players}
         canCreateIndividual={canCreateIndividual}
-        canCancel={Boolean(editingSession)}
+        canCancel={Boolean(editingSession) && !isReadOnly}
         saving={saving}
         error={error}
         onSubmit={handleSaveSession}
         onCancel={() => {
           setShowCreate(false);
           setEditingSession(null);
+          setViewingSession(null);
           setError(null);
         }}
         onDelete={handleDeleteSession}
@@ -435,7 +491,15 @@ export function ScheduleScreen({ user, tryA }) {
             <Card
               key={entry.id}
               onClick={function () {
-                setEditingSession(entry);
+                if (appRole && userId && canEditSession(appRole, entry, userId)) {
+                  setEditingSession(entry);
+                  setViewingSession(null);
+                } else {
+                  setViewingSession(entry);
+                  setEditingSession(null);
+                }
+                setShowCreate(false);
+                setError(null);
               }}
               className="border-l-[3px] border-l-coach-orange"
             >
@@ -451,7 +515,7 @@ export function ScheduleScreen({ user, tryA }) {
           );
         })
       )}
-      {canCreateTeam ? (
+      {showCreateAction ? (
         <DashedBtn
           onClick={function () {
             tryA('createSession', function () {

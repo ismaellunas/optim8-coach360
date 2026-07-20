@@ -1,5 +1,6 @@
 import type { AppRole } from '../user/schema.js';
 import type { Subscription, SubscriptionTier } from '../subscription/schema.js';
+import type { Session } from './schema.js';
 import { effectiveTierForAccess } from '../subscription/rules.js';
 
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
@@ -48,6 +49,24 @@ export function canCreateIndividualSession(
   }
   if (role === 'coach') {
     return meetsMinimumTier(subscription, 'advanced');
+  }
+  return false;
+}
+
+/** Only the creating coach (or admin) may edit or cancel a session. Players are view-only. */
+export function canEditSession(
+  role: AppRole,
+  session: Pick<Session, 'coachId'>,
+  userId: string,
+): boolean {
+  if (role === 'admin') {
+    return true;
+  }
+  if (role === 'player') {
+    return false;
+  }
+  if (role === 'coach' || role === 'team_manager') {
+    return session.coachId === userId;
   }
   return false;
 }

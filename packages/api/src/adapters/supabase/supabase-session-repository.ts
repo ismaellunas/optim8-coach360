@@ -27,10 +27,10 @@ export class SupabaseSessionRepository implements SessionRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async listForUser(userId: string) {
+    void userId;
     const { data, error } = await this.client
       .from('sessions')
       .select(SESSION_SELECT)
-      .or(`coach_id.eq.${userId},player_id.eq.${userId}`)
       .order('scheduled_at', { ascending: true });
 
     if (error) {
@@ -47,7 +47,6 @@ export class SupabaseSessionRepository implements SessionRepository {
       .from('sessions')
       .insert({
         coach_id: userId,
-        status: 'scheduled',
         ...mapSessionInsert(input),
       })
       .select(SESSION_SELECT)

@@ -214,6 +214,7 @@ export {
   canCreateSession,
   canCreateTeamSession,
   canCreateIndividualSession,
+  canEditSession,
 } from './session/access.js';
 export { SESSION_MVP_TYPES } from './session/types.js';
 export {

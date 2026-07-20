@@ -10,7 +10,6 @@ type SessionRow = {
   scheduled_at: string;
   duration_minutes: number;
   session_type: 'practice' | 'film' | 'individual';
-  status: 'scheduled' | 'cancelled';
   created_at: string;
   updated_at: string;
 };
@@ -26,11 +25,12 @@ export function mapSessionRow(row: SessionRow): Session {
     scheduledAt: row.scheduled_at,
     durationMinutes: row.duration_minutes,
     sessionType: row.session_type,
-    status: row.status,
+    // Cancel is a hard delete in MVP — rows that exist are always scheduled.
+    status: 'scheduled',
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   });
 }
 
 export const SESSION_SELECT =
-  'id, coach_id, team_id, player_id, title, notes, scheduled_at, duration_minutes, session_type, status, created_at, updated_at';
+  'id, coach_id, team_id, player_id, title, notes, scheduled_at, duration_minutes, session_type, created_at, updated_at';
