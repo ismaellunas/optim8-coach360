@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Coach360 Manual Test Pack</title>
+  <style>@page {
+  margin: 18mm 16mm 20mm 16mm;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 10.5pt;
+  line-height: 1.45;
+  color: #1a1a1a;
+}
+
+h1 {
+  font-size: 22pt;
+  color: #111;
+  border-bottom: 3px solid #ff6b2c;
+  padding-bottom: 8px;
+  margin-top: 0;
+  page-break-after: avoid;
+}
+
+h2 {
+  font-size: 15pt;
+  color: #222;
+  margin-top: 28px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 12pt;
+  color: #333;
+  margin-top: 18px;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 11pt;
+  color: #444;
+  page-break-after: avoid;
+}
+
+p, li {
+  orphans: 3;
+  widows: 3;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 18px;
+  font-size: 9.5pt;
+  page-break-inside: avoid;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f4f4f4;
+  font-weight: 600;
+}
+
+tr:nth-child(even) td {
+  background: #fafafa;
+}
+
+code {
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 9pt;
+}
+
+blockquote {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 4px solid #ff6b2c;
+  background: #fff8f4;
+  color: #333;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 24px 0;
+}
+
+ul, ol {
+  padding-left: 22px;
+}
+
+.cover-block {
+  text-align: center;
+  padding: 40px 0 24px;
+  page-break-after: always;
+}
+
+.cover-block h1 {
+  border: none;
+  font-size: 26pt;
+  margin-bottom: 8px;
+}
+
+.cover-meta {
+  color: #555;
+  font-size: 11pt;
+}
+
+.page-break {
+  page-break-before: always;
+}
+
+@media print {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+</style>
+</head>
+<body>
+<div class="cover-block">
+
+# Coach360 Manual Test Pack
+
+**For non-technical testers**
+
+Complete click-through instructions for Epics 1–5, plus reference sheets you can keep open while testing.
+
+Version: July 2026 · Document: mobile-app-test-pack
+
+</div>
+
+<hr />
+<h2>Part 1 — Quick Reference (read this first)</h2>
+<h3>Where to test</h3>
+<p>Ask your team lead for the exact links for your environment. Typical URLs:</p>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>Staging (testing)</th>
+<th>Production (live)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mobile app (browser)</strong></td>
+<td><code>https://app-staging.coach360.com</code></td>
+<td><code>https://app.coach360.com</code></td>
+</tr>
+<tr>
+<td><strong>Admin dashboard</strong></td>
+<td><code>https://admin-staging.coach360.com</code></td>
+<td><code>https://admin.coach360.com</code></td>
+</tr>
+<tr>
+<td><strong>Native app (phone)</strong></td>
+<td>TestFlight / internal build link from the team</td>
+<td>App Store / Play Store</td>
+</tr>
+</tbody>
+</table>
+<p>You can run <strong>all mobile tests in a desktop browser</strong> using the mobile web link. Use a phone only for keyboard/status-bar checks (test E1-T2).</p>
+<hr />
+<h3>Accounts you will create</h3>
+<p>Create <strong>three separate sign-ups</strong> during testing. Use different email addresses for each.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Example email (Gmail trick)</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Coach</strong></td>
+<td><code>yourname+coach@gmail.com</code></td>
+<td>Content, sessions, invites, subscriptions</td>
+</tr>
+<tr>
+<td><strong>Player</strong></td>
+<td><code>yourname+player@gmail.com</code></td>
+<td>Joining teams, Store, locked features</td>
+</tr>
+<tr>
+<td><strong>Team Manager</strong></td>
+<td><code>yourname+manager@gmail.com</code></td>
+<td>Creating teams, roster management</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gmail alias tip:</strong> Messages sent to <code>you+anything@gmail.com</code> all arrive in your normal Gmail inbox.</p>
+<p><strong>Admin account (Epic 5 only):</strong> The team must give you a pre-made admin login. You cannot sign up as Admin from the mobile app.</p>
+<hr />
+<h3>Account tracking sheet (fill in as you go)</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Email used</th>
+<th>Password (your note)</th>
+<th>Plan chosen</th>
+<th>Trial used?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coach</td>
+<td></td>
+<td></td>
+<td>Basic / Trial / Advanced / Pro</td>
+<td>Yes / No</td>
+</tr>
+<tr>
+<td>Player</td>
+<td></td>
+<td></td>
+<td>Basic / Advanced / Pro</td>
+<td>Yes / No</td>
+</tr>
+<tr>
+<td>Team Manager</td>
+<td></td>
+<td></td>
+<td>Basic</td>
+<td>Yes / No</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td></td>
+<td></td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Stripe test card (payments only)</h3>
+<p><strong>Never use a real credit card in staging.</strong> Only this test card:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Card number</td>
+<td><code>4242 4242 4242 4242</code></td>
+</tr>
+<tr>
+<td>Expiry</td>
+<td>Any future date (e.g. <code>12/34</code>)</td>
+</tr>
+<tr>
+<td>CVC</td>
+<td>Any 3 digits (e.g. <code>123</code>)</td>
+</tr>
+<tr>
+<td>Name / postal code</td>
+<td>Anything</td>
+</tr>
+</tbody>
+</table>
+<p>After paying, wait <strong>~30 seconds</strong>, then <strong>close and reopen the app</strong> before reporting a plan change as failed.</p>
+<hr />
+<h3>Subscription plans (what they mean)</h3>
+<table>
+<thead>
+<tr>
+<th>Plan</th>
+<th>What testers should know</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Free trial</strong></td>
+<td>14 days, one time per account. Full Pro access during trial. Yellow banner on Home shows days left.</td>
+</tr>
+<tr>
+<td><strong>Basic</strong></td>
+<td>Free forever. Many features locked (Chat, AI, etc.).</td>
+</tr>
+<tr>
+<td><strong>Advanced</strong></td>
+<td>Unlocks Chat and coach creation tools.</td>
+</tr>
+<tr>
+<td><strong>Pro</strong></td>
+<td>Unlocks AI Insights, Objectives, and other Pro-only features.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Roles (who can do what — simplified)</h3>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>In one sentence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Coach</strong></td>
+<td>Creates training content and sessions; can optionally create a team.</td>
+</tr>
+<tr>
+<td><strong>Player</strong></td>
+<td>Consumes training; joins teams via invite; cannot invite or remove others.</td>
+</tr>
+<tr>
+<td><strong>Team Manager</strong></td>
+<td>Must create a team during setup; can invite players on Basic plan.</td>
+</tr>
+<tr>
+<td><strong>Admin</strong></td>
+<td>Uses the separate Admin website to configure feature locks (not the mobile app).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Finding your way around the mobile app</h3>
+<p><strong>Bottom tabs (Coach / Player / Team Manager after onboarding):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tab</th>
+<th>Name on screen</th>
+<th>Main purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Home</strong></td>
+<td>Dashboard, trial banner, AI/Objectives cards</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Roster</strong> (or Teams)</td>
+<td>Teams list, invites, player list</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Schedule</strong></td>
+<td>Calendar and <strong>+ Add Session</strong> (coaches)</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Chat</strong></td>
+<td>Messages (Advanced+ required)</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Store</strong></td>
+<td>Training packages marketplace</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Other important controls:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Where to find it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sign Out</strong></td>
+<td>Home → <strong>gear icon</strong> (top right) → scroll down → <strong>Sign Out</strong></td>
+</tr>
+<tr>
+<td><strong>Manage Subscription</strong></td>
+<td>Home → gear icon → <strong>Manage Subscription</strong></td>
+</tr>
+<tr>
+<td><strong>Profile / settings</strong></td>
+<td>Gear icon (top right on Home)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sign-out is only available after you finish onboarding</strong> and reach the main Home screen with tabs.</p>
+<hr />
+<h3>Common screens you will see</h3>
+<table>
+<thead>
+<tr>
+<th>Screen title</th>
+<th>When it appears</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Welcome / <strong>Create account</strong> / <strong>Sign in</strong></td>
+<td>Not logged in</td>
+</tr>
+<tr>
+<td><strong>SELECT YOUR ROLE</strong></td>
+<td>During sign-up</td>
+</tr>
+<tr>
+<td><strong>CHECK YOUR EMAIL</strong></td>
+<td>After sign-up — check your inbox</td>
+</tr>
+<tr>
+<td><strong>CHOOSE YOUR PLAN</strong></td>
+<td>After profile setup</td>
+</tr>
+<tr>
+<td><strong>Feature Locked</strong></td>
+<td>Pop-up when your plan is too low for a feature</td>
+</tr>
+<tr>
+<td><strong>Chat Locked</strong></td>
+<td>Chat tab when below Advanced</td>
+</tr>
+<tr>
+<td><strong>INVITE PLAYERS</strong></td>
+<td>Roster → Teams → Invite</td>
+</tr>
+<tr>
+<td><strong>JOIN TEAM</strong></td>
+<td>Player entering an invite code</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3>Recommended test order</h3>
+<p>Run tests <strong>in epic order</strong>. Later epics reuse accounts from earlier ones.</p>
+<ol>
+<li><strong>Epic 1</strong> — Smoke (2 tests)</li>
+<li><strong>Epic 2</strong> — Create all three accounts (6 tests)</li>
+<li><strong>Epic 3</strong> — Teams and rosters (7 tests)</li>
+<li><strong>Epic 4</strong> — Plans and payments (10 tests) — <strong>do before Epic 5</strong></li>
+<li><strong>Epic 5</strong> — Feature gating on mobile (10 tests)</li>
+<li><strong>Epic 5 Admin</strong> — Optional, needs admin login (4 tests)</li>
+</ol>
+<p><strong>Estimated time:</strong> 3–5 hours for a full first pass, longer if you hit payment sync delays.</p>
+<hr />
+<h3>How to report a failure</h3>
+<p>Copy this template into email or your bug tracker:</p>
+<pre><code>Test ID: (e.g. E4-T6)
+Result: FAIL
+Account email: 
+Role / plan: (e.g. Player, Basic)
+Device / browser: (e.g. iPhone 15 Safari, or Chrome desktop)
+Time (approx): 
+Steps taken: (what you tapped)
+Expected: (from the test table)
+Actual: (what happened instead)
+Screenshot: (attach)
+</code></pre>
+<p>For every test, mark <strong>PASS</strong> or <strong>FAIL</strong> on the Quick Results Sheet at the end of this document.</p>
+<hr />
+<div class="page-break"></div>
+
+<h2>Part 2 — Test Instructions</h2>
+<p><strong>Audience:</strong> Non-technical testers. You only need to be able to tap/click around the app.<br />
+No coding, no tools — just the app, an email inbox, and this checklist.</p>
+<p>Epic 5 (RBAC &amp; tier feature gating) builds on Epic 4 — run the Epic 4 subscription tests first,<br />
+then continue with Epic 5 below.</p>
+<hr />
+<h2>Before You Start</h2>
+<h3>What you need</h3>
+<ol>
+<li><strong>The app</strong> — either installed on your phone (iOS/Android test build) or the web/staging<br />
+   link provided by the team.</li>
+<li><strong>At least 3 email addresses you can receive mail on.</strong> You will create separate accounts<br />
+   for a <strong>Coach</strong>, a <strong>Player</strong>, and a <strong>Team Manager</strong>.<br />
+   - Tip: if you use Gmail, you can reuse one inbox with aliases, e.g.<br />
+<code>yourname+coach@gmail.com</code>, <code>yourname+player@gmail.com</code>, <code>yourname+manager@gmail.com</code>.<br />
+     All mail arrives in your normal inbox.</li>
+<li><strong>A Stripe TEST credit card</strong> (no real money is charged):<br />
+   - Card number: <code>4242 4242 4242 4242</code><br />
+   - Expiry: any future date (e.g. <code>12/34</code>)<br />
+   - CVC: any 3 digits (e.g. <code>123</code>)<br />
+   - Name/postal code: anything</li>
+<li>Optionally a second phone or a private/incognito browser window, so you can be signed in<br />
+   as two different users at once (useful for the team invite tests).</li>
+<li><strong>For Epic 5 admin tests only:</strong> the <strong>Admin dashboard</strong> URL (ask the team — e.g.<br />
+<code>admin-staging.coach360.com</code>) and an <strong>Admin account</strong> the team has provisioned for you.<br />
+   Admin tests are optional if you only have mobile access.</li>
+</ol>
+<h3>How to report results</h3>
+<p>For every test below, mark <strong>PASS</strong> or <strong>FAIL</strong>. If something fails:</p>
+<ul>
+<li>Note the <strong>test ID</strong> (e.g. <code>E3-T2</code>).</li>
+<li>Write down <strong>what you did</strong> and <strong>what you saw</strong> instead of the expected result.</li>
+<li>Take a <strong>screenshot</strong> of the screen (including any red error message).</li>
+<li>Note the <strong>email address of the account</strong> you were using and the approximate <strong>time</strong>.</li>
+</ul>
+<h3>Two things to know before testing</h3>
+<ul>
+<li><strong>Payments take a moment to sync.</strong> After paying with the test card, the app is updated by<br />
+  a background process. If your plan doesn't change immediately, <strong>wait ~30 seconds, then<br />
+  close and reopen the app</strong> before calling it a failure.</li>
+<li><strong>Never enter a real credit card.</strong> Only use the test card above.</li>
+</ul>
+<hr />
+<h2>Epic 1 — App Foundation (Smoke Tests)</h2>
+<p>Most of Epic 1 is behind-the-scenes setup (databases, build pipelines) that can't be tested<br />
+by clicking. Only these basics apply to you:</p>
+<h3>E1-T1: App launches</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Open the Coach360 app on your device.</td>
+<td>The dark welcome screen with the orange <strong>COACH360</strong> logo, the tagline "Basketball coaching and player development", and two buttons: <strong>Create account</strong> and <strong>Sign in</strong>. No crash, no blank white screen.</td>
+</tr>
+</tbody>
+</table>
+<h3>E1-T2: Keyboard and screen behave on a real phone</h3>
+<p><em>(Only if you are testing on an actual phone, not a browser.)</em></p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Tap <strong>Sign in</strong> and tap into the <strong>Email address</strong> box.</td>
+<td>The keyboard slides up and does <strong>not</strong> cover the box you are typing into.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Rotate the phone / check the very top of the screen.</td>
+<td>The clock/battery status bar area is readable and the app content is not hidden underneath it.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Epic 2 — Accounts, Sign-Up, and Onboarding</h2>
+<h3>E2-T1: Create a Coach account with email verification</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On the welcome screen, tap <strong>Create account</strong>.</td>
+<td>A <strong>SELECT YOUR ROLE</strong> screen with three choices: <strong>Coach</strong>, <strong>Player</strong>, <strong>Team Manager</strong>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap <strong>Coach</strong>, then tap <strong>Continue</strong>.</td>
+<td>A <strong>CREATE ACCOUNT</strong> screen saying "Signing up as Coach".</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Enter a name, your <em>coach</em> email address, and a password (at least 6 characters). Tap <strong>Create account</strong>.</td>
+<td>A <strong>CHECK YOUR EMAIL</strong> screen telling you a verification link was sent.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Open your email inbox and click the verification link.</td>
+<td>A confirmation that your email is verified.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Return to the app, tap <strong>Back to sign in</strong>, and sign in with the email and password you just used.</td>
+<td>You are let into the app and see the coach profile setup (next test).</td>
+</tr>
+</tbody>
+</table>
+<p>Also try: on step 3, enter a password shorter than 6 characters — the app should stop you.</p>
+<h3>E2-T2: Coach profile setup</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>After first sign-in as a Coach, fill in the coach profile form (it asks about your coaching background and whether you work independently or with a team).</td>
+<td>The form saves without errors.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Continue past the profile step.</td>
+<td>A <strong>CHOOSE YOUR PLAN</strong> screen (trial / paid tiers / "Continue with Basic for free"). This is covered in Epic 4 — for now choose <strong>Start free trial</strong>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Continue.</td>
+<td>A short guided tour (progress dots at the top) with steps: Welcome → Your profile → Browse training packages → Plan your first session → Share with players.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Step through the tour. Confirm you can <strong>skip</strong> the team/invite parts.</td>
+<td>You land on the <strong>Home</strong> screen with your name in the header.</td>
+</tr>
+</tbody>
+</table>
+<h3>E2-T3: Create a Player account and player onboarding</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign out (Home → gear icon top-right → <strong>Sign Out</strong>), or use a second device/incognito window. Create a new account, this time choosing the <strong>Player</strong> role, using your <em>player</em> email. Verify the email and sign in.</td>
+<td>Same sign-up flow as the coach.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fill in the player profile: <strong>age</strong>, <strong>position</strong> (e.g. "Point Guard"), and optionally a photo.</td>
+<td>The form saves without errors.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>At the plan screen, tap <strong>Continue with Basic for free</strong> (we save the trial test for Epic 4).</td>
+<td>You move on to the player tour.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Step through the player tour: Welcome → Your profile → Browse training content → Start your first drill → Track your progress → Join a team.</td>
+<td>You can complete it <strong>without</strong> joining a team. The "Join a team" step is optional/skippable.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Finish the tour.</td>
+<td>The player Home screen, with tabs at the bottom: Home, Progress, Schedule, Chat, Store.</td>
+</tr>
+</tbody>
+</table>
+<h3>E2-T4: Create a Team Manager account</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign out and create a third account, choosing <strong>Team Manager</strong>, with your <em>manager</em> email. Verify and sign in.</td>
+<td>The manager profile form (asks about your experience managing teams).</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Complete the profile.</td>
+<td>You are required to <strong>create a team</strong> before you get into the main app (team creation details are tested in Epic 3, test E3-T1).</td>
+</tr>
+</tbody>
+</table>
+<h3>E2-T5: You stay signed in after closing the app</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>While signed in as any user, fully close the app (swipe it away from the app switcher on a phone, or close the browser tab).</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Reopen the app.</td>
+<td>You are <strong>still signed in</strong> and land back in the app — no sign-in screen.</td>
+</tr>
+</tbody>
+</table>
+<h3>E2-T6: You cannot get in without signing in</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign out.</td>
+<td>You are returned to the welcome screen.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Close and reopen the app.</td>
+<td>You see the welcome/sign-in screen only. There is no way to reach Home, Roster, Chat, etc. without signing in.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Epic 3 — Teams, Invites, and Rosters</h2>
+<h3>E3-T1: Team Manager creates a team</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as your <strong>Team Manager</strong> account (continuing from E2-T4).</td>
+<td>The <strong>Create Team</strong> form.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fill in: team name (e.g. "U14 Eagles"), a description, <strong>minimum and maximum age</strong> (e.g. 12 and 14), and season/league details. Upload a <strong>team logo</strong> photo if possible.</td>
+<td>All fields accept input; the logo picker opens your photo library.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Save the team.</td>
+<td>The team appears with its name and logo. You reach the main app.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Go to the <strong>Roster</strong> tab → <strong>Teams</strong> → tap <strong>Manage</strong> on your team. Change the description and save.</td>
+<td>The <strong>EDIT TEAM</strong> screen opens, the change saves, and the updated text shows on the team card.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T2: Coach creates a team from Roster (optional path)</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as your <strong>Coach</strong> account (which is on a free trial, so it has full access).</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Go to the <strong>Roster</strong> tab.</td>
+<td>A Teams/Players toggle. If no team exists yet: a "No teams yet" message explaining teams are optional.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Tap <strong>+ Create Team</strong>, fill in the form, save.</td>
+<td>The team appears in the Teams list.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T3: Generate an invite and have a Player join</h3>
+<p>You need the <strong>Coach</strong> (or Team Manager) signed in on one device/window and the <strong>Player</strong><br />
+on another. If you only have one device, just copy the invite code on paper and switch accounts.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this (as Coach or Manager)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Roster tab → Teams → tap <strong>Invite</strong> on the team.</td>
+<td>An <strong>INVITE PLAYERS</strong> screen with an <strong>Invite code</strong> (like <code>ABCD1234</code>) and an <strong>Invite link</strong>, each with a <strong>Copy</strong> button. Text says invites expire in 14 days.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap <strong>Copy code</strong>.</td>
+<td>Button briefly changes to "Copied!".</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this (as Player)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>On the Home screen, find the join-team option (or open the invite link the coach shared).</td>
+<td>A <strong>JOIN TEAM</strong> screen with an <strong>Invite code</strong> box.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Type the code and tap <strong>Check code</strong>.</td>
+<td>The team's name appears as a preview — confirm it's the right team.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Tap <strong>Join team</strong>.</td>
+<td>You are joined; the app returns Home and shows your team context.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Verify (as Coach or Manager)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6</td>
+<td>Roster tab → <strong>Players</strong> (or tap <strong>Roster</strong> on the team).</td>
+<td>The player you just joined is listed with a "Player" badge.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T4: A wrong invite code is rejected politely</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this (as Player)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On the <strong>JOIN TEAM</strong> screen, type a made-up code like <code>WRONG123</code> and tap <strong>Check code</strong>.</td>
+<td>A clear, human-readable error (e.g. the invite was not found or has expired). <strong>Not</strong> a crash or a blank screen.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T5: Add a player manually by email</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this (as Coach or Manager)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Roster tab → Teams → <strong>Invite</strong> on the team. Scroll below the invite code section.</td>
+<td>A form to add a player <strong>by email address</strong>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Enter your Player account's email and submit.</td>
+<td>Success — the player is added to the roster (check the Players list). Entering an email that has no Coach360 account should show a clear error instead.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T6: Remove a player from the roster</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this (as Coach or Manager)</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Roster tab → <strong>Players</strong>.</td>
+<td>The roster list, with a <strong>Remove</strong> button next to each player.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap <strong>Remove</strong> on your test player.</td>
+<td>The player disappears from the list.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>(If push notifications are enabled on the player's device) check the player's phone.</td>
+<td>The player receives a notification about the roster change.</td>
+</tr>
+</tbody>
+</table>
+<h3>E3-T7: Tier limits on team features</h3>
+<p>Team features are only available on certain plans. Check the doors are locked correctly:</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as the <strong>Player</strong> account (Basic, no trial). Go to Roster-related areas.</td>
+<td>Players never see Invite/Remove controls.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>If you have a <strong>Coach on the Basic plan</strong> (no trial): Roster → <strong>Invite</strong>.</td>
+<td>A <strong>Feature Locked</strong> pop-up appears instead of the invite screen (coaches need a higher plan to invite). The pop-up is covered in Epic 4, test E4-T5.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>As the <strong>Team Manager</strong> (Basic is enough for managers): Roster → <strong>Invite</strong>.</td>
+<td>The invite screen opens normally.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Epic 4 — Plans, Free Trial, and Payments</h2>
+<blockquote>
+<p>Reminder: use only the test card <code>4242 4242 4242 4242</code>, any future expiry, any CVC.<br />
+After paying, give the app ~30 seconds and reopen it if the plan hasn't updated yet.</p>
+</blockquote>
+<h3>E4-T1: The plan choice screen after sign-up</h3>
+<p><em>(You already saw this in Epic 2 — this test checks the details.)</em></p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Create one more fresh account (any role, new email). Complete the profile.</td>
+<td>The <strong>CHOOSE YOUR PLAN</strong> screen.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Read the screen.</td>
+<td>A highlighted <strong>14-Day Free Trial</strong> box with a <strong>Start free trial</strong> button; a list of paid plans (<strong>Basic</strong>, <strong>Advanced</strong>, <strong>Pro</strong>) each with prices and features and a <strong>Choose …</strong> button; and a <strong>Continue with Basic for free</strong> link at the bottom.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T2: Start the free trial and see the countdown</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On the plan screen, tap <strong>Start free trial</strong>.</td>
+<td>You enter the app.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Look at the Home screen.</td>
+<td>A yellow banner: <strong>"Free Trial - X days left"</strong>, "Full Pro access", a <strong>Trial active</strong> badge, and a <strong>Subscribe</strong> button.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Tap the gear icon (top right) → <strong>Manage Subscription</strong>.</td>
+<td>The <strong>SUBSCRIPTION</strong> screen shows Current Plan, a <strong>Trial active</strong> badge, "<strong>X days remaining</strong>", and "Full Pro access until your trial ends".</td>
+</tr>
+<tr>
+<td>4</td>
+<td>While on trial, try a Pro feature: Home screen → the <strong>AI Insights</strong> card, or <strong>Objectives</strong>.</td>
+<td>They open — trial gives full Pro access, nothing is locked.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T3: The trial can only be used once</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Using an account that <strong>already used its trial</strong> — sign out and back in, then look at the plan screens (e.g. a paywall pop-up, or the plan choice screen if it appears).</td>
+<td>The trial offer is <strong>gone</strong>. Where it would appear you instead see "<strong>Free trial used</strong> — Your one-time trial has already been activated on this account and cannot be restarted." There must be no button anywhere that starts a second trial.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T4: What a Basic user cannot do (paywall doors)</h3>
+<p>Use your <strong>Player</strong> account (Basic, never paid).</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Tap the <strong>Chat</strong> tab.</td>
+<td>A locked screen: "<strong>Chat Locked</strong> — Upgrade to Advanced to message" with an <strong>Upgrade</strong> button.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>On Home, tap the <strong>AI Insights</strong> card (it shows a padlock and "Upgrade to Pro to unlock").</td>
+<td>A <strong>Feature Locked</strong> pop-up (next test).</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T5: The paywall pop-up itself</h3>
+<p>Trigger the pop-up as in E4-T4, then check each part:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Required plan is named</td>
+<td>Text like "This requires <strong>Pro</strong> (or Advanced) …" — it tells you exactly which plan you need.</td>
+</tr>
+<tr>
+<td>Plans listed</td>
+<td>Plan cards with prices and features. Plans <strong>below</strong> the required one are greyed out and marked "Below required" — you cannot select them.</td>
+</tr>
+<tr>
+<td>Trial button rules</td>
+<td><strong>Start free trial</strong> appears <strong>only</strong> if this account never used its trial. (Check with both a fresh account and a used-trial account.)</td>
+</tr>
+<tr>
+<td>You can walk away</td>
+<td><strong>Browse free content</strong> takes you to the Store; <strong>Maybe Later</strong> closes the pop-up and you can keep using the rest of the app. Being blocked from one feature never traps you.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T6: Upgrade with the test card (Stripe checkout)</h3>
+<p>Use the <strong>Player</strong> (Basic) account.</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Open the paywall pop-up (E4-T4) and tap <strong>Upgrade to Advanced</strong> (or go to gear icon → <strong>Manage Subscription</strong> → <strong>Upgrade</strong> on a plan).</td>
+<td>You are taken to a secure Stripe payment page showing the plan and monthly price.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Pay with the test card <code>4242 4242 4242 4242</code>.</td>
+<td>Payment succeeds and you are returned to the app.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Wait ~30 seconds, reopen the app, go to gear icon → <strong>Manage Subscription</strong>.</td>
+<td><strong>Current Plan</strong> now shows your new plan, with a "Renews on …" date. The plan card is marked <strong>Current</strong>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Retry the feature that was locked (e.g. Chat for Advanced).</td>
+<td>It now works.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T7: Billing history</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As the account that just paid (E4-T6): gear icon → <strong>Manage Subscription</strong>, scroll down.</td>
+<td>A <strong>Billing history</strong> section listing your payment with the amount, date, and a <strong>paid</strong> badge.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>As a fresh account that never paid.</td>
+<td>Billing history shows "No invoices yet" (or is not shown at all) — never someone else's invoices.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T8: Upgrading again is immediate</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As the Advanced account, go to <strong>Manage Subscription</strong> and tap <strong>Upgrade</strong> on <strong>Pro</strong>.</td>
+<td>Small print reads "Applies immediately with prorated billing".</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Complete the upgrade.</td>
+<td>Within a minute your Current Plan shows <strong>Pro</strong>, and Pro features (AI Insights, Objectives) unlock right away.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T9: Downgrading is scheduled, not immediate</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As the Pro account, on <strong>Manage Subscription</strong>, tap <strong>Downgrade</strong> on a lower plan.</td>
+<td>The button asks you to confirm (<strong>Confirm downgrade</strong>) and shows a notice about what happens to your data.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap <strong>Confirm downgrade</strong>.</td>
+<td>A yellow <strong>Downgrade scheduled</strong> box appears: "Switching to … on \&lt;date&gt;. You keep full access until then. Objectives and AI history are preserved but hidden until you upgrade again." The lower plan is marked <strong>Scheduled</strong>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Immediately try a Pro feature.</td>
+<td>It <strong>still works</strong> — you keep full access until the billing period ends.</td>
+</tr>
+</tbody>
+</table>
+<h3>E4-T10: Cancelling out of payment does nothing bad</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Start an upgrade, but on the Stripe payment page press <strong>Back</strong> / close it without paying.</td>
+<td>You return to the app on your <strong>old plan</strong>. No charge, no error, nothing changed.</td>
+</tr>
+</tbody>
+</table>
+<h3>Not testable by clicking (for awareness only)</h3>
+<p>These Epic 4 behaviours exist but need a developer or time travel to verify — do <strong>not</strong><br />
+mark them as failed:</p>
+<ul>
+<li><strong>Trial expiry after 14 days</strong> — the account should drop to Basic and locked features<br />
+  should show the paywall. (Requires waiting 14 days or a developer shortcut.)</li>
+<li><strong>"Trial ending soon" warning notification</strong> (sent ~3 days before expiry).</li>
+<li><strong>Failed renewal payment</strong> — the account should enter a "Payment issue" locked state<br />
+  (a red banner appears on the Subscription screen). A developer must simulate the failed<br />
+  payment. If you ever <em>do</em> see the red "Payment issue" banner unexpectedly, report it.</li>
+</ul>
+<hr />
+<h2>Epic 5 — Role &amp; Tier Feature Gating (RBAC)</h2>
+<p>Epic 5 makes sure each role only sees features their plan allows. The rules apply everywhere<br />
+in the app — a locked feature should show the same <strong>Feature Locked</strong> pop-up whether you<br />
+tap the tab, a card on Home, or an action button.</p>
+<p>Use these accounts from earlier epics:</p>
+<table>
+<thead>
+<tr>
+<th>Account</th>
+<th>Plan needed for Epic 5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Coach</td>
+<td>One on <strong>Basic</strong> (no trial), one on <strong>Advanced</strong> or <strong>active trial</strong></td>
+</tr>
+<tr>
+<td>Player</td>
+<td><strong>Basic</strong> (already created in Epic 2 / 4)</td>
+</tr>
+<tr>
+<td>Team Manager</td>
+<td><strong>Basic</strong> (already created)</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td>Admin dashboard login (admin tests only)</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T1: Trial users see browse-only Store</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as a <strong>Coach</strong> or <strong>Player</strong> on an <strong>active free trial</strong> (yellow trial banner on Home).</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap the <strong>Store</strong> tab.</td>
+<td>Package listings are visible.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Read the top of the screen.</td>
+<td>An orange <strong>Browse only</strong> card: "Trial preview — purchase unlocks on a paid plan."</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Tap any paid package, then tap <strong>Purchase …</strong></td>
+<td>Either the purchase flow opens or a <strong>Feature Locked</strong> pop-up appears. Note which — if purchase succeeds on trial, report it (the banner says paid plan required).</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T2: Coach on Basic cannot create content</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as your <strong>Coach on Basic</strong> (chose "Continue with Basic for free" or trial expired).</td>
+<td>Home screen.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Scroll the Home screen.</td>
+<td><strong>No</strong> <strong>+ Create Content</strong> button anywhere on Home.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T3: Coach on Basic cannot add sessions</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As the same <strong>Coach on Basic</strong>, tap the <strong>Schedule</strong> tab.</td>
+<td>The weekly calendar.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap <strong>+ Add Session</strong>.</td>
+<td>A <strong>Feature Locked</strong> pop-up saying chat/session creation requires <strong>Advanced</strong> (or similar). You do <strong>not</strong> reach the "NEW SESSION" form.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T4: Coach on Advanced (or trial) can create content and sessions</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as a <strong>Coach on Advanced</strong> (paid upgrade from Epic 4) <strong>or</strong> a Coach still on <strong>active trial</strong>.</td>
+<td>—</td>
+</tr>
+<tr>
+<td>2</td>
+<td>On <strong>Home</strong>, look for <strong>+ Create Content</strong>.</td>
+<td>The button is visible. Tap it → <strong>CREATE CONTENT</strong> screen with Training Drill / Video Upload / Game Strategy options.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Go to <strong>Schedule</strong> → tap <strong>+ Add Session</strong>.</td>
+<td>The <strong>NEW SESSION</strong> form opens (no paywall).</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T5: Players and Team Managers never see Create Content</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Sign in as your <strong>Player</strong> account. Check Home.</td>
+<td>No <strong>+ Create Content</strong> button (players cannot create content at any tier).</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Sign in as your <strong>Team Manager</strong> account. Check Home.</td>
+<td>No <strong>+ Create Content</strong> button.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T6: Chat locked below Advanced for all roles</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As <strong>Player on Basic</strong>, tap <strong>Chat</strong>.</td>
+<td><strong>Chat Locked</strong> — "Upgrade to Advanced to message."</td>
+</tr>
+<tr>
+<td>2</td>
+<td>As <strong>Coach on Basic</strong>, tap <strong>Chat</strong>.</td>
+<td>Same locked screen.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>As <strong>Team Manager on Basic</strong>, tap <strong>Chat</strong>.</td>
+<td>Same locked screen.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Upgrade any one of those accounts to <strong>Advanced</strong> (Epic 4 flow), reopen the app, tap <strong>Chat</strong> again.</td>
+<td>The messages list opens — no lock screen.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T7: AI features locked below Pro for all roles</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As <strong>Coach on Advanced</strong> (not trial), tap the <strong>AI Insights</strong> card on Home.</td>
+<td><strong>Feature Locked</strong> pop-up requiring <strong>Pro</strong>.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>As <strong>Player on Advanced</strong>, check Home for AI-related cards.</td>
+<td>Locked or absent — not fully usable without Pro.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>As any role on <strong>active trial</strong> or <strong>Pro</strong>, tap <strong>AI Insights</strong>.</td>
+<td>It opens — trial counts as Pro-level access.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T8: Objectives require Pro (coaches)</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>As <strong>Coach on Advanced</strong> (not Pro, not trial), find <strong>Objectives</strong> on Home.</td>
+<td>Shows <strong>Pro</strong> or a locked card: "Upgrade to Pro for objectives."</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tap it.</td>
+<td><strong>Feature Locked</strong> pop-up requiring <strong>Pro</strong>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>As <strong>Coach on Pro</strong> or <strong>active trial</strong>, tap <strong>Objectives</strong> → <strong>Manage</strong>.</td>
+<td>The <strong>OBJECTIVES</strong> list opens.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T9: Paywall pop-up rules (RBAC consistency)</h3>
+<p>Trigger any locked feature (e.g. Chat on Basic), then verify:</p>
+<table>
+<thead>
+<tr>
+<th>Check</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Required plan named</td>
+<td>"This requires <strong>Advanced</strong>" (or Pro) — exact tier named.</td>
+</tr>
+<tr>
+<td>Lower plans disabled</td>
+<td>Plan cards below the required tier are greyed out and marked <strong>Below required</strong>.</td>
+</tr>
+<tr>
+<td>Escape hatches work</td>
+<td><strong>Browse free content</strong> and <strong>Maybe Later</strong> both close the pop-up; you can keep using the rest of the app.</td>
+</tr>
+<tr>
+<td>Same pop-up everywhere</td>
+<td>Tapping <strong>Upgrade</strong> on the Chat locked screen shows the same pop-up as tapping a locked Home card.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T10: Team invite rules by role (matrix check)</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Coach on Basic</strong> (no trial): Roster → <strong>Invite</strong>.</td>
+<td><strong>Feature Locked</strong> pop-up (coaches need Advanced+ to invite).</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Team Manager on Basic</strong>: Roster → <strong>Invite</strong>.</td>
+<td><strong>INVITE PLAYERS</strong> screen opens normally (managers can invite on Basic).</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Player</strong>: Roster tab.</td>
+<td>No Invite or Remove controls anywhere.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>Epic 5 — Admin Dashboard Tests</h2>
+<p><em>Skip this section if you were not given an Admin account or dashboard URL.</em></p>
+<h3>E5-T11: Admin feature gating screen loads</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Open the Admin dashboard URL in a browser. Sign in with your <strong>Admin</strong> account.</td>
+<td><strong>Admin sign in</strong> succeeds; you reach the dashboard.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Navigate to <strong>Content</strong> (sidebar or menu).</td>
+<td>Page titled <strong>Content</strong> with subtitle about marketplace operations.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Scroll down.</td>
+<td>A <strong>Feature gating by role</strong> section under <strong>Content Paywall</strong>, with three tabs: <strong>Player</strong>, <strong>Coach</strong>, <strong>Team Manager</strong>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Tap each tab.</td>
+<td>A table listing features (e.g. Chat, Create Content, AI) with a <strong>Tier</strong> dropdown per row.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T12: Admin can change a feature tier requirement</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On <strong>Content</strong> → <strong>Feature gating by role</strong> → <strong>Coach</strong> tab, find the <strong>Chat</strong> row.</td>
+<td>Current tier shows <strong>Advanced</strong> (unless someone changed it).</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Change the <strong>Tier</strong> dropdown to <strong>Pro</strong>.</td>
+<td>The dropdown saves (may briefly show a loading state). No error message.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Change it back to <strong>Advanced</strong> when finished testing E5-T13.</td>
+<td>Saves successfully.</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T13: Admin gating change reaches mobile without app update</h3>
+<p>This is a two-person or two-browser test (Admin dashboard + mobile app).</p>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Confirm a <strong>Coach on Advanced</strong> can open <strong>Chat</strong> normally (E5-T6 step 4).</td>
+<td>Messages list, not locked.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>In the Admin dashboard (E5-T12), set <strong>Chat / Coach</strong> tier to <strong>Pro</strong>.</td>
+<td>Saves.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>On mobile: sign out, sign back in as that Coach (or force-close and reopen the app).</td>
+<td>—</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Tap <strong>Chat</strong>.</td>
+<td><strong>Chat Locked</strong> or <strong>Feature Locked</strong> requiring <strong>Pro</strong> — even though the account is still on Advanced.</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Cleanup:</strong> Admin resets <strong>Chat / Coach</strong> back to <strong>Advanced</strong>. Sign out/in on mobile. Chat works again for Advanced coaches.</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3>E5-T14: Admin free content catalog</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Do this</th>
+<th>You should see</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On <strong>Content</strong>, scroll to <strong>Free content catalog (Basic tier)</strong>.</td>
+<td>Title field, Category field, and <strong>Add</strong> button.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Enter title <code>Test Free Drill</code>, category <code>basics</code>, tap <strong>Add</strong>.</td>
+<td>The item appears in the list below with a <strong>Remove</strong> button.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Tap <strong>Remove</strong>.</td>
+<td>The item disappears from the list.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> The free catalog is managed in Admin today. If Basic-tier users do not yet see<br />
+catalog items differently in the mobile Store, that is expected — test the Admin CRUD only.</p>
+</blockquote>
+<h3>Not testable by clicking (for awareness only)</h3>
+<ul>
+<li><strong>Server-side enforcement</strong> — blocked actions are also rejected on the server (403 errors).<br />
+  You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.</li>
+<li><strong>Full access matrix</strong> — only launch-critical rules are live; the complete 223-rule matrix<br />
+  is deferred post-MVP.</li>
+</ul>
+<hr />
+<div class="page-break"></div>
+
+<h2>Part 3 — Quick Results Sheet</h2>
+<p>Print this page and check off results as you go.</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Pass / Fail</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E1-T1 App launches</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E1-T2 Keyboard/status bar</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T1 Coach sign-up + email verification</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T2 Coach profile + tour</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T3 Player sign-up + tour</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T4 Team Manager sign-up</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T5 Stays signed in</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E2-T6 No access without sign-in</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T1 Manager creates/edits team</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T2 Coach creates team</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T3 Invite code/link + player joins</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T4 Bad invite code rejected</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T5 Manual add by email</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T6 Remove player</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E3-T7 Tier limits on team features</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T1 Plan choice screen</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T2 Trial + countdown</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T3 Trial only once</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T4 Locked features for Basic</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T5 Paywall pop-up details</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T6 Upgrade with test card</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T7 Billing history</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T8 Immediate upgrade</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T9 Scheduled downgrade</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E4-T10 Cancel payment safely</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T1 Trial browse-only Store</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T2 Coach Basic — no Create Content</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T3 Coach Basic — no Add Session</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T4 Coach Advanced/trial — create content &amp; sessions</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T5 Player/Manager — no Create Content</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T6 Chat locked below Advanced (all roles)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T7 AI locked below Pro (all roles)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T8 Objectives require Pro (coaches)</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T9 Paywall pop-up RBAC rules</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T10 Team invite rules by role</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T11 Admin feature gating screen</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T12 Admin change tier requirement</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T13 Admin change reflects on mobile</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>E5-T14 Admin free content catalog</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tester name:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong><em> <strong>Date completed:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong></em></p>
+<p><strong>Environment tested:</strong> Staging / Production / Other: <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong>_</p>
+<p><strong>Mobile URL used:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong><em> <strong>Admin URL used:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em></strong></em></p>
+</body>
+</html>

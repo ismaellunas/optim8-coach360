@@ -1,4 +1,175 @@
-# Coach360 Mobile App — Manual Test Instructions (Epics 1–5)
+<div class="cover-block">
+
+# Coach360 Manual Test Pack
+
+**For non-technical testers**
+
+Complete click-through instructions for Epics 1–5, plus reference sheets you can keep open while testing.
+
+Version: July 2026 · Document: mobile-app-test-pack
+
+</div>
+
+---
+
+## Part 1 — Quick Reference (read this first)
+
+### Where to test
+
+Ask your team lead for the exact links for your environment. Typical URLs:
+
+| What | Staging (testing) | Production (live) |
+|---|---|---|
+| **Mobile app (browser)** | `https://app-staging.coach360.com` | `https://app.coach360.com` |
+| **Admin dashboard** | `https://admin-staging.coach360.com` | `https://admin.coach360.com` |
+| **Native app (phone)** | TestFlight / internal build link from the team | App Store / Play Store |
+
+You can run **all mobile tests in a desktop browser** using the mobile web link. Use a phone only for keyboard/status-bar checks (test E1-T2).
+
+---
+
+### Accounts you will create
+
+Create **three separate sign-ups** during testing. Use different email addresses for each.
+
+| Role | Example email (Gmail trick) | Used for |
+|---|---|---|
+| **Coach** | `yourname+coach@gmail.com` | Content, sessions, invites, subscriptions |
+| **Player** | `yourname+player@gmail.com` | Joining teams, Store, locked features |
+| **Team Manager** | `yourname+manager@gmail.com` | Creating teams, roster management |
+
+**Gmail alias tip:** Messages sent to `you+anything@gmail.com` all arrive in your normal Gmail inbox.
+
+**Admin account (Epic 5 only):** The team must give you a pre-made admin login. You cannot sign up as Admin from the mobile app.
+
+---
+
+### Account tracking sheet (fill in as you go)
+
+| Role | Email used | Password (your note) | Plan chosen | Trial used? |
+|---|---|---|---|---|
+| Coach | | | Basic / Trial / Advanced / Pro | Yes / No |
+| Player | | | Basic / Advanced / Pro | Yes / No |
+| Team Manager | | | Basic | Yes / No |
+| Admin | | | n/a | n/a |
+
+---
+
+### Stripe test card (payments only)
+
+**Never use a real credit card in staging.** Only this test card:
+
+| Field | Value |
+|---|---|
+| Card number | `4242 4242 4242 4242` |
+| Expiry | Any future date (e.g. `12/34`) |
+| CVC | Any 3 digits (e.g. `123`) |
+| Name / postal code | Anything |
+
+After paying, wait **~30 seconds**, then **close and reopen the app** before reporting a plan change as failed.
+
+---
+
+### Subscription plans (what they mean)
+
+| Plan | What testers should know |
+|---|---|
+| **Free trial** | 14 days, one time per account. Full Pro access during trial. Yellow banner on Home shows days left. |
+| **Basic** | Free forever. Many features locked (Chat, AI, etc.). |
+| **Advanced** | Unlocks Chat and coach creation tools. |
+| **Pro** | Unlocks AI Insights, Objectives, and other Pro-only features. |
+
+---
+
+### Roles (who can do what — simplified)
+
+| Role | In one sentence |
+|---|---|
+| **Coach** | Creates training content and sessions; can optionally create a team. |
+| **Player** | Consumes training; joins teams via invite; cannot invite or remove others. |
+| **Team Manager** | Must create a team during setup; can invite players on Basic plan. |
+| **Admin** | Uses the separate Admin website to configure feature locks (not the mobile app). |
+
+---
+
+### Finding your way around the mobile app
+
+**Bottom tabs (Coach / Player / Team Manager after onboarding):**
+
+| Tab | Name on screen | Main purpose |
+|---|---|---|
+| 1 | **Home** | Dashboard, trial banner, AI/Objectives cards |
+| 2 | **Roster** (or Teams) | Teams list, invites, player list |
+| 3 | **Schedule** | Calendar and **+ Add Session** (coaches) |
+| 4 | **Chat** | Messages (Advanced+ required) |
+| 5 | **Store** | Training packages marketplace |
+
+**Other important controls:**
+
+| Control | Where to find it |
+|---|---|
+| **Sign Out** | Home → **gear icon** (top right) → scroll down → **Sign Out** |
+| **Manage Subscription** | Home → gear icon → **Manage Subscription** |
+| **Profile / settings** | Gear icon (top right on Home) |
+
+**Sign-out is only available after you finish onboarding** and reach the main Home screen with tabs.
+
+---
+
+### Common screens you will see
+
+| Screen title | When it appears |
+|---|---|
+| Welcome / **Create account** / **Sign in** | Not logged in |
+| **SELECT YOUR ROLE** | During sign-up |
+| **CHECK YOUR EMAIL** | After sign-up — check your inbox |
+| **CHOOSE YOUR PLAN** | After profile setup |
+| **Feature Locked** | Pop-up when your plan is too low for a feature |
+| **Chat Locked** | Chat tab when below Advanced |
+| **INVITE PLAYERS** | Roster → Teams → Invite |
+| **JOIN TEAM** | Player entering an invite code |
+
+---
+
+### Recommended test order
+
+Run tests **in epic order**. Later epics reuse accounts from earlier ones.
+
+1. **Epic 1** — Smoke (2 tests)
+2. **Epic 2** — Create all three accounts (6 tests)
+3. **Epic 3** — Teams and rosters (7 tests)
+4. **Epic 4** — Plans and payments (10 tests) — **do before Epic 5**
+5. **Epic 5** — Feature gating on mobile (10 tests)
+6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
+
+**Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
+
+---
+
+### How to report a failure
+
+Copy this template into email or your bug tracker:
+
+```
+Test ID: (e.g. E4-T6)
+Result: FAIL
+Account email: 
+Role / plan: (e.g. Player, Basic)
+Device / browser: (e.g. iPhone 15 Safari, or Chrome desktop)
+Time (approx): 
+Steps taken: (what you tapped)
+Expected: (from the test table)
+Actual: (what happened instead)
+Screenshot: (attach)
+```
+
+For every test, mark **PASS** or **FAIL** on the Quick Results Sheet at the end of this document.
+
+---
+
+<div class="page-break"></div>
+
+## Part 2 — Test Instructions
 
 **Audience:** Non-technical testers. You only need to be able to tap/click around the app.
 No coding, no tools — just the app, an email inbox, and this checklist.
@@ -452,7 +623,11 @@ This is a two-person or two-browser test (Admin dashboard + mobile app).
 
 ---
 
-## Quick Results Sheet
+<div class="page-break"></div>
+
+## Part 3 — Quick Results Sheet
+
+Print this page and check off results as you go.
 
 | Test | Pass / Fail | Notes |
 |---|---|---|
@@ -495,3 +670,9 @@ This is a two-person or two-browser test (Admin dashboard + mobile app).
 | E5-T12 Admin change tier requirement | | |
 | E5-T13 Admin change reflects on mobile | | |
 | E5-T14 Admin free content catalog | | |
+
+**Tester name:** ______________________ **Date completed:** ______________________
+
+**Environment tested:** Staging / Production / Other: ______________________
+
+**Mobile URL used:** ______________________ **Admin URL used:** ______________________
