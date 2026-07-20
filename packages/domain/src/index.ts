@@ -203,6 +203,20 @@ export {
   canRemoveRosterPlayer,
 } from './team/access.js';
 export {
+  sessionSchema,
+  sessionInputSchema,
+  sessionStatusSchema,
+  sessionTypeSchema,
+  type Session,
+  type SessionInput,
+} from './session/schema.js';
+export {
+  canCreateSession,
+  canCreateTeamSession,
+  canCreateIndividualSession,
+} from './session/access.js';
+export { SESSION_MVP_TYPES } from './session/types.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

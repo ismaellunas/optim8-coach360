@@ -291,6 +291,7 @@ export type Database = {
           duration_minutes: number
           id: string
           notes: string | null
+          player_id: string | null
           scheduled_at: string
           session_type: Database["public"]["Enums"]["session_type"]
           team_id: string | null
@@ -304,6 +305,7 @@ export type Database = {
           duration_minutes?: number
           id?: string
           notes?: string | null
+          player_id?: string | null
           scheduled_at: string
           session_type?: Database["public"]["Enums"]["session_type"]
           team_id?: string | null
@@ -317,6 +319,7 @@ export type Database = {
           duration_minutes?: number
           id?: string
           notes?: string | null
+          player_id?: string | null
           scheduled_at?: string
           session_type?: Database["public"]["Enums"]["session_type"]
           team_id?: string | null
@@ -327,6 +330,13 @@ export type Database = {
           {
             foreignKeyName: "sessions_coach_id_fkey"
             columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_player_id_fkey"
+            columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -21,7 +21,7 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
 > = {
   // STORY-5.2 AC-1: chat Advanced+ for coach, player, and team manager.
   chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
-  createSession: { coach: 'advanced' },
+  createSession: { coach: 'advanced', team: 'advanced' },
   distribute: { coach: 'advanced' },
   objectives: { coach: 'pro', player: 'pro' },
   // STORY-5.2 AC-2 / OQ-6.5: AI Pro-only for all gated roles.

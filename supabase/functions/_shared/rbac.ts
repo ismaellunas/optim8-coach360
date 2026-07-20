@@ -17,7 +17,7 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
 > = {
   // Mirrors packages/domain/src/subscription/paywall.ts (STORY-5.2 launch subset).
   chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
-  createSession: { coach: 'advanced' },
+  createSession: { coach: 'advanced', team: 'advanced' },
   distribute: { coach: 'advanced' },
   objectives: { coach: 'pro', player: 'pro' },
   ai: { coach: 'pro', player: 'pro', team: 'pro' },

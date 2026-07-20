@@ -24,8 +24,11 @@ export type {
   NotificationRepository,
   RosterNotificationEvent,
   RosterNotificationPayload,
+  SessionNotificationEvent,
+  SessionNotificationPayload,
   TrialExpiryWarningPayload,
 } from './ports/notification-repository.js';
+export type { SessionRepository } from './ports/session-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
@@ -37,6 +40,8 @@ export type {
 export type { ContentRepository, ContentItem } from './ports/content-repository.js';
 export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-repository.js';
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';
+export { SupabaseSessionRepository } from './adapters/supabase/supabase-session-repository.js';
+export { RestSessionRepository } from './adapters/rest/rest-session-repository.js';
 export {
   createRepositories,
   resolveAdapterMode,
