@@ -1,28 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
   FEATURE_TIER_REQUIREMENTS,
+  formatFeatureLabel,
+  gatedFeaturesForRole,
+  resolvedTierForFeatureRole,
+  tierDisplayLabel,
   type FeatureFlagOverride,
   type GatedRole,
 } from '@coach360/domain';
 import { PageHeader, Card, Badge, Button } from '@coach360/ui';
-import { readSanityStudioUrl } from '@/shared/config/env.js';
+import { tryReadSanityStudioUrl } from '@/shared/config/env.js';
 
 const PAID_TIERS = ['basic', 'advanced', 'pro'] as const;
 
-type GatedRow = {
-  feature: string;
-  role: GatedRole;
-  defaultTier: (typeof PAID_TIERS)[number];
-};
-
-const GATED_ROWS: GatedRow[] = Object.entries(FEATURE_TIER_REQUIREMENTS).flatMap(
-  ([feature, reqs]) =>
-    (Object.entries(reqs) as [GatedRole, (typeof PAID_TIERS)[number]][]).map(
-      ([role, defaultTier]) => ({ feature, role, defaultTier }),
-    ),
-);
+const ROLE_TABS: { role: GatedRole; label: string }[] = [
+  { role: 'player', label: 'Player' },
+  { role: 'coach', label: 'Coach' },
+  { role: 'team', label: 'Team Manager' },
+];
 
 function rowKey(feature: string, role: GatedRole): string {
   return `${feature}:${role}`;
@@ -31,9 +28,8 @@ function rowKey(feature: string, role: GatedRole): string {
 function FeatureGatingSection() {
   const repos = useRepositories();
   const queryClient = useQueryClient();
-  const [drafts, setDrafts] = useState<
-    Record<string, { requiredTier: string; paywallTitle: string; paywallMessage: string }>
-  >({});
+  const [activeRole, setActiveRole] = useState<GatedRole>('player');
+  const [savingKey, setSavingKey] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -41,24 +37,29 @@ function FeatureGatingSection() {
     queryFn: () => repos.content.listFeatureFlags(),
   });
 
-  const overridesByKey = new Map<string, FeatureFlagOverride>(
-    (data ?? []).map((override) => [rowKey(override.feature, override.role), override]),
+  const overrides = data ?? [];
+
+  const overridesByKey = useMemo(
+    () =>
+      new Map<string, FeatureFlagOverride>(
+        overrides.map((override) => [rowKey(override.feature, override.role), override]),
+      ),
+    [overrides],
+  );
+
+  const features = useMemo(
+    () => gatedFeaturesForRole(activeRole, overrides),
+    [activeRole, overrides],
   );
 
   const saveFlag = useMutation({
-    mutationFn: (input: {
-      feature: string;
-      role: GatedRole;
-      requiredTier: string;
-      paywallTitle: string;
-      paywallMessage: string;
-    }) =>
+    mutationFn: (input: { feature: string; role: GatedRole; requiredTier: string }) =>
       repos.content.upsertFeatureFlag({
         feature: input.feature,
         role: input.role,
         requiredTier: input.requiredTier as FeatureFlagOverride['requiredTier'],
-        paywallTitle: input.paywallTitle || null,
-        paywallMessage: input.paywallMessage || null,
+        paywallTitle: null,
+        paywallMessage: null,
       }),
     onSuccess: async () => {
       setSaveError(null);
@@ -66,6 +67,9 @@ function FeatureGatingSection() {
     },
     onError: (cause: unknown) => {
       setSaveError(cause instanceof Error ? cause.message : 'save_failed');
+    },
+    onSettled: () => {
+      setSavingKey(null);
     },
   });
 
@@ -76,90 +80,87 @@ function FeatureGatingSection() {
         Feature gating by role
       </p>
       <p className="mt-1 font-body text-sm text-coach-t2">
-        Set which tier unlocks each feature per role, and edit the paywall message shown when
-        it&apos;s locked.
+        Set which tier unlocks each feature per role. Saved values override code defaults; mobile
+        shows a generic paywall when a feature is locked.
       </p>
-      {isLoading ? <p className="mt-2 text-coach-t2">Loading feature flags…</p> : null}
-      <div className="mt-4 space-y-4">
-        {GATED_ROWS.map((row) => {
-          const key = rowKey(row.feature, row.role);
-          const override = overridesByKey.get(key);
-          const draft = drafts[key];
-          const requiredTier = draft?.requiredTier ?? override?.requiredTier ?? row.defaultTier;
-          const paywallTitle = draft?.paywallTitle ?? override?.paywallTitle ?? '';
-          const paywallMessage = draft?.paywallMessage ?? override?.paywallMessage ?? '';
 
-          return (
-            <div key={key} className="rounded-xl border border-coach-border p-3">
-              <div className="flex flex-wrap items-center gap-3">
-                <p className="font-semibold text-coach-t1">
-                  {row.feature} <span className="text-coach-t3">({row.role})</span>
-                </p>
-                <select
-                  className="rounded-[10px] border border-coach-border bg-coach-surface px-3 py-1 font-body text-sm text-coach-t1"
-                  aria-label={`Required tier for ${row.feature} (${row.role})`}
-                  value={requiredTier}
-                  onChange={(event) =>
-                    setDrafts((prev) => ({
-                      ...prev,
-                      [key]: {
-                        requiredTier: event.target.value,
-                        paywallTitle,
-                        paywallMessage,
-                      },
-                    }))
-                  }
-                >
-                  {PAID_TIERS.map((tier) => (
-                    <option key={tier} value={tier}>
-                      {tier}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input
-                type="text"
-                placeholder="Paywall title"
-                className="mt-2 w-full rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 font-body text-sm text-coach-t1"
-                aria-label={`Paywall title for ${row.feature} (${row.role})`}
-                value={paywallTitle}
-                onChange={(event) =>
-                  setDrafts((prev) => ({
-                    ...prev,
-                    [key]: { requiredTier, paywallTitle: event.target.value, paywallMessage },
-                  }))
-                }
-              />
-              <textarea
-                placeholder="Paywall message"
-                className="mt-2 w-full rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 font-body text-sm text-coach-t1"
-                aria-label={`Paywall message for ${row.feature} (${row.role})`}
-                value={paywallMessage}
-                onChange={(event) =>
-                  setDrafts((prev) => ({
-                    ...prev,
-                    [key]: { requiredTier, paywallTitle, paywallMessage: event.target.value },
-                  }))
-                }
-              />
-              <Button
-                disabled={saveFlag.isPending}
-                onClick={() =>
-                  saveFlag.mutate({
-                    feature: row.feature,
-                    role: row.role,
-                    requiredTier,
-                    paywallTitle,
-                    paywallMessage,
-                  })
-                }
-              >
-                Save
-              </Button>
-            </div>
-          );
-        })}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {ROLE_TABS.map((tab) => (
+          <button
+            key={tab.role}
+            type="button"
+            className={[
+              'rounded-full border px-4 py-1.5 font-body text-sm transition-colors',
+              activeRole === tab.role
+                ? 'border-coach-green bg-coach-green/10 font-semibold text-coach-t1'
+                : 'border-coach-border bg-coach-surface text-coach-t2 hover:text-coach-t1',
+            ].join(' ')}
+            aria-pressed={activeRole === tab.role}
+            onClick={() => setActiveRole(tab.role)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {isLoading ? <p className="mt-4 text-coach-t2">Loading feature flags…</p> : null}
+
+      <div className="mt-4 overflow-x-auto rounded-xl border border-coach-border">
+        <table className="w-full min-w-[320px] border-collapse font-body text-sm">
+          <thead>
+            <tr className="border-b border-coach-border bg-coach-card text-left text-coach-t3">
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide">Feature</th>
+              <th className="px-4 py-3 font-semibold uppercase tracking-wide">Tier</th>
+            </tr>
+          </thead>
+          <tbody>
+            {features.map((feature) => {
+              const key = rowKey(feature, activeRole);
+              const override = overridesByKey.get(key);
+              const defaultTier = FEATURE_TIER_REQUIREMENTS[feature]?.[activeRole] ?? null;
+              const displayTier =
+                override?.requiredTier ??
+                defaultTier ??
+                resolvedTierForFeatureRole(feature, activeRole, overrides);
+              const isSaving = savingKey === key;
+
+              return (
+                <tr key={key} className="border-b border-coach-border last:border-b-0">
+                  <td className="px-4 py-3 font-medium text-coach-t1">
+                    {formatFeatureLabel(feature)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      className="w-full max-w-[180px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-1.5 text-coach-t1 disabled:opacity-60"
+                      aria-label={`Required tier for ${formatFeatureLabel(feature)} (${activeRole})`}
+                      value={displayTier ?? PAID_TIERS[0]}
+                      disabled={isSaving || saveFlag.isPending}
+                      onChange={(event) => {
+                        setSavingKey(key);
+                        saveFlag.mutate({
+                          feature,
+                          role: activeRole,
+                          requiredTier: event.target.value,
+                        });
+                      }}
+                    >
+                      {PAID_TIERS.map((tier) => (
+                        <option key={tier} value={tier}>
+                          {tierDisplayLabel(tier)}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {features.length === 0 && !isLoading ? (
+        <p className="mt-3 font-body text-sm text-coach-t3">No gated features for this role.</p>
+      ) : null}
       {saveError ? <p className="mt-2 font-body text-xs text-coach-red">{saveError}</p> : null}
     </Card>
   );
@@ -261,7 +262,7 @@ function FreeContentCatalogSection() {
 
 export function ContentPage() {
   const repos = useRepositories();
-  const studioUrl = readSanityStudioUrl();
+  const studioUrl = tryReadSanityStudioUrl();
   const { data, isLoading } = useQuery({
     queryKey: ['admin', 'content'],
     queryFn: () => repos.content.list(),
@@ -273,15 +274,22 @@ export function ContentPage() {
         title="Content"
         subtitle="Marketplace operations and Sanity Studio authoring."
       />
-      <div className="mb-6">
-        <Button
-          onClick={() => {
-            window.open(studioUrl, '_blank', 'noopener,noreferrer');
-          }}
-        >
-          Open Sanity Studio
-        </Button>
-      </div>
+      {studioUrl ? (
+        <div className="mb-6">
+          <Button
+            onClick={() => {
+              window.open(studioUrl, '_blank', 'noopener,noreferrer');
+            }}
+          >
+            Open Sanity Studio
+          </Button>
+        </div>
+      ) : (
+        <p className="mb-6 font-body text-sm text-coach-t3">
+          Set <code className="text-coach-t2">VITE_SANITY_STUDIO_URL</code> in{' '}
+          <code className="text-coach-t2">.env</code> to enable the Sanity Studio link.
+        </p>
+      )}
       {isLoading ? <p className="text-coach-t2">Loading content…</p> : null}
       <div className="space-y-3">
         {(data ?? []).map((item) => (

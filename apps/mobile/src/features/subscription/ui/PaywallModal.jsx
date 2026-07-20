@@ -33,10 +33,12 @@ const ACCENT = {
  * Flow 10 — content paywall encounter (modal, non-blocking).
  * Shows all catalog tiers; plans below the required minimum are disabled.
  * Trial CTA only if unused (OQ-10.1).
+ * STORY-5.4: tier floors honor admin feature_flags; copy uses the generic template.
  */
 export function PaywallModal({
   feature,
   user,
+  featureFlagOverrides = [],
   subscription = null,
   submitting = false,
   error = null,
@@ -45,7 +47,9 @@ export function PaywallModal({
   onStartTrial,
   onBrowseFree,
 }) {
-  const plan = user ? paywallTierOptionsForFeature(feature, user.role) : null;
+  const plan = user
+    ? paywallTierOptionsForFeature(feature, user.role, featureFlagOverrides)
+    : null;
   const requirementPhrase = plan?.requirementPhrase || 'a higher tier';
   const options = plan?.options || [];
   const showTrial = shouldShowPaywallTrialCta(subscription);

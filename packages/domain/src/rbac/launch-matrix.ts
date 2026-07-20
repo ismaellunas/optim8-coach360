@@ -4,6 +4,7 @@ import type { PaidSubscriptionTier } from '../subscription/catalog.js';
 import { meetsTierMinimum } from '../subscription/expiry.js';
 import {
   FEATURE_TIER_REQUIREMENTS,
+  type FeatureTierRequirements,
   type GatedRole,
   type PaywallRole,
 } from '../subscription/paywall.js';
@@ -102,19 +103,25 @@ function paidFloor(tier: SubscriptionTier): PaidSubscriptionTier {
 /**
  * Resolve launch access including ◎ read-only and ○ higher-tier cells.
  * Trial is checked against `readonlyTiers` before mapping trial → Pro.
+ *
+ * STORY-5.4: optional `requirements` is the merged admin+default map;
+ * omit/null falls back to static FEATURE_TIER_REQUIREMENTS.
  */
 export function resolveLaunchFeatureAccess(input: {
   role: RbacRole;
   tier: SubscriptionTier;
   feature: string;
+  /** Omit/null/undefined → static FEATURE_TIER_REQUIREMENTS. */
+  requirements?: FeatureTierRequirements | null | undefined;
 }): ResolvedFeatureAccess {
   const role = normalizeRole(input.role);
   if (role === 'admin') {
     return { allowed: true, accessLevel: 'full', requiredTier: null };
   }
 
+  const reqs = input.requirements ?? FEATURE_TIER_REQUIREMENTS;
   const band = LAUNCH_ACCESS_BANDS[input.feature]?.[role];
-  const minFromMap = FEATURE_TIER_REQUIREMENTS[input.feature]?.[role] ?? null;
+  const minFromMap = reqs[input.feature]?.[role] ?? null;
 
   if (!band && !minFromMap) {
     return { allowed: false, accessLevel: 'none', requiredTier: null };
@@ -152,24 +159,27 @@ export function featureAccessLevel(
   role: RbacRole,
   tier: SubscriptionTier,
   feature: string,
+  requirements?: FeatureTierRequirements | null,
 ): LaunchAccessLevel {
-  return resolveLaunchFeatureAccess({ role, tier, feature }).accessLevel;
+  return resolveLaunchFeatureAccess({ role, tier, feature, requirements }).accessLevel;
 }
 
 export function canAccessFeatureFully(
   role: RbacRole,
   tier: SubscriptionTier,
   feature: string,
+  requirements?: FeatureTierRequirements | null,
 ): boolean {
-  return featureAccessLevel(role, tier, feature) === 'full';
+  return featureAccessLevel(role, tier, feature, requirements) === 'full';
 }
 
 export function canAccessFeatureReadonlyOrFull(
   role: RbacRole,
   tier: SubscriptionTier,
   feature: string,
+  requirements?: FeatureTierRequirements | null,
 ): boolean {
-  const level = featureAccessLevel(role, tier, feature);
+  const level = featureAccessLevel(role, tier, feature, requirements);
   return level === 'full' || level === 'readonly';
 }
 

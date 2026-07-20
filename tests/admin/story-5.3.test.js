@@ -1,15 +1,18 @@
 // STORY-5.3 — Admin-configurable feature gating and free content catalog.
 
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   FEATURE_TIER_REQUIREMENTS,
   applyFeatureFlagOverrides,
+  formatFeatureLabel,
+  gatedFeaturesForRole,
   isFreeAtBasicTier,
   paywallCopyForFeature,
   requiredTierForFeature,
+  resolvedTierForFeatureRole,
 } from '@coach360/domain';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,12 +46,15 @@ describe('STORY_5_3 AC1 — admin can configure which tier unlocks each feature 
     expect(merged.chat.player).toBe('advanced');
     expect(merged.objectives).toEqual(FEATURE_TIER_REQUIREMENTS.objectives);
 
-    // An override cannot newly gate a role that wasn't gated before.
+    // An admin override can newly gate a role that wasn't gated before.
     const ungatedOverride = [{ feature: 'createContent', role: 'team', requiredTier: 'pro' }];
     const mergedUngated = applyFeatureFlagOverrides(ungatedOverride);
-    expect(mergedUngated.createContent.team).toBeUndefined();
+    expect(mergedUngated.createContent.team).toBe('pro');
+    expect(resolvedTierForFeatureRole('createContent', 'team', ungatedOverride)).toBe('pro');
+    expect(resolvedTierForFeatureRole('createContent', 'team', [])).toBeNull();
 
-    expect(existsSync(path.join(REPO_ROOT, MIGRATION_PATH))).toBe(true);
+    expect(formatFeatureLabel('createContent')).toBe('Create Content');
+    expect(gatedFeaturesForRole('coach', [])).toContain('createContent');
     const sql = read(MIGRATION_PATH);
     expect(sql).toMatch(/create table if not exists public\.feature_flags/);
     expect(sql).toMatch(/primary key \(feature_key, role\)/);
@@ -73,11 +79,15 @@ describe('STORY_5_3 AC1 — admin can configure which tier unlocks each feature 
     expect(admin).toMatch(/listFeatureFlags/);
     expect(admin).toMatch(/upsertFeatureFlag/);
     expect(admin).toMatch(/Feature gating by role/);
+    expect(admin).toMatch(/formatFeatureLabel/);
+    expect(admin).toMatch(/Team Manager/);
+    expect(admin).not.toMatch(/Paywall title/);
+    expect(admin).not.toMatch(/Paywall message/);
   });
 });
 
-describe('STORY_5_3 AC2 — paywall messaging editable from admin Content Paywall section', () => {
-  it('test_STORY_5_3_AC2_paywall_messaging_editable', () => {
+describe('STORY_5_3 AC2 — mobile paywall uses generic template (no per-feature admin copy)', () => {
+  it('test_STORY_5_3_AC2_mobile_paywall_uses_generic_template', () => {
     const withoutOverride = paywallCopyForFeature('ai', 'coach');
     expect(withoutOverride.paywallTitle).toBeNull();
     expect(withoutOverride.paywallMessage).toBeNull();
@@ -92,16 +102,12 @@ describe('STORY_5_3 AC2 — paywall messaging editable from admin Content Paywal
       },
     ];
     const withOverride = paywallCopyForFeature('ai', 'coach', overrides);
-    expect(withOverride.paywallTitle).toBe('Unlock AI Coaching');
-    expect(withOverride.paywallMessage).toBe('Upgrade to Pro to access AI-personalized plans.');
-
-    const sql = read(MIGRATION_PATH);
-    expect(sql).toMatch(/paywall_title/);
-    expect(sql).toMatch(/paywall_message/);
+    expect(withOverride.paywallTitle).toBeNull();
+    expect(withOverride.paywallMessage).toBeNull();
 
     const admin = read(ADMIN_CONTENT_PATH);
-    expect(admin).toMatch(/Paywall title/);
-    expect(admin).toMatch(/Paywall message/);
+    expect(admin).not.toMatch(/Paywall title/);
+    expect(admin).not.toMatch(/Paywall message/);
   });
 });
 
