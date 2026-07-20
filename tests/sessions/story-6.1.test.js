@@ -7,6 +7,7 @@ import {
   SESSION_MVP_TYPES,
   canCreateIndividualSession,
   canCreateTeamSession,
+  canEditSession,
   sessionInputSchema,
 } from '@coach360/domain';
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
@@ -53,6 +54,17 @@ const NOTIFICATION_PATH = path.join(
   'ports',
   'notification-repository.ts',
 );
+const MAPPER_PATH = path.join(
+  REPO_ROOT,
+  'packages',
+  'api',
+  'src',
+  'adapters',
+  'supabase',
+  'mappers',
+  'session-mapper.ts',
+);
+const MANUAL_TEST_PACK_PATH = path.join(REPO_ROOT, 'docs', 'mobile-app-test-pack.md');
 
 describe('STORY_6_1 AC1 — coach creates session with date, time, and type', () => {
   it('test_STORY_6_1_AC1_coach_creates_session_with_datetime_and_type: schema, repo, and UI wire create flow', () => {
@@ -173,5 +185,57 @@ describe('STORY_6_1 AC5 — edit and cancel flows update notifications', () => {
     expect(ui).toMatch(/event: 'session_updated'/);
     expect(ui).toMatch(/event: 'session_cancelled'/);
     expect(ui).toMatch(/Cancel session/);
+  });
+});
+
+describe('STORY_6_1 regression — manual QA bugs from Epic 6', () => {
+  const coachId = '11111111-1111-1111-8111-111111111111';
+  const playerId = '22222222-2222-2222-8222-222222222222';
+  const session = { coachId };
+
+  it('test_STORY_6_1_REGRESSION_session_load_omits_missing_status_column: mapper matches DB schema', () => {
+    const mapper = readFileSync(MAPPER_PATH, 'utf8');
+    expect(mapper).toMatch(/status: 'scheduled'/);
+    expect(mapper).not.toMatch(/session_type, status, created_at/);
+    expect(mapper).toMatch(
+      /session_type, created_at, updated_at/,
+    );
+
+    const repo = readFileSync(REPO_PATH, 'utf8');
+    expect(repo).not.toMatch(/status: 'scheduled'/);
+  });
+
+  it('test_STORY_6_1_REGRESSION_create_button_uses_user_subscription: ScheduleScreen tier gating wired', () => {
+    const ui = readFileSync(UI_PATH, 'utf8');
+    expect(ui).toMatch(/subscriptionFromLegacyUser/);
+    expect(ui).toMatch(/showCreateAction/);
+    expect(ui).toMatch(/tryA\('createSession'/);
+    expect(ui).toMatch(/const \{ session \} = useAuth\(\)/);
+    expect(ui).not.toMatch(/const \{ session, subscription \} = useAuth\(\)/);
+  });
+
+  it('test_STORY_6_1_REGRESSION_player_session_view_read_only: players cannot edit sessions', () => {
+    expect(canEditSession('player', session, playerId)).toBe(false);
+    expect(canEditSession('coach', session, coachId)).toBe(true);
+    expect(canEditSession('coach', session, playerId)).toBe(false);
+
+    const ui = readFileSync(UI_PATH, 'utf8');
+    expect(ui).toMatch(/canEditSession/);
+    expect(ui).toMatch(/SESSION DETAILS/);
+    expect(ui).toMatch(/readOnly/);
+    expect(ui).toMatch(/viewingSession/);
+  });
+
+  it('test_STORY_6_1_REGRESSION_manual_test_pack_covers_epic_6: docs include Epic 6 schedule cases', () => {
+    const manual = readFileSync(MANUAL_TEST_PACK_PATH, 'utf8');
+    const htmlPath = path.join(REPO_ROOT, 'docs', 'Coach360-Manual-Test-Pack.html');
+    const html = readFileSync(htmlPath, 'utf8');
+    expect(manual).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1\)/);
+    expect(manual).toMatch(/E6-T1: Schedule tab loads without error/);
+    expect(manual).toMatch(/session_load_failed/);
+    expect(manual).toMatch(/E6-T7: Player views session read-only/);
+    expect(manual).toMatch(/E6-T2: Coach sees \*\*\+ Add Session\*\*/);
+    expect(html).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1\)/);
+    expect(html).toMatch(/E6-T7: Player views session read-only/);
   });
 });

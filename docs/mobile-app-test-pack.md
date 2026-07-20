@@ -4,9 +4,11 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–5, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–6, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
+
+Regenerate HTML: `npm run docs:test-pack` → `docs/Coach360-Manual-Test-Pack.html`
 
 </div>
 
@@ -31,6 +33,8 @@ You can run **all mobile tests in a desktop browser** using the mobile web link.
 ### Accounts you will create
 
 Create **three separate sign-ups** during testing. Use different email addresses for each.
+You do **not** need to check your inbox — email verification is **disabled** on the test
+environment (Supabase email sending limits).
 
 | Role | Example email (Gmail trick) | Used for |
 |---|---|---|
@@ -122,7 +126,7 @@ After paying, wait **~30 seconds**, then **close and reopen the app** before rep
 |---|---|
 | Welcome / **Create account** / **Sign in** | Not logged in |
 | **SELECT YOUR ROLE** | During sign-up |
-| **CHECK YOUR EMAIL** | After sign-up — check your inbox |
+| **CHECK YOUR EMAIL** | *Not used on test environment* — sign-up goes straight into the app |
 | **CHOOSE YOUR PLAN** | After profile setup |
 | **Feature Locked** | Pop-up when your plan is too low for a feature |
 | **Chat Locked** | Chat tab when below Advanced |
@@ -185,11 +189,12 @@ then continue with Epic 5 below.
 
 1. **The app** — either installed on your phone (iOS/Android test build) or the web/staging
    link provided by the team.
-2. **At least 3 email addresses you can receive mail on.** You will create separate accounts
-   for a **Coach**, a **Player**, and a **Team Manager**.
+2. **At least 3 distinct email addresses** for separate accounts — a **Coach**, a **Player**,
+   and a **Team Manager**. You do **not** need to open your inbox during sign-up (email
+   verification is turned off on the test environment).
    - Tip: if you use Gmail, you can reuse one inbox with aliases, e.g.
      `yourname+coach@gmail.com`, `yourname+player@gmail.com`, `yourname+manager@gmail.com`.
-     All mail arrives in your normal inbox.
+     All mail arrives in your normal inbox if you ever need it for invite-by-email tests.
 3. **A Stripe TEST credit card** (no real money is charged):
    - Card number: `4242 4242 4242 4242`
    - Expiry: any future date (e.g. `12/34`)
@@ -212,6 +217,9 @@ For every test below, mark **PASS** or **FAIL**. If something fails:
 
 ### Two things to know before testing
 
+- **No email verification step.** After you tap **Create account**, you go straight into
+  profile setup — there is no **CHECK YOUR EMAIL** screen and no verification link to click.
+  (Verification is disabled on the test environment due to Supabase email sending limits.)
 - **Payments take a moment to sync.** After paying with the test card, the app is updated by
   a background process. If your plan doesn't change immediately, **wait ~30 seconds, then
   close and reopen the app** before calling it a failure.
@@ -243,15 +251,13 @@ by clicking. Only these basics apply to you:
 
 ## Epic 2 — Accounts, Sign-Up, and Onboarding
 
-### E2-T1: Create a Coach account with email verification
+### E2-T1: Create a Coach account
 
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | On the welcome screen, tap **Create account**. | A **SELECT YOUR ROLE** screen with three choices: **Coach**, **Player**, **Team Manager**. |
 | 2 | Tap **Coach**, then tap **Continue**. | A **CREATE ACCOUNT** screen saying "Signing up as Coach". |
-| 3 | Enter a name, your *coach* email address, and a password (at least 6 characters). Tap **Create account**. | A **CHECK YOUR EMAIL** screen telling you a verification link was sent. |
-| 4 | Open your email inbox and click the verification link. | A confirmation that your email is verified. |
-| 5 | Return to the app, tap **Back to sign in**, and sign in with the email and password you just used. | You are let into the app and see the coach profile setup (next test). |
+| 3 | Enter a name, your *coach* email address, and a password (at least 6 characters). Tap **Create account**. | You enter the app immediately — **no** "check your email" step. The coach profile setup form appears (next test). |
 
 Also try: on step 3, enter a password shorter than 6 characters — the app should stop you.
 
@@ -268,7 +274,7 @@ Also try: on step 3, enter a password shorter than 6 characters — the app shou
 
 | Step | Do this | You should see |
 |---|---|---|
-| 1 | Sign out (Home → gear icon top-right → **Sign Out**), or use a second device/incognito window. Create a new account, this time choosing the **Player** role, using your *player* email. Verify the email and sign in. | Same sign-up flow as the coach. |
+| 1 | Sign out (Home → gear icon top-right → **Sign Out**), or use a second device/incognito window. Create a new account, this time choosing the **Player** role, using your *player* email. | Same sign-up flow as the coach — you land in the app right away (no email verification). |
 | 2 | Fill in the player profile: **age**, **position** (e.g. "Point Guard"), and optionally a photo. | The form saves without errors. |
 | 3 | At the plan screen, tap **Continue with Basic for free** (we save the trial test for Epic 4). | You move on to the player tour. |
 | 4 | Step through the player tour: Welcome → Your profile → Browse training content → Start your first drill → Track your progress → Join a team. | You can complete it **without** joining a team. The "Join a team" step is optional/skippable. |
@@ -278,7 +284,7 @@ Also try: on step 3, enter a password shorter than 6 characters — the app shou
 
 | Step | Do this | You should see |
 |---|---|---|
-| 1 | Sign out and create a third account, choosing **Team Manager**, with your *manager* email. Verify and sign in. | The manager profile form (asks about your experience managing teams). |
+| 1 | Sign out and create a third account, choosing **Team Manager**, with your *manager* email. | The manager profile form (asks about your experience managing teams) — no email verification step. |
 | 2 | Complete the profile. | You are required to **create a team** before you get into the main app (team creation details are tested in Epic 3, test E3-T1). |
 
 ### E2-T5: You stay signed in after closing the app
@@ -506,8 +512,8 @@ Use these accounts from earlier epics:
 
 | Step | Do this | You should see |
 |---|---|---|
-| 1 | As the same **Coach on Basic**, tap the **Schedule** tab. | The weekly calendar. |
-| 2 | Tap **+ Add Session**. | A **Feature Locked** pop-up saying chat/session creation requires **Advanced** (or similar). You do **not** reach the "NEW SESSION" form. |
+| 1 | As the same **Coach on Basic**, tap the **Schedule** tab. | The weekly calendar **and** a **+ Add Session** button at the bottom (coaches always see the button — Basic tier is blocked at tap time, not by hiding it). |
+| 2 | Tap **+ Add Session**. | A **Feature Locked** pop-up saying session creation requires **Advanced** (or similar). You do **not** reach the "NEW SESSION" form. |
 
 ### E5-T4: Coach on Advanced (or trial) can create content and sessions
 
@@ -623,6 +629,107 @@ This is a two-person or two-browser test (Admin dashboard + mobile app).
 
 ---
 
+## Epic 6 — Session Scheduling (STORY-6.1)
+
+Epic 6 covers creating, viewing, editing, and cancelling practice sessions on the **Schedule**
+tab. Run Epic 3 (team + roster) and Epic 4/5 (subscription tier) first.
+
+**Accounts needed**
+
+| Account | Setup |
+|---|---|
+| **Coach on Advanced** or **active trial** | Owns a team with at least one **active player** on the roster (Epic 3) |
+| **Coach on Basic** | Same as Epic 5 — for paywall regression |
+| **Player on Basic+** | Joined the coach's team and has at least one upcoming session assigned to them |
+| **Team Manager on Advanced** | Owns a team (Epic 3) — optional, for TM-only rules |
+
+**Before you start:** If Schedule ever showed a red **`session_load_failed`** error, ask a
+developer to run database migrations (`npm run supabase:deploy` locally). That error means
+the test environment schema is out of date.
+
+### E6-T1: Schedule tab loads without error (regression)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Advanced** or **active trial** (with a team from Epic 3). | Home screen. |
+| 2 | Tap the **Schedule** tab. | A weekly day selector (Sun–Sat) and either session cards or **No sessions scheduled**. |
+| 3 | Check for red error text on the screen. | **No** `session_load_failed` or other red error banner. |
+
+### E6-T2: Coach sees **+ Add Session** on Advanced/trial (regression)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Schedule** as **Coach on Advanced** or **active trial**. | **+ Add Session** dashed button at the bottom of the screen. |
+| 2 | Tap **+ Add Session**. | **NEW SESSION** form opens (no paywall). |
+
+### E6-T3: Create a team practice session
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **NEW SESSION**, enter a title (e.g. "Shooting Drills"). | Fields accept input. |
+| 2 | Pick **today's date** (or any future date) and a time. Set type to **Practice**. Select your **team** from the dropdown. | Team list includes the team you created in Epic 3. |
+| 3 | Tap **Create Session**. | Returns to Schedule; a card appears on the matching weekday with your title and time. |
+
+### E6-T4: Create a 1-on-1 session for a roster player
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Tap **+ Add Session** again. | **NEW SESSION** form. |
+| 2 | Set type to **1-on-1**. | **Player** dropdown appears (not Team). |
+| 3 | Select a player from your roster (Epic 3 manual add or invite). Fill title, date, and time. Tap **Create Session**. | Session card shows on Schedule with "Individual session" hint text. |
+
+Also try: if you have **no team**, the Player dropdown may be empty — you need a team roster
+before scheduling 1-on-1s in the current app.
+
+### E6-T5: Coach edits an existing session
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Tap a session card you created as the **Coach**. | **EDIT SESSION** screen (not "SESSION DETAILS"). |
+| 2 | Change the title. Tap **Save Session**. | Returns to Schedule with the updated title on the card. |
+
+### E6-T6: Coach cancels (deletes) a session
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Tap a session card → **EDIT SESSION**. | Edit form with **Cancel session** button at the bottom. |
+| 2 | Tap **Cancel session**. | Session disappears from Schedule (hard delete — not shown as "cancelled"). |
+
+### E6-T7: Player views session read-only (regression)
+
+Players must **view** assigned sessions but **not** edit or cancel them.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the **Player** who is on the coach's team (or the direct recipient of a 1-on-1). | — |
+| 2 | Tap **Schedule**. | Upcoming team or individual sessions visible (or empty if none assigned yet). |
+| 3 | Tap a session card. | Header says **SESSION DETAILS** — all fields are greyed out / not editable. |
+| 4 | Scroll the bottom of the screen. | **No** **Save Session** or **Cancel session** buttons. |
+
+Fail if you see **EDIT SESSION** or can change fields as a player.
+
+### E6-T8: Player cannot add sessions
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Player**, stay on **Schedule**. | **No** **+ Add Session** button anywhere on the screen. |
+
+### E6-T9: Team Manager Advanced+ — team sessions only
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Team Manager on Advanced** (upgrade via Epic 4 if needed). Open **Schedule** → **+ Add Session**. | **NEW SESSION** form. |
+| 2 | Open the **Session type** dropdown. | **Practice** and **Film review** available; **1-on-1** is **not** offered (team managers schedule for the roster only). |
+| 3 | Create a **Practice** session for your team. | Session appears on Schedule. |
+
+### Not testable by clicking (for awareness only)
+
+- **Push notifications** on create/edit/cancel are enqueued in the backend but not delivered
+  in MVP (STORY-6.3). Do not expect a phone notification during these tests.
+- **Attaching drills/videos to sessions** is STORY-6.2 — out of scope for Epic 6.
+
+---
+
 <div class="page-break"></div>
 
 ## Part 3 — Quick Results Sheet
@@ -633,7 +740,7 @@ Print this page and check off results as you go.
 |---|---|---|
 | E1-T1 App launches | | |
 | E1-T2 Keyboard/status bar | | |
-| E2-T1 Coach sign-up + email verification | | |
+| E2-T1 Coach sign-up | | |
 | E2-T2 Coach profile + tour | | |
 | E2-T3 Player sign-up + tour | | |
 | E2-T4 Team Manager sign-up | | |
@@ -670,6 +777,15 @@ Print this page and check off results as you go.
 | E5-T12 Admin change tier requirement | | |
 | E5-T13 Admin change reflects on mobile | | |
 | E5-T14 Admin free content catalog | | |
+| E6-T1 Schedule loads without error | | |
+| E6-T2 Coach sees + Add Session (Advanced/trial) | | |
+| E6-T3 Create team practice session | | |
+| E6-T4 Create 1-on-1 roster session | | |
+| E6-T5 Coach edits session | | |
+| E6-T6 Coach cancels session | | |
+| E6-T7 Player read-only session details | | |
+| E6-T8 Player no + Add Session | | |
+| E6-T9 Team Manager team-only session types | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

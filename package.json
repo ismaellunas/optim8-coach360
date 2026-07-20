@@ -52,6 +52,7 @@
     "db:types": "mkdir -p apps/mobile/src/types && supabase gen types typescript --local --schema public > apps/mobile/src/types/database.ts",
     "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",
     "docs:manifest": "node scripts/generate-docs-manifest.mjs",
+    "docs:test-pack": "node scripts/generate-test-pack-html.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

@@ -121,3 +121,20 @@ ul, ol {
     text-decoration: none;
   }
 }
+
+@media screen {
+  body {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+    background: #f7f7f7;
+  }
+
+  table {
+    background: #fff;
+  }
+
+  hr {
+    margin: 32px 0;
+  }
+}

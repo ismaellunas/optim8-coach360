@@ -58,6 +58,13 @@
       background: var(--surface-2);
     }
     .header-link:hover { border-color: var(--accent); }
+    .header-links {
+      display: flex;
+      flex-shrink: 0;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
     header p { color: var(--muted); font-size: 0.875rem; margin-top: 0.25rem; }
     .stats {
       display: flex;
@@ -324,7 +331,10 @@
   <header>
     <div class="header-top">
       <h1>Coach360 Development Tracker</h1>
-      <a class="header-link" href="viewer.html">Documentation</a>
+      <div class="header-links">
+        <a class="header-link" href="Coach360-Manual-Test-Pack.html">Manual Test Pack</a>
+        <a class="header-link" href="viewer.html">Documentation</a>
+      </div>
     </div>
     <p>JIRA-style board — canonical data in <code>&lt;script id="tracker-data"&gt;</code></p>
     <div class="stats" id="stats"></div>
@@ -337,7 +347,7 @@
     <div id="board"></div>
   </main>
   <footer>
-    Coach360 · 172 h planning baseline · Source: <code>docs/</code> · Tracker v1.0 · <a href="viewer.html" style="color:var(--accent);text-decoration:none">Docs</a>
+    Coach360 · 172 h planning baseline · Source: <code>docs/</code> · Tracker v1.0 · <a href="Coach360-Manual-Test-Pack.html" style="color:var(--accent);text-decoration:none">Manual Test Pack</a> · <a href="viewer.html" style="color:var(--accent);text-decoration:none">Docs</a>
   </footer>
 
   <script id="tracker-data" type="application/json">{
