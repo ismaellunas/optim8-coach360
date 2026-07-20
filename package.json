@@ -11,6 +11,7 @@
     "dev": "npm run dev -w @coach360/mobile",
     "dev:mobile": "npm run dev -w @coach360/mobile",
     "functions:serve": "supabase functions serve --env-file .env",
+    "supabase:deploy": "supabase db reset && supabase db push && supabase functions deploy",
     "dev:admin": "npm run dev -w @coach360/admin",
     "seed:admin": "node scripts/seed-admin-user.mjs",
     "expire:trials": "node scripts/expire-all-trials.mjs",
@@ -51,6 +52,7 @@
     "db:types": "mkdir -p apps/mobile/src/types && supabase gen types typescript --local --schema public > apps/mobile/src/types/database.ts",
     "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",
     "docs:manifest": "node scripts/generate-docs-manifest.mjs",
+    "docs:test-pack": "node scripts/generate-test-pack-html.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

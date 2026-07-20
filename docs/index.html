@@ -58,6 +58,13 @@
       background: var(--surface-2);
     }
     .header-link:hover { border-color: var(--accent); }
+    .header-links {
+      display: flex;
+      flex-shrink: 0;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
     header p { color: var(--muted); font-size: 0.875rem; margin-top: 0.25rem; }
     .stats {
       display: flex;
@@ -324,7 +331,10 @@
   <header>
     <div class="header-top">
       <h1>Coach360 Development Tracker</h1>
-      <a class="header-link" href="viewer.html">Documentation</a>
+      <div class="header-links">
+        <a class="header-link" href="Coach360-Manual-Test-Pack.html">Manual Test Pack</a>
+        <a class="header-link" href="viewer.html">Documentation</a>
+      </div>
     </div>
     <p>JIRA-style board — canonical data in <code>&lt;script id="tracker-data"&gt;</code></p>
     <div class="stats" id="stats"></div>
@@ -337,7 +347,7 @@
     <div id="board"></div>
   </main>
   <footer>
-    Coach360 · 172 h planning baseline · Source: <code>docs/</code> · Tracker v1.0 · <a href="viewer.html" style="color:var(--accent);text-decoration:none">Docs</a>
+    Coach360 · 172 h planning baseline · Source: <code>docs/</code> · Tracker v1.0 · <a href="Coach360-Manual-Test-Pack.html" style="color:var(--accent);text-decoration:none">Manual Test Pack</a> · <a href="viewer.html" style="color:var(--accent);text-decoration:none">Docs</a>
   </footer>
 
   <script id="tracker-data" type="application/json">{
@@ -1907,40 +1917,64 @@
         {
           "id": "AC-1",
           "statement": "Coach creates session with date, time, and session type",
-          "test": null
+          "test": "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC1_coach_creates_session_with_datetime_and_type"
         },
         {
           "id": "AC-2",
           "statement": "Team Manager at Advanced+ can create team sessions",
-          "test": null
+          "test": "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC2_team_manager_advanced_creates_team_session"
         },
         {
           "id": "AC-3",
           "statement": "Session types include at minimum: practice, film review, 1-on-1",
-          "test": null
+          "test": "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC3_mvp_session_types_available"
         },
         {
           "id": "AC-4",
           "statement": "Sessions persist to Supabase with team or individual recipient linkage",
-          "test": null
+          "test": "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC4_session_persists_with_recipient_linkage"
         },
         {
           "id": "AC-5",
           "statement": "Edit and cancel flows update notifications",
-          "test": null
+          "test": "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC5_edit_cancel_enqueue_notifications"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC1_coach_creates_session_with_datetime_and_type",
+          "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC2_team_manager_advanced_creates_team_session",
+          "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC3_mvp_session_types_available",
+          "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC4_session_persists_with_recipient_linkage",
+          "tests/sessions/story-6.1.test.js::test_STORY_6_1_AC5_edit_cancel_enqueue_notifications"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "apps/mobile/src/types/database.ts",
+          "packages/api/src/adapters/console/console-notification-repository.ts",
+          "packages/api/src/adapters/rest/rest-session-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/session-mapper.ts",
+          "packages/api/src/adapters/supabase/supabase-session-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "packages/api/src/ports/notification-repository.ts",
+          "packages/api/src/ports/session-repository.ts",
+          "packages/domain/src/index.ts",
+          "packages/domain/src/session/access.ts",
+          "packages/domain/src/session/schema.ts",
+          "packages/domain/src/session/types.ts",
+          "packages/domain/src/subscription/paywall.ts",
+          "supabase/functions/_shared/rbac.ts",
+          "supabase/migrations/20260720150000_session_recipients_status.sql",
+          "supabase/migrations/20260720150100_session_team_manager_rbac.sql",
+          "tests/sessions/story-6.1.test.js"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_6_1"
       },
-      "status": "BLOCKED",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Blocked pending OQ-3.1 (session runtime) and OQ-3.2 (scheduling mechanics)."
+      "status": "DONE",
+      "last_updated": "2026-07-20T00:00:00Z",
+      "audit_notes": "Implemented calendar-only session scheduling with team-manager gating, recipient linkage, and passing STORY_6_1 tests."
     },
     {
       "id": "STORY-6.2",

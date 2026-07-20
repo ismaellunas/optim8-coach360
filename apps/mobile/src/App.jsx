@@ -7,6 +7,7 @@ import { CoachOnboardingGate } from "./features/onboarding/ui/CoachOnboardingGat
 import { PlayerOnboardingGate } from "./features/onboarding/ui/PlayerOnboardingGate.jsx";
 import { TeamManagerTeamGate } from "./features/team/ui/TeamManagerTeamGate.jsx";
 import { RosterScreen } from "./features/roster/ui/RosterScreen.jsx";
+import { ScheduleScreen } from "./features/schedule/ui/ScheduleScreen.jsx";
 import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
 import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
@@ -303,56 +304,6 @@ function HomeScreen({ user, go, tryA }) {
           <Btn primary full onClick={function() { go("create-content"); }}>+ Create Content</Btn>
         </div>
       )}
-    </ScreenContainer>
-  );
-}
-
-/* ── Schedule ── */
-function ScheduleScreen({ user, tryA }) {
-  var _d = useState(2), sel = _d[0], setSel = _d[1];
-  var _c = useState(false), creating = _c[0], setCreating = _c[1];
-  var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  var dates = [7, 8, 9, 10, 11, 12, 13];
-  var sessions = { 0: [{ ti: "4 PM", t: "Ball Handling", tm: "U12 Wolves" }], 1: [{ ti: "10 AM", t: "Film Study", tm: "U16 Hawks" }], 2: [{ ti: "9 AM", t: "Shooting Clinic", tm: "U14 Eagles" }, { ti: "4 PM", t: "Scrimmage", tm: "U18 Elite" }], 3: [{ ti: "3:30 PM", t: "Defense Drills", tm: "U14 Eagles" }], 5: [{ ti: "11 AM", t: "Game Day", tm: "U14 Eagles" }] };
-
-  if (creating) {
-    return (<ScreenContainer><PageHeader title="NEW SESSION" onBack={function() { setCreating(false); }} /><Field label="Session Title" placeholder="e.g. Shooting Drills" /><Field label="Date and Time" placeholder="Select" /><Field label="Team" placeholder="Select team" />
-      <div className="mb-2 font-body text-xs text-coach-t3">ADD CONTENT</div>
-      <div className="mb-5 flex gap-2">{["Drills", "Video", "Strategy"].map(function(t) { return <Btn key={t} small>{t}</Btn>; })}</div>
-      <Btn primary full onClick={function() { setCreating(false); }}>Create and Share</Btn>
-    </ScreenContainer>);
-  }
-
-  var dayData = sessions[sel] || [];
-  return (
-    <ScreenContainer>
-      <PageHeader title="SCHEDULE" user={user} />
-      <div className="mb-5 flex gap-1.5">
-        {days.map(function(d, i) {
-          return (
-            <div
-              key={i}
-              onClick={function() { setSel(i); }}
-              className={`flex-1 cursor-pointer rounded-[14px] border px-0 py-2.5 text-center ${sel === i ? "border-coach-orange bg-coach-orange" : "border-coach-border bg-coach-card"}`}
-            >
-              <div className={`font-body text-[10px] uppercase ${sel === i ? "text-white/70" : "text-coach-t3"}`}>{d}</div>
-              <div className={`mt-0.5 font-display text-lg font-bold ${sel === i ? "text-white" : "text-coach-t1"}`}>{dates[i]}</div>
-            </div>
-          );
-        })}
-      </div>
-      {dayData.length === 0 ? (
-        <div className="px-10 py-10 text-center font-body text-coach-t3">No sessions scheduled</div>
-      ) : dayData.map(function(s, i) {
-        return (
-          <Card key={i} className="border-l-[3px] border-l-coach-orange">
-            <div className="mb-1 font-body text-xs font-semibold text-coach-orange">{s.ti}</div>
-            <div className="font-display text-lg font-bold text-coach-t1">{s.t}</div>
-            <div className="mt-1 font-body text-xs text-coach-t3">{s.tm}</div>
-          </Card>
-        );
-      })}
-      {user.role === "coach" && <DashedBtn onClick={function() { tryA("createSession", function() { setCreating(true); }); }}>+ Add Session</DashedBtn>}
     </ScreenContainer>
   );
 }
@@ -901,7 +852,6 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     try {
       await repos.subscriptions.activateTrial(session.user.id);
       await subscriptionState.refreshSubscription();
-      await refreshFeatureFlags();
       setPaywall(null);
     } catch (cause) {
       setPaywallError(cause instanceof Error ? cause.message : "trial_activation_failed");
@@ -922,7 +872,6 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       if (subscription && subscription.stripeSubscriptionId) {
         await repos.billing.changeSubscriptionTier({ tier: tierId });
         await subscriptionState.refreshSubscription();
-        await refreshFeatureFlags();
       } else {
         // No Stripe subscription yet (trial / deferred Basic) — start checkout.
         var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
