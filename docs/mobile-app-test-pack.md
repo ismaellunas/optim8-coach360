@@ -146,7 +146,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
-8. **Epic 7** — Player session content + drill progress + coach review (12 tests)
+8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -807,12 +807,14 @@ Only if you have (or the team can set) a **player account below Basic** — for 
 
 <div class="page-break"></div>
 
-## Epic 7 — Player Session Content & Progress (STORY-7.1, STORY-7.2, STORY-7.3)
+## Epic 7 — Player Session Content & Progress (STORY-7.1, STORY-7.2, STORY-7.3, STORY-7.4)
 
 Epic 7 covers the **player** experience after opening a shared session: viewing attached drills,
 videos, and packages, playing video content, marking items complete, logging drill reps/time, and
 tracking progress on profile and the **Progress** tab. It also covers the **coach** progress review
 dashboard: filtering drill completions, sending feedback via direct message, and assigning corrective drills.
+It also covers the player **Home** dashboard: the real upcoming-session summary, the real progress
+card (tier-gated the same way as the **Progress** tab), and the **Objectives** card gated to Pro.
 
 **Accounts needed:** **Player on Basic+** on a coach's roster (or 1-on-1 recipient), plus a **Coach
 on Advanced** (or active trial) who has created a session with attached content (use **E6-T10** /
@@ -940,9 +942,42 @@ Coach must be **Advanced+** (chat tier).
 | 2 | Sign in as that **Player**. Tap **Schedule** and check upcoming sessions. | New individual session with the corrective drill attached. |
 | 3 | As **Coach**, tap **Share via schedule** on another completion (optional). | **Schedule** opens with a **NEW SESSION** form prefilled for that player and drill. |
 
+### E7-T13: Player Home shows real schedule summary and progress (STORY-7.4 AC-1)
+
+Use **Player on Basic+** with at least one upcoming session (**E6-T10**-style) and at least one
+logged drill (**E7-T5**).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the player. Land on **Home**. | **Upcoming** section shows your real next session (title, individual/team, day and time) — not a placeholder. |
+| 2 | If you have no upcoming sessions, check the same section. | **No upcoming sessions yet.** message instead of a fake card. |
+| 3 | Scroll to **Your progress**. | Card shows your real **drills** count (matches **Progress** tab / **Profile**). |
+
+### E7-T14: Home progress and Objectives gated to Pro (STORY-7.4 AC-2)
+
+Use **Player on Pro** for step 1, then **Player on Basic or Advanced** (not Pro) for step 2.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Player on Pro**. On **Home**, check **Your progress**. | Drill count **and** practice-minutes stat both shown (full dashboard). |
+| 2 | Check the **Objectives** section. | Real objectives list, no lock icon; label reads **Manage**. |
+| 3 | Sign in as a player **below Pro**. Check **Objectives**. | Locked card with **Upgrade to Pro for objectives**; label reads **Pro**. |
+
+### E7-T15: Basic tier partial dashboard on Home (STORY-7.4 AC-3)
+
+Use **Player on Basic** (not trial, not Pro).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Player on Basic**. On **Home**, check **Your progress**. | Drill count only — **no** practice-minutes stat. |
+| 2 | Read the note under the drill count. | **Basic tier — upgrade to Pro for the full dashboard.** |
+
 ### Not testable by clicking (for awareness only)
 
 - **Mux CDN / coach-uploaded video URLs** ship in **STORY-9.3**; MVP uses demo playback URLs.
+- **STORY-7.4 AC-4** (6-tab profile scope confirmed against MVP) is a product-scope decision, not a
+  clickable behavior — the shipped app intentionally has Profile + Progress + Objectives, not a
+  6-tab deep-dive profile.
 
 ---
 
@@ -1021,6 +1056,9 @@ Print this page and check off results as you go.
 | E7-T10 Filter completions player/date | | |
 | E7-T11 Coach DM feedback | | |
 | E7-T12 Assign corrective drill | | |
+| E7-T13 Home real schedule + progress | | |
+| E7-T14 Home progress + Objectives gated Pro | | |
+| E7-T15 Basic partial dashboard on Home | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 
