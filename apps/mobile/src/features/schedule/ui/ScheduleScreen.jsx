@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
   SESSION_MVP_TYPES,
+  attachContentRef,
   canCreateIndividualSession,
   canEditSession,
+  mapSessionValidationMessage,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
@@ -42,6 +44,19 @@ function sessionTypeLabel(type) {
   return SESSION_MVP_TYPES.find((entry) => entry.value === type)?.label ?? type;
 }
 
+function contentKindLabel(kind) {
+  if (kind === 'package') {
+    return 'Package';
+  }
+  if (kind === 'video') {
+    return 'Video';
+  }
+  if (kind === 'strategy') {
+    return 'Strategy';
+  }
+  return 'Drill';
+}
+
 function uniqueTeams(teams) {
   const seen = new Set();
   return teams.filter((team) => {
@@ -73,6 +88,8 @@ function SessionForm({
   initialSession,
   teams,
   players,
+  libraryItems,
+  purchasedItems,
   canCreateIndividual,
   canCancel,
   saving,
@@ -95,6 +112,13 @@ function SessionForm({
   const [teamId, setTeamId] = useState(initialSession?.teamId ?? '');
   const [playerId, setPlayerId] = useState(initialSession?.playerId ?? '');
   const [notes, setNotes] = useState(initialSession?.notes ?? '');
+  const [contentRefs, setContentRefs] = useState(() =>
+    Array.isArray(initialSession?.contentRefs) ? [...initialSession.contentRefs] : [],
+  );
+  const [showContentPicker, setShowContentPicker] = useState(false);
+  const [pickerTab, setPickerTab] = useState('library');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState(null);
 
   const effectiveSessionType =
     !canCreateIndividual && sessionType === 'individual' ? 'practice' : sessionType;
@@ -103,8 +127,66 @@ function SessionForm({
       ? ''
       : teamId || teams[0]?.id || '';
 
+  const orderedContent = useMemo(
+    () => [...contentRefs].sort((a, b) => a.sortOrder - b.sortOrder),
+    [contentRefs],
+  );
+
+  const displayError = formError || error;
+
+  function fieldClass(hasError) {
+    return `box-border w-full rounded-xl border px-4 py-3.5 font-body text-base text-coach-t1 outline-none ${hasError ? 'border-coach-red' : 'border-coach-border'} bg-coach-card`;
+  }
+
+  function handleAttachItem(item) {
+    setContentRefs((current) =>
+      attachContentRef(current, {
+        kind: item.kind,
+        source: item.source,
+        id: item.id,
+        title: item.title,
+      }),
+    );
+    setShowContentPicker(false);
+  }
+
+  function handleRemoveContent(sortOrder) {
+    setContentRefs((current) =>
+      current
+        .filter((ref) => ref.sortOrder !== sortOrder)
+        .map((ref, index) => ({ ...ref, sortOrder: index })),
+    );
+  }
+
+  function validateRequiredFields() {
+    const nextErrors = {};
+    if (!title.trim()) {
+      nextErrors.title = 'Enter a session title.';
+    }
+    if (!date || !time) {
+      nextErrors.scheduledAt = 'Choose a date and time.';
+    }
+    if (effectiveSessionType === 'individual') {
+      if (!playerId) {
+        nextErrors.playerId = mapSessionValidationMessage('individual_session_requires_player');
+      }
+    } else if (!effectiveTeamId) {
+      nextErrors.teamId = mapSessionValidationMessage('team_session_requires_team');
+    }
+    setFieldErrors(nextErrors);
+    const messages = Object.values(nextErrors);
+    return messages.length > 0 ? messages.join(' ') : null;
+  }
+
   function handleSubmit(event) {
     event.preventDefault();
+    const validationMessage = validateRequiredFields();
+    if (validationMessage) {
+      setFormError(validationMessage);
+      return;
+    }
+    setFormError(null);
+    setFieldErrors({});
     onSubmit({
       title,
       notes,
@@ -113,6 +195,7 @@ function SessionForm({
       sessionType: effectiveSessionType,
       teamId: effectiveSessionType === 'individual' ? null : effectiveTeamId || null,
       playerId: effectiveSessionType === 'individual' ? playerId || null : null,
+      contentRefs: orderedContent,
     });
   }
 
@@ -121,6 +204,63 @@ function SessionForm({
     : mode === 'edit'
       ? 'EDIT SESSION'
       : 'NEW SESSION';
+
+  if (showContentPicker && !readOnly) {
+    const pickerItems = pickerTab === 'library' ? libraryItems : purchasedItems;
+    return (
+      <ScreenContainer>
+        <PageHeader
+          title="ADD CONTENT"
+          onBack={function () {
+            setShowContentPicker(false);
+          }}
+        />
+        <div className="mb-4 flex gap-2">
+          <button
+            type="button"
+            onClick={function () {
+              setPickerTab('library');
+            }}
+            className={`flex-1 cursor-pointer rounded-xl border px-3 py-2.5 font-display text-xs font-semibold uppercase tracking-wider ${pickerTab === 'library' ? 'border-coach-orange bg-coach-orange text-white' : 'border-coach-border bg-coach-card text-coach-t2'}`}
+          >
+            Library
+          </button>
+          <button
+            type="button"
+            onClick={function () {
+              setPickerTab('purchased');
+            }}
+            className={`flex-1 cursor-pointer rounded-xl border px-3 py-2.5 font-display text-xs font-semibold uppercase tracking-wider ${pickerTab === 'purchased' ? 'border-coach-orange bg-coach-orange text-white' : 'border-coach-border bg-coach-card text-coach-t2'}`}
+          >
+            Purchased
+          </button>
+        </div>
+        {pickerItems.length === 0 ? (
+          <div className="px-6 py-10 text-center font-body text-coach-t3">
+            {pickerTab === 'library' ? 'No library items yet' : 'No purchased packages yet'}
+          </div>
+        ) : (
+          pickerItems.map(function (item) {
+            return (
+              <Card
+                key={`${item.source}-${item.id}`}
+                onClick={function () {
+                  handleAttachItem(item);
+                }}
+                className="cursor-pointer"
+              >
+                <div className="mb-1 font-body text-xs font-semibold uppercase text-coach-orange">
+                  {contentKindLabel(item.kind)}
+                  {item.kind === 'package' ? ' · single unit' : ''}
+                </div>
+                <div className="font-display text-base font-bold text-coach-t1">{item.title}</div>
+              </Card>
+            );
+          })
+        )}
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>
@@ -137,10 +277,19 @@ function SessionForm({
           value={title}
           readOnly={readOnly}
           disabled={readOnly}
-          onChange={(event) => setTitle(event.target.value)}
+          onChange={(event) => {
+            setTitle(event.target.value);
+            setFieldErrors((current) => ({ ...current, title: undefined }));
+          }}
           placeholder="e.g. Shooting Drills"
-          className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+          aria-invalid={Boolean(fieldErrors.title)}
+          className={`mb-1 ${fieldClass(Boolean(fieldErrors.title))}`}
         />
+        {fieldErrors.title ? (
+          <p className="mb-3 font-body text-xs text-coach-red">{fieldErrors.title}</p>
+        ) : (
+          <div className="mb-3.5" />
+        )}
 
         <div className="mb-3.5 grid grid-cols-2 gap-3">
           <div>
@@ -153,8 +302,12 @@ function SessionForm({
               value={date}
               readOnly={readOnly}
               disabled={readOnly}
-              onChange={(event) => setDate(event.target.value)}
-              className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+              onChange={(event) => {
+                setDate(event.target.value);
+                setFieldErrors((current) => ({ ...current, scheduledAt: undefined }));
+              }}
+              aria-invalid={Boolean(fieldErrors.scheduledAt)}
+              className={fieldClass(Boolean(fieldErrors.scheduledAt))}
             />
           </div>
           <div>
@@ -167,11 +320,18 @@ function SessionForm({
               value={time}
               readOnly={readOnly}
               disabled={readOnly}
-              onChange={(event) => setTime(event.target.value)}
-              className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+              onChange={(event) => {
+                setTime(event.target.value);
+                setFieldErrors((current) => ({ ...current, scheduledAt: undefined }));
+              }}
+              aria-invalid={Boolean(fieldErrors.scheduledAt)}
+              className={fieldClass(Boolean(fieldErrors.scheduledAt))}
             />
           </div>
         </div>
+        {fieldErrors.scheduledAt ? (
+          <p className="-mt-2 mb-3.5 font-body text-xs text-coach-red">{fieldErrors.scheduledAt}</p>
+        ) : null}
 
         <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-type">
           Session type
@@ -181,7 +341,7 @@ function SessionForm({
           value={effectiveSessionType}
           disabled={readOnly}
           onChange={(event) => setSessionType(event.target.value)}
-          className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+          className={`mb-3.5 ${fieldClass(false)}`}
         >
           {SESSION_MVP_TYPES
             .filter((entry) => canCreateIndividual || entry.value !== 'individual')
@@ -201,8 +361,12 @@ function SessionForm({
               id="session-player"
               value={playerId}
               disabled={readOnly}
-              onChange={(event) => setPlayerId(event.target.value)}
-              className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+              onChange={(event) => {
+                setPlayerId(event.target.value);
+                setFieldErrors((current) => ({ ...current, playerId: undefined }));
+              }}
+              aria-invalid={Boolean(fieldErrors.playerId)}
+              className={`mb-1 ${fieldClass(Boolean(fieldErrors.playerId))}`}
             >
               <option value="">Select player</option>
               {players.map((player) => (
@@ -211,6 +375,11 @@ function SessionForm({
                 </option>
               ))}
             </select>
+            {fieldErrors.playerId ? (
+              <p className="mb-3.5 font-body text-xs text-coach-red">{fieldErrors.playerId}</p>
+            ) : (
+              <div className="mb-3.5" />
+            )}
           </>
         ) : (
           <>
@@ -221,8 +390,12 @@ function SessionForm({
               id="session-team"
               value={effectiveTeamId}
               disabled={readOnly}
-              onChange={(event) => setTeamId(event.target.value)}
-              className="mb-3.5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+              onChange={(event) => {
+                setTeamId(event.target.value);
+                setFieldErrors((current) => ({ ...current, teamId: undefined }));
+              }}
+              aria-invalid={Boolean(fieldErrors.teamId)}
+              className={`mb-1 ${fieldClass(Boolean(fieldErrors.teamId))}`}
             >
               <option value="">Select team</option>
               {teams.map((team) => (
@@ -231,6 +404,11 @@ function SessionForm({
                 </option>
               ))}
             </select>
+            {fieldErrors.teamId ? (
+              <p className="mb-3.5 font-body text-xs text-coach-red">{fieldErrors.teamId}</p>
+            ) : (
+              <div className="mb-3.5" />
+            )}
           </>
         )}
 
@@ -247,13 +425,61 @@ function SessionForm({
           className="mb-4 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
         />
 
-        {error ? <p className="mb-3 font-body text-sm text-coach-red">{error}</p> : null}
+        <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Session content</div>
+        <div data-testid="session-content-list" className="mb-3.5">
+          {orderedContent.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-coach-border px-4 py-5 text-center font-body text-sm text-coach-t3">
+              No content attached
+            </div>
+          ) : (
+            orderedContent.map(function (ref, index) {
+              return (
+                <Card key={`${ref.source}-${ref.id}-${ref.sortOrder}`} className="mb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="mb-1 font-body text-xs font-semibold text-coach-orange">
+                        {index + 1}. {contentKindLabel(ref.kind)}
+                        {ref.source === 'purchase' ? ' · Purchased' : ' · Library'}
+                        {ref.kind === 'package' ? ' · single unit' : ''}
+                      </div>
+                      <div className="font-display text-base font-bold text-coach-t1">{ref.title}</div>
+                    </div>
+                    {!readOnly ? (
+                      <button
+                        type="button"
+                        onClick={function () {
+                          handleRemoveContent(ref.sortOrder);
+                        }}
+                        className="cursor-pointer border-0 bg-transparent font-body text-xs text-coach-red"
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                </Card>
+              );
+            })
+          )}
+        </div>
+        {!readOnly ? (
+          <DashedBtn
+            onClick={function () {
+              setShowContentPicker(true);
+            }}
+          >
+            + Add content
+          </DashedBtn>
+        ) : null}
+
+        {displayError ? <p className="mb-3 mt-3 font-body text-sm text-coach-red">{displayError}</p> : null}
 
         {!readOnly ? (
           <>
-            <Btn primary full type="submit" disabled={saving}>
-              {saving ? 'Saving…' : mode === 'edit' ? 'Save Session' : 'Create Session'}
-            </Btn>
+            <div className="mt-3">
+              <Btn primary full type="submit" disabled={saving}>
+                {saving ? 'Saving…' : mode === 'edit' ? 'Save Session' : 'Create Session'}
+              </Btn>
+            </div>
             {canCancel ? (
               <button
                 type="button"
@@ -284,6 +510,8 @@ export function ScheduleScreen({ user, tryA }) {
   const [sessions, setSessions] = useState([]);
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
+  const [libraryItems, setLibraryItems] = useState([]);
+  const [purchasedItems, setPurchasedItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -306,6 +534,8 @@ export function ScheduleScreen({ user, tryA }) {
         setSessions([]);
         setTeams([]);
         setPlayers([]);
+        setLibraryItems([]);
+        setPurchasedItems([]);
         setLoading(false);
         return;
       }
@@ -313,14 +543,18 @@ export function ScheduleScreen({ user, tryA }) {
       setLoading(true);
       setError(null);
       try {
-        const [sessionRows, ownedTeams, memberTeams] = await Promise.all([
+        const [sessionRows, ownedTeams, memberTeams, libraryRows, purchaseRows] = await Promise.all([
           repos.sessions.listForUser(userId),
           repos.teams.listForUser(userId),
           appRole === 'team_manager' ? repos.rosters.listMemberTeams(userId) : Promise.resolve([]),
+          repos.library.listCoachLibrary(userId),
+          repos.library.listPurchasedContent(userId),
         ]);
         const nextTeams = uniqueTeams([...(ownedTeams ?? []), ...(memberTeams ?? [])]);
         setSessions(sessionRows.filter((entry) => entry.status !== 'cancelled'));
         setTeams(nextTeams);
+        setLibraryItems(libraryRows ?? []);
+        setPurchasedItems(purchaseRows ?? []);
 
         if (nextTeams.length > 0) {
           const rosterLists = await Promise.all(
@@ -350,11 +584,13 @@ export function ScheduleScreen({ user, tryA }) {
         setSessions([]);
         setTeams([]);
         setPlayers([]);
+        setLibraryItems([]);
+        setPurchasedItems([]);
       } finally {
         setLoading(false);
       }
     },
-    [appRole, repos.rosters, repos.sessions, repos.teams, userId],
+    [appRole, repos.library, repos.rosters, repos.sessions, repos.teams, userId],
   );
 
   useEffect(
@@ -430,6 +666,8 @@ export function ScheduleScreen({ user, tryA }) {
         initialSession={activeSession}
         teams={teams}
         players={players}
+        libraryItems={libraryItems}
+        purchasedItems={purchasedItems}
         canCreateIndividual={canCreateIndividual}
         canCancel={Boolean(editingSession) && !isReadOnly}
         saving={saving}

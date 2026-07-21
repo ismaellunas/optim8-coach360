@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { sessionContentRefsSchema } from './content-refs.js';
 
 export const sessionTypeSchema = z.enum(['practice', 'film', 'individual']);
 export const sessionStatusSchema = z.enum(['scheduled', 'cancelled']);
@@ -15,6 +16,7 @@ export const sessionSchema = z
     durationMinutes: z.number().int().min(1),
     sessionType: sessionTypeSchema,
     status: sessionStatusSchema,
+    contentRefs: sessionContentRefsSchema.default([]),
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),
   })
@@ -66,6 +68,7 @@ export const sessionInputSchema = z
     sessionType: sessionTypeSchema,
     teamId: z.string().uuid().nullable().optional(),
     playerId: z.string().uuid().nullable().optional(),
+    contentRefs: sessionContentRefsSchema.optional().default([]),
   })
   .superRefine((data, ctx) => {
     const hasTeam = Boolean(data.teamId);

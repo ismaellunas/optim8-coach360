@@ -159,7 +159,7 @@ draft → pending_review → approved | rejected → published (boolean)
 ### Path B — Session from schedule (Flow 3)
 
 1. Coach creates **session** (date, time, type)
-2. Coach **adds content** from library, marketplace purchase, or new items (TBD — Stakeholder Q 3.3)
+2. Coach **adds content** from library and marketplace purchases (Stakeholder Q 3.3 — both; creating new items stays in Flow 12)
 3. Assign recipients → notify
 
 ### Path C — Marketplace purchase (Flow 4)
@@ -168,7 +168,7 @@ draft → pending_review → approved | rejected → published (boolean)
 2. Content **drips** per schedule (Flow 14)
 3. Coach may **redistribute** purchased content to team (Advanced+)
 
-**Gap:** Session runtime (in-session experience vs calendar-only) is undefined — Stakeholder Q **3.1**.
+**MVP decision:** Session runtime is calendar-only (Stakeholder Q **3.1** resolved 2026-07-21). No live run-through, timers, or check-ins.
 
 ---
 

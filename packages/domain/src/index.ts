@@ -211,12 +211,30 @@ export {
   type SessionInput,
 } from './session/schema.js';
 export {
+  sessionContentKindSchema,
+  sessionContentSourceSchema,
+  sessionContentRefSchema,
+  sessionContentRefsSchema,
+  normalizeContentRefs,
+  attachContentRef,
+  type SessionContentKind,
+  type SessionContentSource,
+  type SessionContentRef,
+} from './session/content-refs.js';
+export {
   canCreateSession,
   canCreateTeamSession,
   canCreateIndividualSession,
   canEditSession,
 } from './session/access.js';
-export { SESSION_MVP_TYPES } from './session/types.js';
+export {
+  SESSION_MVP_TYPES,
+} from './session/types.js';
+export {
+  mapSessionValidationMessage,
+  formatSessionValidationError,
+  looksLikeZodIssueDump,
+} from './session/messages.js';
 export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,

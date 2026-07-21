@@ -198,7 +198,7 @@ describe('STORY_6_1 regression — manual QA bugs from Epic 6', () => {
     expect(mapper).toMatch(/status: 'scheduled'/);
     expect(mapper).not.toMatch(/session_type, status, created_at/);
     expect(mapper).toMatch(
-      /session_type, created_at, updated_at/,
+      /session_type(?:, content_refs)?, created_at, updated_at/,
     );
 
     const repo = readFileSync(REPO_PATH, 'utf8');

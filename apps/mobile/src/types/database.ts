@@ -203,6 +203,38 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_library_items: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          owner_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          owner_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          owner_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_library_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchases: {
         Row: {
           amount_cents: number

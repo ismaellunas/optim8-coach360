@@ -1,26 +1,28 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { sessionInputSchema, type SessionInput } from '@coach360/domain';
+import {
+  normalizeContentRefs,
+  sessionInputSchema,
+  type SessionInput,
+} from '@coach360/domain';
 import type { SessionRepository } from '../../ports/session-repository.js';
+import { mapSessionError } from './map-session-error.js';
 import { mapSessionRow, SESSION_SELECT } from './mappers/session-mapper.js';
 
 function mapSessionInsert(input: SessionInput) {
-  const parsed = sessionInputSchema.parse(input);
-  return {
-    team_id: parsed.teamId ?? null,
-    player_id: parsed.playerId ?? null,
-    title: parsed.title,
-    notes: parsed.notes ?? null,
-    scheduled_at: parsed.scheduledAt,
-    duration_minutes: parsed.durationMinutes,
-    session_type: parsed.sessionType,
-  };
-}
-
-function mapSessionError(error: unknown, action: string): Error {
-  if (error instanceof Error) {
-    return new Error(`session_${action}_failed:${error.message}`);
+  const parsed = sessionInputSchema.safeParse(input);
+  if (!parsed.success) {
+    throw mapSessionError(parsed.error, 'create');
   }
-  return new Error(`session_${action}_failed`);
+  return {
+    team_id: parsed.data.teamId ?? null,
+    player_id: parsed.data.playerId ?? null,
+    title: parsed.data.title,
+    notes: parsed.data.notes ?? null,
+    scheduled_at: parsed.data.scheduledAt,
+    duration_minutes: parsed.data.durationMinutes,
+    session_type: parsed.data.sessionType,
+    content_refs: normalizeContentRefs(parsed.data.contentRefs ?? []),
+  };
 }
 
 export class SupabaseSessionRepository implements SessionRepository {
@@ -43,11 +45,12 @@ export class SupabaseSessionRepository implements SessionRepository {
   }
 
   async createSession(userId: string, input: SessionInput) {
+    const payload = mapSessionInsert(input);
     const { data, error } = await this.client
       .from('sessions')
       .insert({
         coach_id: userId,
-        ...mapSessionInsert(input),
+        ...payload,
       })
       .select(SESSION_SELECT)
       .single();
@@ -60,10 +63,11 @@ export class SupabaseSessionRepository implements SessionRepository {
   }
 
   async updateSession(sessionId: string, userId: string, input: SessionInput) {
+    const payload = mapSessionInsert(input);
     const { data, error } = await this.client
       .from('sessions')
       .update({
-        ...mapSessionInsert(input),
+        ...payload,
         coach_id: userId,
       })
       .eq('id', sessionId)

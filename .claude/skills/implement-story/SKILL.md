@@ -75,3 +75,5 @@ You are implementing a single story from the development tracker at `docs/index.
 - Tests written and their pass/fail result
 - Story's old → new status
 - Deviations from the approved plan (if any)
+
+After implementation, run `/compose-tests` to add manual cases to `docs/mobile-app-test-pack.md`, then `/create-pr`.
