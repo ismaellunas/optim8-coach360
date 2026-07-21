@@ -2037,35 +2037,53 @@
         {
           "id": "AC-1",
           "statement": "Share to full team roster or individual player selectable",
-          "test": null
+          "test": "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC1_share_team_or_individual_selectable"
         },
         {
           "id": "AC-2",
           "statement": "Recipients receive push notification on session create/update",
-          "test": null
+          "test": "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC2_push_enqueued_on_create_and_update"
         },
         {
           "id": "AC-3",
           "statement": "In-app schedule view shows upcoming sessions for players at Basic+",
-          "test": null
+          "test": "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC3_player_basic_sees_upcoming_schedule"
         },
         {
           "id": "AC-4",
           "statement": "Reminder notifications configurable (timing per stakeholder decision)",
-          "test": null
+          "test": "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC4_reminder_timing_configurable"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC1_share_team_or_individual_selectable",
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC2_push_enqueued_on_create_and_update",
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC3_player_basic_sees_upcoming_schedule",
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC4_reminder_timing_configurable"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "packages/api/src/adapters/console/console-notification-repository.ts",
+          "packages/api/src/index.ts",
+          "packages/api/src/ports/notification-repository.ts",
+          "packages/domain/src/index.ts",
+          "packages/domain/src/session/access.ts",
+          "packages/domain/src/session/reminders.ts",
+          "packages/domain/src/subscription/paywall.ts",
+          "supabase/functions/_shared/rbac.ts",
+          "supabase/functions/session-reminders/handler.ts",
+          "supabase/migrations/20260721120000_session_reminder_settings.sql",
+          "supabase/migrations/20260721120100_view_schedule_feature_access.sql",
+          "tests/sessions/story-6.3.test.js",
+          "docs/product/stakeholder-questions.md",
+          "package.json"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_6_3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-21T00:00:00Z",
+      "audit_notes": "Q 3.7: immediate create/update/cancel + 24h admin-configurable reminder. Share UI, enqueue create/update, player Basic+ schedule gate; STORY_6_3 tests pass."
     },
     {
       "id": "EPIC-7",

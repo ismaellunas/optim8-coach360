@@ -5,6 +5,8 @@ import {
   attachContentRef,
   canCreateIndividualSession,
   canEditSession,
+  canViewSharedSchedule,
+  filterUpcomingSessions,
   mapSessionValidationMessage,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
@@ -15,6 +17,15 @@ import {
   PageHeader,
   ScreenContainer,
 } from '@/shared/ui/primitives.jsx';
+
+function IconLock() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0110 0v4" />
+    </svg>
+  );
+}
 
 function toLocalDateInput(date) {
   const year = date.getFullYear();
@@ -82,10 +93,18 @@ function canShowScheduleCreateAction(role) {
   return role === 'coach' || role === 'team_manager' || role === 'admin';
 }
 
+/** Calendar date in the current week for a Sunday=0..Saturday=6 weekday index. */
+function dateForWeekday(weekdayIndex, now = new Date()) {
+  const next = new Date(now);
+  next.setDate(now.getDate() + (weekdayIndex - now.getDay()));
+  return next;
+}
+
 function SessionForm({
   mode,
   readOnly = false,
   initialSession,
+  defaultDate,
   teams,
   players,
   libraryItems,
@@ -98,7 +117,11 @@ function SessionForm({
   onCancel,
   onDelete,
 }) {
-  const baseDate = initialSession ? new Date(initialSession.scheduledAt) : new Date();
+  const baseDate = initialSession
+    ? new Date(initialSession.scheduledAt)
+    : defaultDate
+      ? new Date(defaultDate)
+      : new Date();
   const [title, setTitle] = useState(initialSession?.title ?? '');
   const [date, setDate] = useState(toLocalDateInput(baseDate));
   const [time, setTime] = useState(toLocalTimeInput(baseDate));
@@ -352,13 +375,15 @@ function SessionForm({
             ))}
         </select>
 
+        <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Share with</div>
         {effectiveSessionType === 'individual' ? (
           <>
             <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-player">
-              Player
+              Individual player
             </label>
             <select
               id="session-player"
+              data-testid="share-recipient-player"
               value={playerId}
               disabled={readOnly}
               onChange={(event) => {
@@ -384,10 +409,11 @@ function SessionForm({
         ) : (
           <>
             <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-team">
-              Team
+              Team (full roster)
             </label>
             <select
               id="session-team"
+              data-testid="share-recipient-team"
               value={effectiveTeamId}
               disabled={readOnly}
               onChange={(event) => {
@@ -527,6 +553,13 @@ export function ScheduleScreen({ user, tryA }) {
     [appRole, accessSubscription],
   );
   const showCreateAction = canShowScheduleCreateAction(appRole);
+  const canViewSchedule = useMemo(
+    () =>
+      appRole
+        ? canViewSharedSchedule(appRole, accessSubscription)
+        : false,
+    [appRole, accessSubscription],
+  );
 
   const loadBaseData = useCallback(
     async function () {
@@ -543,12 +576,16 @@ export function ScheduleScreen({ user, tryA }) {
       setLoading(true);
       setError(null);
       try {
+        const isCoachLike =
+          appRole === 'coach' || appRole === 'team_manager' || appRole === 'admin';
         const [sessionRows, ownedTeams, memberTeams, libraryRows, purchaseRows] = await Promise.all([
           repos.sessions.listForUser(userId),
-          repos.teams.listForUser(userId),
-          appRole === 'team_manager' ? repos.rosters.listMemberTeams(userId) : Promise.resolve([]),
-          repos.library.listCoachLibrary(userId),
-          repos.library.listPurchasedContent(userId),
+          isCoachLike ? repos.teams.listForUser(userId) : Promise.resolve([]),
+          appRole === 'team_manager' || appRole === 'player'
+            ? repos.rosters.listMemberTeams(userId)
+            : Promise.resolve([]),
+          isCoachLike ? repos.library.listCoachLibrary(userId) : Promise.resolve([]),
+          isCoachLike ? repos.library.listPurchasedContent(userId) : Promise.resolve([]),
         ]);
         const nextTeams = uniqueTeams([...(ownedTeams ?? []), ...(memberTeams ?? [])]);
         setSessions(sessionRows.filter((entry) => entry.status !== 'cancelled'));
@@ -556,7 +593,7 @@ export function ScheduleScreen({ user, tryA }) {
         setLibraryItems(libraryRows ?? []);
         setPurchasedItems(purchaseRows ?? []);
 
-        if (nextTeams.length > 0) {
+        if (isCoachLike && nextTeams.length > 0) {
           const rosterLists = await Promise.all(
             nextTeams.map((team) => repos.rosters.listMembers(team.id)),
           );
@@ -618,7 +655,15 @@ export function ScheduleScreen({ user, tryA }) {
           event: 'session_updated',
         });
       } else {
-        await repos.sessions.createSession(userId, input);
+        const created = await repos.sessions.createSession(userId, input);
+        repos.notifications.enqueueSessionChange({
+          sessionId: created.id,
+          coachId: created.coachId,
+          teamId: created.teamId,
+          playerId: created.playerId,
+          triggeredBy: userId,
+          event: 'session_created',
+        });
       }
       setShowCreate(false);
       setEditingSession(null);
@@ -656,6 +701,22 @@ export function ScheduleScreen({ user, tryA }) {
     }
   }
 
+  if (!canViewSchedule) {
+    return (
+      <ScreenContainer>
+        <PageHeader title="SCHEDULE" user={user} />
+        <div className="py-[60px] text-center" data-testid="schedule-paywall">
+          <div className="mb-3 text-coach-t3"><IconLock /></div>
+          <div className="mb-2 font-display text-lg font-semibold text-coach-t1">Schedule Locked</div>
+          <div className="mb-5 font-body text-[13px] text-coach-t3">
+            Upgrade to Basic to view your shared schedule.
+          </div>
+          <Btn primary onClick={function () { tryA('viewSchedule', function () {}); }}>Upgrade</Btn>
+        </div>
+      </ScreenContainer>
+    );
+  }
+
   if (showCreate || editingSession || viewingSession) {
     const activeSession = editingSession ?? viewingSession;
     const isReadOnly = Boolean(viewingSession);
@@ -664,6 +725,7 @@ export function ScheduleScreen({ user, tryA }) {
         mode={editingSession ? 'edit' : 'create'}
         readOnly={isReadOnly}
         initialSession={activeSession}
+        defaultDate={showCreate && !activeSession ? dateForWeekday(selectedDay) : undefined}
         teams={teams}
         players={players}
         libraryItems={libraryItems}
@@ -693,7 +755,15 @@ export function ScheduleScreen({ user, tryA }) {
     return next.getDate();
   });
 
-  const dayData = sessions.filter((entry) => new Date(entry.scheduledAt).getDay() === selectedDay);
+  const scheduleSessions =
+    appRole === 'player' ? filterUpcomingSessions(sessions) : sessions;
+  const dayData = scheduleSessions.filter(
+    (entry) => new Date(entry.scheduledAt).getDay() === selectedDay,
+  );
+  const daysWithSessions = Array.from({ length: 7 }, () => false);
+  for (const entry of scheduleSessions) {
+    daysWithSessions[new Date(entry.scheduledAt).getDay()] = true;
+  }
 
   return (
     <ScreenContainer>
@@ -701,6 +771,7 @@ export function ScheduleScreen({ user, tryA }) {
       <div className="mb-5 flex gap-1.5">
         {days.map(function (day, index) {
           const active = selectedDay === index;
+          const hasSessions = daysWithSessions[index];
           return (
             <div
               key={day}
@@ -711,6 +782,14 @@ export function ScheduleScreen({ user, tryA }) {
             >
               <div className={`font-body text-[10px] uppercase ${active ? 'text-white/70' : 'text-coach-t3'}`}>{day}</div>
               <div className={`mt-0.5 font-display text-lg font-bold ${active ? 'text-white' : 'text-coach-t1'}`}>{dates[index]}</div>
+              {hasSessions ? (
+                <div
+                  className={`mx-auto mt-1 h-1.5 w-1.5 rounded-full ${active ? 'bg-white' : 'bg-coach-orange'}`}
+                  aria-hidden
+                />
+              ) : (
+                <div className="mt-1 h-1.5" aria-hidden />
+              )}
             </div>
           );
         })}
@@ -722,7 +801,13 @@ export function ScheduleScreen({ user, tryA }) {
           <div className="font-body text-sm text-coach-red">{error}</div>
         </Card>
       ) : dayData.length === 0 ? (
-        <div className="px-10 py-10 text-center font-body text-coach-t3">No sessions scheduled</div>
+        <div className="px-10 py-10 text-center font-body text-coach-t3">
+          {scheduleSessions.length > 0
+            ? 'No sessions on this day — try a day with an orange dot.'
+            : appRole === 'player'
+              ? 'No upcoming sessions shared with you yet.'
+              : 'No sessions scheduled'}
+        </div>
       ) : (
         dayData.map(function (entry) {
           return (

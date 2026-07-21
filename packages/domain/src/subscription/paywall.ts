@@ -42,6 +42,8 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   viewTrainingMaterials: { player: 'basic' },
   watchSharedVideo: { player: 'basic' },
   teamRoster: { coach: 'basic' },
+  // STORY-6.3 AC-3 — player in-app schedule at Basic+.
+  viewSchedule: { player: 'basic' },
 };
 
 const TIER_LABELS: Record<PaidSubscriptionTier, string> = {

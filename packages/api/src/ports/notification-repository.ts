@@ -14,7 +14,11 @@ export type TrialExpiryWarningPayload = {
   event: 'trial_expiry_warning';
 };
 
-export type SessionNotificationEvent = 'session_updated' | 'session_cancelled';
+export type SessionNotificationEvent =
+  | 'session_created'
+  | 'session_updated'
+  | 'session_cancelled'
+  | 'session_reminder';
 
 export type SessionNotificationPayload = {
   sessionId: string;
@@ -25,8 +29,19 @@ export type SessionNotificationPayload = {
   event: SessionNotificationEvent;
 };
 
+export type SessionReminderPayload = {
+  sessionId: string;
+  coachId: string;
+  teamId: string | null;
+  playerId: string | null;
+  scheduledAt: string;
+  reminderHoursBefore: number;
+  event: 'session_reminder';
+};
+
 export type NotificationRepository = {
   enqueueRosterChange(payload: RosterNotificationPayload): void;
   enqueueSessionChange(payload: SessionNotificationPayload): void;
+  enqueueSessionReminder(payload: SessionReminderPayload): void;
   enqueueTrialExpiryWarning(payload: TrialExpiryWarningPayload): void;
 };

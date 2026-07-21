@@ -226,7 +226,15 @@ export {
   canCreateTeamSession,
   canCreateIndividualSession,
   canEditSession,
+  canViewSharedSchedule,
 } from './session/access.js';
+export {
+  DEFAULT_SESSION_REMINDER_HOURS_BEFORE,
+  SESSION_REMINDER_SETTING_KEY,
+  normalizeSessionReminderHours,
+  shouldSendSessionReminder,
+  filterUpcomingSessions,
+} from './session/reminders.js';
 export {
   SESSION_MVP_TYPES,
 } from './session/types.js';

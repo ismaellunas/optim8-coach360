@@ -176,7 +176,8 @@ describe('STORY_6_1 AC5 — edit and cancel flows update notifications', () => {
   it('test_STORY_6_1_AC5_edit_cancel_enqueue_notifications: UI and notification port cover update and cancel events', () => {
     expect(existsSync(NOTIFICATION_PATH)).toBe(true);
     const notifications = readFileSync(NOTIFICATION_PATH, 'utf8');
-    expect(notifications).toMatch(/SessionNotificationEvent = 'session_updated' \| 'session_cancelled'/);
+    expect(notifications).toMatch(/session_updated/);
+    expect(notifications).toMatch(/session_cancelled/);
     expect(notifications).toMatch(/enqueueSessionChange/);
 
     const ui = readFileSync(UI_PATH, 'utf8');

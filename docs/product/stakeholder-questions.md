@@ -19,6 +19,7 @@
 | 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule | 2 |
 | 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
+| 3.7 | Notifications on create/update/cancel/reminder? — **resolved 2026-07-21: immediate + 24h reminder** | 3 |
 | 4.1 | Who creates marketplace packages — admins, coaches, or both? | 4, 7, 12 |
 | 6.1 | What does “set objectives” at Pro include? | 6 |
 | 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
@@ -62,7 +63,7 @@
 | 3.4 | Can a session contain a **full package** as one item, or only individual drills/videos/strategies? | Content packaging model | **Full package as one item.** A session’s ordered list may include atomic items (drill / video / strategy) and a package as a single unit (not auto-expanded into child rows). | product | 2026-07-21 |
 | 3.5 | What session types are required at MVP (practice, film review, 1-on-1, game, conditioning)? | Prototype lists 5 types; confirm for MVP | | | |
 | 3.6 | Who can create sessions — coaches only, or team managers too (matrix says TM can at Advanced+)? | Role permissions | | | |
-| 3.7 | What notifications fire on create, update, cancel, and reminder (how far in advance)? | DEP-07 push scope | | | |
+| 3.7 | What notifications fire on create, update, cancel, and reminder (how far in advance)? | DEP-07 push scope | **Immediate on create, update, and cancel.** Reminder default **24 hours** before session start; admin-configurable via `platform_settings` key `session_reminder_hours_before`. Push delivery remains DEP-07 / STORY-14.1; MVP enqueues via notification port (same as roster/session change). | product | 2026-07-21 |
 
 ---
 

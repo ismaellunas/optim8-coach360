@@ -70,3 +70,20 @@ export function canEditSession(
   }
   return false;
 }
+
+/**
+ * STORY-6.3 AC-3 — in-app shared schedule view.
+ * Players at Basic+ (incl. active trial → Pro access); coaches/TMs always.
+ */
+export function canViewSharedSchedule(
+  role: AppRole,
+  subscription: Pick<Subscription, 'tier' | 'status'> | null,
+): boolean {
+  if (role === 'admin' || role === 'coach' || role === 'team_manager') {
+    return true;
+  }
+  if (role === 'player') {
+    return meetsMinimumTier(subscription, 'basic');
+  }
+  return false;
+}
