@@ -145,7 +145,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 4. **Epic 4** — Plans and payments (10 tests) — **do before Epic 5**
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
-7. **Epic 6** — Schedule sessions + attach content (13 tests)
+7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -630,10 +630,11 @@ This is a two-person or two-browser test (Admin dashboard + mobile app).
 
 ---
 
-## Epic 6 — Session Scheduling (STORY-6.1, STORY-6.2)
+## Epic 6 — Session Scheduling (STORY-6.1, STORY-6.2, STORY-6.3)
 
 Epic 6 covers creating, viewing, editing, and cancelling practice sessions on the **Schedule**
-tab, and attaching library or purchased content to those sessions. Run Epic 3 (team + roster)
+tab, attaching library or purchased content, and sharing sessions with a team roster or
+individual player (with notifications enqueued for recipients). Run Epic 3 (team + roster)
 and Epic 4/5 (subscription tier) first.
 
 **Accounts needed**
@@ -647,7 +648,7 @@ and Epic 4/5 (subscription tier) first.
 
 **Before you start:** If Schedule shows a red load error (for example mentioning `library` or
 `session`), ask a developer to apply the latest database migrations. Session content needs the
-coach library table from STORY-6.2.
+coach library table from STORY-6.2. Reminder settings need the STORY-6.3 migration.
 
 ### E6-T1: Schedule tab loads without error (regression)
 
@@ -669,7 +670,7 @@ coach library table from STORY-6.2.
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | On **NEW SESSION**, enter a title (e.g. "Shooting Drills"). | Fields accept input. |
-| 2 | Pick **today's date** (or any future date) and a time. Set type to **Practice**. Select your **team** from the dropdown. | Team list includes the team you created in Epic 3. |
+| 2 | Pick **today's date** (or any future date) and a time. Set type to **Practice**. Under **Share with**, open **Team (full roster)** and select your team. | Team list includes the team you created in Epic 3. |
 | 3 | Tap **Create Session**. | Returns to Schedule; a card appears on the matching weekday with your title and time. |
 
 ### E6-T4: Create a 1-on-1 session for a roster player
@@ -677,7 +678,7 @@ coach library table from STORY-6.2.
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | Tap **+ Add Session** again. | **NEW SESSION** form. |
-| 2 | Set type to **1-on-1**. | **Player** dropdown appears (not Team). |
+| 2 | Set type to **1-on-1**. | Under **Share with**, **Individual player** dropdown appears (not Team). |
 | 3 | Select a player from your roster (Epic 3 manual add or invite). Fill title, date, and time. Tap **Create Session**. | Session card shows on Schedule with "Individual session" hint text. |
 
 Also try: if you have **no team**, the Player dropdown may be empty — you need a team roster
@@ -762,10 +763,41 @@ Use a session that already has at least one attached item from E6-T10 (or attach
 | 2 | Tap that package. | Session content shows **one** row for the whole package — not a long list of drills inside it. |
 | 3 | Save the session and re-open it. | Still one package row with **single unit** (and **Library** or **Purchased** as appropriate). |
 
+### E6-T14: Share with team or individual player (STORY-6.3)
+
+Confirms the share recipient UI for team roster vs one player.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach on Advanced** or **active trial**, open **Schedule** → **+ Add Session**. | **NEW SESSION** form with a **Share with** section. |
+| 2 | Leave type as **Practice** (or **Film review**). | **Team (full roster)** dropdown is shown. |
+| 3 | Change type to **1-on-1**. | Dropdown switches to **Individual player** (team picker hidden). |
+| 4 | Switch back to **Practice**, pick a team, create the session. Then create a separate **1-on-1** for a roster player. | Both sessions appear on Schedule; the 1-on-1 card shows the individual-session hint. |
+
+### E6-T15: Player on Basic+ sees upcoming shared sessions (STORY-6.3)
+
+Use a **Player on Basic+** who is on the coach's roster (or is the 1-on-1 recipient). Prefer a session dated **today or later**.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Player on Basic+**. Tap **Schedule**. | Weekly day selector — **not** a **Schedule Locked** / Upgrade screen. |
+| 2 | Select the weekday of an upcoming shared session (from E6-T3, E6-T4, or E6-T14). | Session card with title and time. |
+| 3 | Tap the card. | **SESSION DETAILS** (read-only). |
+
+### E6-T16: Player without Basic+ sees Schedule Locked (STORY-6.3)
+
+Only if you have (or the team can set) a **player account below Basic** — for example no subscription row / locked out of Basic+. Skip if you only have Basic+ players.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as that player. Tap **Schedule**. | **Schedule Locked** message and an **Upgrade** button (not the weekly calendar). |
+| 2 | Tap **Upgrade**. | Paywall / upgrade flow opens (same pattern as other locked features). |
+
 ### Not testable by clicking (for awareness only)
 
-- **Push notifications** on create/edit/cancel are enqueued in the backend but not delivered
-  in MVP (STORY-6.3). Do not expect a phone notification during these tests.
+- **Push notifications** on create/edit/cancel and **session reminders** (default 24 hours before)
+  are enqueued in the backend but not delivered to the phone until STORY-14.1 (FCM/APNs).
+  Do not expect a device notification during these tests.
 - **Buying a marketplace package in-app** may not be fully wired yet — E6-T11 can pass with an
   empty Purchased list. Creating real purchase rows is a developer/setup step, not a click path.
 
@@ -831,6 +863,9 @@ Print this page and check off results as you go.
 | E6-T11 Purchased tab for marketplace packages | | |
 | E6-T12 Ordered content list on session detail | | |
 | E6-T13 Package attaches as a single unit | | |
+| E6-T14 Share with team or individual player | | |
+| E6-T15 Player Basic+ sees upcoming sessions | | |
+| E6-T16 Player below Basic sees Schedule Locked | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

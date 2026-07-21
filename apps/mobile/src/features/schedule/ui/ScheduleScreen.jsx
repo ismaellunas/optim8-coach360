@@ -5,6 +5,8 @@ import {
   attachContentRef,
   canCreateIndividualSession,
   canEditSession,
+  canViewSharedSchedule,
+  filterUpcomingSessions,
   mapSessionValidationMessage,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
@@ -15,6 +17,15 @@ import {
   PageHeader,
   ScreenContainer,
 } from '@/shared/ui/primitives.jsx';
+
+function IconLock() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0110 0v4" />
+    </svg>
+  );
+}
 
 function toLocalDateInput(date) {
   const year = date.getFullYear();
@@ -352,13 +363,15 @@ function SessionForm({
             ))}
         </select>
 
+        <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Share with</div>
         {effectiveSessionType === 'individual' ? (
           <>
             <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-player">
-              Player
+              Individual player
             </label>
             <select
               id="session-player"
+              data-testid="share-recipient-player"
               value={playerId}
               disabled={readOnly}
               onChange={(event) => {
@@ -384,10 +397,11 @@ function SessionForm({
         ) : (
           <>
             <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor="session-team">
-              Team
+              Team (full roster)
             </label>
             <select
               id="session-team"
+              data-testid="share-recipient-team"
               value={effectiveTeamId}
               disabled={readOnly}
               onChange={(event) => {
@@ -527,6 +541,13 @@ export function ScheduleScreen({ user, tryA }) {
     [appRole, accessSubscription],
   );
   const showCreateAction = canShowScheduleCreateAction(appRole);
+  const canViewSchedule = useMemo(
+    () =>
+      appRole
+        ? canViewSharedSchedule(appRole, accessSubscription)
+        : false,
+    [appRole, accessSubscription],
+  );
 
   const loadBaseData = useCallback(
     async function () {
@@ -618,7 +639,15 @@ export function ScheduleScreen({ user, tryA }) {
           event: 'session_updated',
         });
       } else {
-        await repos.sessions.createSession(userId, input);
+        const created = await repos.sessions.createSession(userId, input);
+        repos.notifications.enqueueSessionChange({
+          sessionId: created.id,
+          coachId: created.coachId,
+          teamId: created.teamId,
+          playerId: created.playerId,
+          triggeredBy: userId,
+          event: 'session_created',
+        });
       }
       setShowCreate(false);
       setEditingSession(null);
@@ -654,6 +683,22 @@ export function ScheduleScreen({ user, tryA }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (!canViewSchedule) {
+    return (
+      <ScreenContainer>
+        <PageHeader title="SCHEDULE" user={user} />
+        <div className="py-[60px] text-center" data-testid="schedule-paywall">
+          <div className="mb-3 text-coach-t3"><IconLock /></div>
+          <div className="mb-2 font-display text-lg font-semibold text-coach-t1">Schedule Locked</div>
+          <div className="mb-5 font-body text-[13px] text-coach-t3">
+            Upgrade to Basic to view your shared schedule.
+          </div>
+          <Btn primary onClick={function () { tryA('viewSchedule', function () {}); }}>Upgrade</Btn>
+        </div>
+      </ScreenContainer>
+    );
   }
 
   if (showCreate || editingSession || viewingSession) {
@@ -693,7 +738,11 @@ export function ScheduleScreen({ user, tryA }) {
     return next.getDate();
   });
 
-  const dayData = sessions.filter((entry) => new Date(entry.scheduledAt).getDay() === selectedDay);
+  const scheduleSessions =
+    appRole === 'player' ? filterUpcomingSessions(sessions) : sessions;
+  const dayData = scheduleSessions.filter(
+    (entry) => new Date(entry.scheduledAt).getDay() === selectedDay,
+  );
 
   return (
     <ScreenContainer>

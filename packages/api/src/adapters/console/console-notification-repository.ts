@@ -2,6 +2,7 @@ import type {
   NotificationRepository,
   RosterNotificationPayload,
   SessionNotificationPayload,
+  SessionReminderPayload,
   TrialExpiryWarningPayload,
 } from '../../ports/notification-repository.js';
 
@@ -13,6 +14,12 @@ export class ConsoleNotificationRepository implements NotificationRepository {
   }
 
   enqueueSessionChange(payload: SessionNotificationPayload): void {
+    if (typeof console !== 'undefined' && typeof console.debug === 'function') {
+      console.debug('[notifications]', payload.event, payload);
+    }
+  }
+
+  enqueueSessionReminder(payload: SessionReminderPayload): void {
     if (typeof console !== 'undefined' && typeof console.debug === 'function') {
       console.debug('[notifications]', payload.event, payload);
     }

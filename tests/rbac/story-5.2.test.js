@@ -20,12 +20,20 @@ import {
 } from '../../supabase/functions/_shared/rbac.ts';
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
 
-const MIGRATION_PATH = path.join(
+const LAUNCH_MATRIX_MIGRATION_PATH = path.join(
   REPO_ROOT,
   'supabase',
   'migrations',
   '20260717120000_rbac_launch_matrix.sql',
 );
+const CURRENT_RBAC_MIGRATION_PATH = path.join(
+  REPO_ROOT,
+  'supabase',
+  'migrations',
+  '20260721120100_view_schedule_feature_access.sql',
+);
+/** @deprecated alias — AC1–AC4 still assert against the original launch-matrix file. */
+const MIGRATION_PATH = LAUNCH_MATRIX_MIGRATION_PATH;
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
 const LAUNCH_MATRIX_PATH = path.join(
   REPO_ROOT,
@@ -166,12 +174,16 @@ describe('STORY_5_2 AC5 — full 223-rule matrix expansion deferred post-MVP', (
     expect(LAUNCH_CRITICAL_FEATURE_KEYS.length).toBe(Object.keys(FEATURE_TIER_REQUIREMENTS).length);
 
     // SQL launch migration exists and documents the deferral boundary.
-    expect(existsSync(MIGRATION_PATH)).toBe(true);
-    const sql = readFileSync(MIGRATION_PATH, 'utf8');
-    expect(sql).toMatch(/STORY-5\.2/);
-    expect(sql).toMatch(/Launch-critical access matrix/);
+    expect(existsSync(LAUNCH_MATRIX_MIGRATION_PATH)).toBe(true);
+    const launchSql = readFileSync(LAUNCH_MATRIX_MIGRATION_PATH, 'utf8');
+    expect(launchSql).toMatch(/STORY-5\.2/);
+    expect(launchSql).toMatch(/Launch-critical access matrix/);
 
-    // Every domain rule appears in the launch SQL helper (binary allow-at-minimum).
+    // Current has_feature_access CASE stays in sync with FEATURE_TIER_REQUIREMENTS.
+    expect(existsSync(CURRENT_RBAC_MIGRATION_PATH)).toBe(true);
+    const sql = readFileSync(CURRENT_RBAC_MIGRATION_PATH, 'utf8');
+
+    // Every domain rule appears in the current SQL helper (binary allow-at-minimum).
     let expectedWhen = 0;
     for (const [feature, requirements] of Object.entries(FEATURE_TIER_REQUIREMENTS)) {
       for (const [role, minimumTier] of Object.entries(requirements)) {

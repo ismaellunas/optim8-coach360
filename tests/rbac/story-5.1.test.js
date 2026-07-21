@@ -21,7 +21,7 @@ const MIGRATION_PATH = path.join(
   REPO_ROOT,
   'supabase',
   'migrations',
-  '20260717120000_rbac_launch_matrix.sql',
+  '20260721120100_view_schedule_feature_access.sql',
 );
 const RBAC_HELPERS_MIGRATION_PATH = path.join(
   REPO_ROOT,
@@ -80,7 +80,7 @@ describe('STORY_5_1 AC2 — Supabase RLS policies align with application RBAC ru
   it('test_STORY_5_1_AC2_rls_policies_align_with_rbac_rules: SQL helpers mirror domain rules', () => {
     expect(existsSync(MIGRATION_PATH)).toBe(true);
     expect(existsSync(RBAC_HELPERS_MIGRATION_PATH)).toBe(true);
-    // Current has_feature_access CASE lives in the launch-matrix migration (STORY-5.2).
+    // Current has_feature_access CASE lives in the latest RBAC sync migration.
     const sql = readFileSync(MIGRATION_PATH, 'utf8');
     const helpersSql = readFileSync(RBAC_HELPERS_MIGRATION_PATH, 'utf8');
 

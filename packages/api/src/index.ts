@@ -26,6 +26,7 @@ export type {
   RosterNotificationPayload,
   SessionNotificationEvent,
   SessionNotificationPayload,
+  SessionReminderPayload,
   TrialExpiryWarningPayload,
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
