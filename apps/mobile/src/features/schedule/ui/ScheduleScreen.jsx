@@ -17,6 +17,7 @@ import {
   PageHeader,
   ScreenContainer,
 } from '@/shared/ui/primitives.jsx';
+import { PlayerSessionDetailScreen } from '@/features/session/ui/PlayerSessionDetailScreen.jsx';
 
 function IconLock() {
   return (
@@ -720,6 +721,18 @@ export function ScheduleScreen({ user, tryA }) {
   if (showCreate || editingSession || viewingSession) {
     const activeSession = editingSession ?? viewingSession;
     const isReadOnly = Boolean(viewingSession);
+    if (viewingSession && appRole === 'player') {
+      return (
+        <PlayerSessionDetailScreen
+          session={viewingSession}
+          playerId={userId}
+          onBack={function () {
+            setViewingSession(null);
+            setError(null);
+          }}
+        />
+      );
+    }
     return (
       <SessionForm
         mode={editingSession ? 'edit' : 'create'}

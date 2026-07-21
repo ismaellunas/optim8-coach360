@@ -31,6 +31,10 @@ export type {
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
 export type {
+  SessionContentRepository,
+  SessionContentCompletion,
+} from './ports/session-content-repository.js';
+export type {
   LibraryRepository,
   CoachLibraryItem,
   PurchasedContentItem,
@@ -47,7 +51,13 @@ export type { ContentRepository, ContentItem } from './ports/content-repository.
 export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-repository.js';
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';
 export { SupabaseSessionRepository } from './adapters/supabase/supabase-session-repository.js';
+export { SupabaseSessionContentRepository } from './adapters/supabase/supabase-session-content-repository.js';
+export {
+  PURCHASED_PACKAGE_DEMO_VIDEO_URL,
+  LIBRARY_VIDEO_DEMO_URL,
+} from './adapters/supabase/supabase-session-content-repository.js';
 export { RestSessionRepository } from './adapters/rest/rest-session-repository.js';
+export { RestSessionContentRepository } from './adapters/rest/rest-session-content-repository.js';
 export { SupabaseLibraryRepository } from './adapters/supabase/supabase-library-repository.js';
 export { RestLibraryRepository } from './adapters/rest/rest-library-repository.js';
 export {

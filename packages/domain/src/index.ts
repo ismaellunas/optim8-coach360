@@ -229,6 +229,14 @@ export {
   canViewSharedSchedule,
 } from './session/access.js';
 export {
+  canAccessSessionContent,
+  sessionContentAccessMessage,
+} from './session/content-access.js';
+export {
+  sessionContentKey,
+  type SessionContentCompletion,
+} from './session/completion.js';
+export {
   DEFAULT_SESSION_REMINDER_HOURS_BEFORE,
   SESSION_REMINDER_SETTING_KEY,
   normalizeSessionReminderHours,

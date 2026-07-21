@@ -4,7 +4,7 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–6, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–7, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
 
@@ -146,6 +146,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
+8. **Epic 7** — Player session content consumption (4 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -698,18 +699,19 @@ before scheduling 1-on-1s in the current app.
 | 1 | Tap a session card → **EDIT SESSION**. | Edit form with **Cancel session** button at the bottom. |
 | 2 | Tap **Cancel session**. | Session disappears from Schedule (hard delete — not shown as "cancelled"). |
 
-### E6-T7: Player views session read-only (regression)
+### E6-T7: Player views session without edit controls (regression)
 
-Players must **view** assigned sessions but **not** edit or cancel them.
+Players must **view** assigned sessions but **not** edit session fields or cancel the session.
+Content interaction (video, mark complete) is covered in **Epic 7**.
 
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | Sign in as the **Player** who is on the coach's team (or the direct recipient of a 1-on-1). | — |
 | 2 | Tap **Schedule**. | Upcoming team or individual sessions visible (or empty if none assigned yet). |
-| 3 | Tap a session card. | Header says **SESSION DETAILS** — all fields are greyed out / not editable. |
-| 4 | Scroll the bottom of the screen. | **No** **Save Session** or **Cancel session** buttons. |
+| 3 | Tap a session card. | Header says **SESSION DETAILS** with session title and time — **not** **EDIT SESSION**. |
+| 4 | Scroll the screen. | **No** **Save Session**, **Cancel session**, **+ Add content**, or **Remove** on content rows. |
 
-Fail if you see **EDIT SESSION** or can change fields as a player.
+Fail if you see **EDIT SESSION** or can change session title/date/type as a player.
 
 ### E6-T8: Player cannot add sessions
 
@@ -753,7 +755,7 @@ Use a session that already has at least one attached item from E6-T10 (or attach
 | 1 | As **Coach**, tap the session card. | **EDIT SESSION** with **Session content** listing items in order (**1.**, **2.**, …). |
 | 2 | Optionally tap **+ Add content**, attach a second library item, then **Save Session**. | Returns to Schedule. |
 | 3 | Re-open the same session. | The same ordered list is still there after save. |
-| 4 | Sign in as the **Player** on that team (or 1-on-1 recipient). Open the session. | **SESSION DETAILS** shows the same ordered content list. **No** **+ Add content** or **Remove** controls. |
+| 4 | Sign in as the **Player** on that team (or 1-on-1 recipient). Open the session. | **SESSION DETAILS** shows the same ordered content list. **No** **+ Add content** or **Remove** controls. (See **E7-T1** for full player content view.) |
 
 ### E6-T13: Package attaches as a single unit (STORY-6.2)
 
@@ -782,7 +784,7 @@ Use a **Player on Basic+** who is on the coach's roster (or is the 1-on-1 recipi
 |---|---|---|
 | 1 | Sign in as **Player on Basic+**. Tap **Schedule**. | Weekly day selector — **not** a **Schedule Locked** / Upgrade screen. |
 | 2 | Select the weekday of an upcoming shared session (from E6-T3, E6-T4, or E6-T14). | Session card with title and time. |
-| 3 | Tap the card. | **SESSION DETAILS** (read-only). |
+| 3 | Tap the card. | **SESSION DETAILS** opens (see Epic 7 for content interaction). |
 
 ### E6-T16: Player without Basic+ sees Schedule Locked (STORY-6.3)
 
@@ -800,6 +802,69 @@ Only if you have (or the team can set) a **player account below Basic** — for 
   Do not expect a device notification during these tests.
 - **Buying a marketplace package in-app** may not be fully wired yet — E6-T11 can pass with an
   empty Purchased list. Creating real purchase rows is a developer/setup step, not a click path.
+
+---
+
+<div class="page-break"></div>
+
+## Epic 7 — Player Session Content (STORY-7.1)
+
+Epic 7 covers the **player** experience after opening a shared session: viewing attached drills,
+videos, and packages, playing video content, and marking items complete.
+
+**Accounts needed:** **Player on Basic+** on a coach's roster (or 1-on-1 recipient), plus a **Coach
+on Advanced** (or active trial) who has created a session with attached content (use **E6-T10** /
+**E6-T12** first).
+
+**Before you start:** The session should be dated **today or later** and include at least one
+**Video** library item and, if possible, a **Package** row (library or Purchased).
+
+### E7-T1: Player sees session detail with content list (STORY-7.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Player on Basic+**. Tap **Schedule** and open a shared session (today or later). | **SESSION DETAILS** header. |
+| 2 | Read the top card. | Session title, date/time, and session type (e.g. **Practice**). Coach notes if the coach added any. |
+| 3 | Scroll to **Session content**. | Ordered list (**1.**, **2.**, …) with kind labels (**Drill**, **Video**, **Package**, etc.) and titles matching what the coach attached. |
+
+### E7-T2: Video playback for library and purchased content (STORY-7.1 AC-2)
+
+The coach must attach a **Video** item from **Library** when building the session (**E6-T10** — e.g.
+**Form Shooting Demo**). **Drill** rows only show **Mark complete**, not a video player.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **SESSION DETAILS**, find a **Video** row (**Video · Library** label). | A video player with play controls below the title. |
+| 2 | Tap **Play** on the video. | Video starts playing (short demo clip until coach Mux uploads ship in STORY-9.3). |
+| 3 | If the session has a **Package** row (**Purchased** or **Library**), check that row. | A video player for the package unit; tap **Play** and confirm playback works. |
+
+Fail if you see **No video with supported format and MIME type found** — refresh the app and confirm the session includes a **Video** row (not only drills).
+
+### E7-T3: Content available on scheduled session day (STORY-7.1 AC-3)
+
+Sessions are **calendar events** — there is no separate "live session mode." Content is available
+when the session is on your schedule for **today or a future day**.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open a shared session dated **today or later**. | **Session content** rows are interactive (**Mark complete**, video player) — not a locked message. |
+| 2 | If you have a session dated **before today** still visible, open it. | Locked banner: **Content unlocks on the session day.** Rows show **Complete this when the session is available.** — **no** **Mark complete** buttons or video players. |
+
+Skip step 2 if you have no past-dated sessions.
+
+### E7-T4: Mark content complete per item (STORY-7.1 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **SESSION DETAILS**, pick a content row that shows **To do**. | **Mark complete** button is enabled. |
+| 2 | Tap **Mark complete**. | Badge changes to **Done**; button shows **Completed** (disabled). |
+| 3 | Go back to Schedule, then re-open the same session. | That item still shows **Done**. |
+| 4 | Mark a second item if the session has more than one. | Each row tracks completion independently. |
+
+### Not testable by clicking (for awareness only)
+
+- **Drill reps/time logging** and **progress %** on profile are **STORY-7.2** — not in this epic.
+- **Mux CDN / coach-uploaded video URLs** ship in **STORY-9.3**; MVP uses demo playback URLs.
 
 ---
 
@@ -866,6 +931,10 @@ Print this page and check off results as you go.
 | E6-T14 Share with team or individual player | | |
 | E6-T15 Player Basic+ sees upcoming sessions | | |
 | E6-T16 Player below Basic sees Schedule Locked | | |
+| E7-T1 Player session detail + content list | | |
+| E7-T2 Video playback library + purchased | | |
+| E7-T3 Content on scheduled session day | | |
+| E7-T4 Mark content complete per item | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 
