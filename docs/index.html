@@ -2236,35 +2236,54 @@
         {
           "id": "AC-1",
           "statement": "Coach at Advanced+ views player progress dashboard",
-          "test": null
+          "test": "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC1_coach_advanced_plus_views_player_progress_dashboard"
         },
         {
           "id": "AC-2",
           "statement": "Drill completion list filterable by player and date range",
-          "test": null
+          "test": "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC2_drill_completion_list_filterable_by_player_and_date"
         },
         {
           "id": "AC-3",
           "statement": "Coach provides feedback via direct message",
-          "test": null
+          "test": "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC3_coach_provides_feedback_via_direct_message"
         },
         {
           "id": "AC-4",
           "statement": "Coach assigns corrective drills from review screen or via content share",
-          "test": null
+          "test": "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC4_coach_assigns_corrective_drills_from_review_or_content_share"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC1_coach_advanced_plus_views_player_progress_dashboard",
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC2_drill_completion_list_filterable_by_player_and_date",
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC3_coach_provides_feedback_via_direct_message",
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC4_coach_assigns_corrective_drills_from_review_or_content_share"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/features/chat/ui/ChatScreen.jsx",
+          "apps/mobile/src/features/progress/ui/CoachProgressReviewScreen.jsx",
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "packages/api/src/adapters/rest/rest-messaging-repository.ts",
+          "packages/api/src/adapters/rest/rest-session-content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-messaging-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-session-content-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/ports/messaging-repository.ts",
+          "packages/api/src/ports/session-content-repository.ts",
+          "packages/domain/src/index.ts",
+          "packages/domain/src/session/coach-progress.ts",
+          "supabase/migrations/20260721170000_coach_feedback_messages.sql",
+          "tests/sessions/story-7.3.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-7.3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-21T00:00:00Z",
+      "audit_notes": "Coach progress review dashboard with tier gating, player/date filters, Supabase listCoachCompletions + direct_messages DM feedback, corrective drill assign and schedule prefill share path; all STORY_7_3 tests pass."
     },
     {
       "id": "STORY-7.4",

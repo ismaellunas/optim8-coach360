@@ -12,6 +12,8 @@ import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
 import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
 import { ProgressScreen } from "./features/progress/ui/ProgressScreen.jsx";
+import { CoachProgressReviewScreen } from "./features/progress/ui/CoachProgressReviewScreen.jsx";
+import { ChatScreen } from "./features/chat/ui/ChatScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
@@ -103,12 +105,10 @@ function IconCal() { return <svg width="22" height="22" viewBox="0 0 24 24" fill
 function IconChat() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>; }
 function IconStore() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>; }
 function IconChev() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>; }
-function IconBack() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>; }
 function IconLock() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>; }
 function IconCheck() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>; }
 function IconSpark() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L9 12l-7 1 5 5-1 6 6-3 6 3-1-6 5-5-7-1z"/></svg>; }
 function IconTarget() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>; }
-function IconSend() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>; }
 function IconChart() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>; }
 function IconTrophy() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/></svg>; }
 function IconSettings() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>; }
@@ -233,6 +233,17 @@ function HomeScreen({ user, go, tryA }) {
         })}
       </div>
 
+      {!isPlayer && !isTeam && (
+        <Card
+          onClick={function () { go("progress"); }}
+          className="mb-3 border border-coach-orange/20 bg-coach-orange-glow/40"
+          data-testid="coach-home-player-progress"
+        >
+          <div className="font-body text-[13px] font-semibold text-coach-t1">Player progress</div>
+          <div className="font-body text-xs text-coach-t2">Review drill completions and send feedback</div>
+        </Card>
+      )}
+
       {canAccess(user, "ai") ? (
         <div className="py-2">
           <Card>
@@ -305,96 +316,6 @@ function HomeScreen({ user, go, tryA }) {
           <Btn primary full onClick={function() { go("create-content"); }}>+ Create Content</Btn>
         </div>
       )}
-    </ScreenContainer>
-  );
-}
-
-/* ── Chat ── */
-function ChatScreen({ user, tryA }) {
-  var _a = useState(null), active = _a[0], setActive = _a[1];
-  var _m = useState(""), msg = _m[0], setMsg = _m[1];
-
-  if (!canAccess(user, "chat")) {
-    return (
-      <ScreenContainer>
-        <PageHeader title="MESSAGES" user={user} />
-        <div className="py-[60px] text-center">
-          <div className="mb-3 text-coach-t3"><IconLock /></div>
-          <div className="mb-2 font-display text-lg font-semibold text-coach-t1">Chat Locked</div>
-          <div className="mb-5 font-body text-[13px] text-coach-t3">Upgrade to Advanced to message.</div>
-          <Btn primary onClick={function() { tryA("chat", function() {}); }}>Upgrade</Btn>
-        </div>
-      </ScreenContainer>
-    );
-  }
-
-  var chats = [{ id: 1, n: "U14 Eagles", ty: "team", m: "Practice at 4pm", ti: "2m", u: 3 }, { id: 2, n: "Jaylen Carter", ty: "p", m: "Thanks coach!", ti: "15m", u: 0 }, { id: 3, n: "U16 Hawks", ty: "team", m: "Film uploaded", ti: "1h", u: 1 }];
-  var messages = [{ f: "other", t: "Working on that crossover", ti: "3:42 PM" }, { f: "me", t: "How's the left hand feeling?", ti: "3:44 PM" }, { f: "other", t: "Way better. 200 reps yesterday!", ti: "3:45 PM" }, { f: "me", t: "That's the work ethic I like!", ti: "3:46 PM" }];
-
-  if (active) {
-    var chat = chats.find(function(c) { return c.id === active; });
-    return (
-      <div className="flex min-h-[calc(100svh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5rem)] flex-col">
-        <div className="flex items-center gap-3 border-b border-coach-border px-6 py-4">
-          <div onClick={function() { setActive(null); }} className="cursor-pointer text-coach-orange"><IconBack /></div>
-          <div className="font-body text-[15px] font-semibold text-coach-t1">{chat ? chat.n : ""}</div>
-        </div>
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {messages.map(function(m, i) {
-            return (
-              <div key={i} className={`mb-3 flex ${m.f === "me" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 ${m.f === "me" ? "rounded-br rounded-bl-2xl bg-coach-orange" : "rounded-bl rounded-br-2xl bg-coach-card"}`}>
-                  <div className={`font-body text-sm leading-snug ${m.f === "me" ? "text-white" : "text-coach-t1"}`}>{m.t}</div>
-                  <div className={`mt-1 text-right font-body text-[10px] ${m.f === "me" ? "text-white/60" : "text-coach-t3"}`}>{m.ti}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <div className="flex gap-2.5 border-t border-coach-border px-6 pb-5 pt-3">
-          <input
-            value={msg}
-            onChange={function(e) { setMsg(e.target.value); }}
-            placeholder="Type a message..."
-            className="flex-1 rounded-[14px] border border-coach-border bg-coach-card px-4 py-3 font-body text-sm text-coach-t1 outline-none"
-          />
-          <button className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-[14px] border-none bg-coach-orange text-white">
-            <IconSend />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ScreenContainer>
-      <PageHeader title="MESSAGES" user={user} />
-      {chats.map(function(c) {
-        return (
-          <div
-            key={c.id}
-            onClick={function() { setActive(c.id); }}
-            className="flex cursor-pointer items-center gap-3.5 border-b border-coach-border py-3.5"
-          >
-            <div className={`flex h-[46px] w-[46px] items-center justify-center rounded-full ${c.ty === "team" ? "bg-coach-orange-glow text-coach-orange" : "bg-coach-blue/20 text-coach-blue"}`}>
-              {c.ty === "team" ? <IconUsers /> : <span className="font-display text-lg font-bold">{c.n[0]}</span>}
-            </div>
-            <div className="flex-1">
-              <div className="flex justify-between">
-                <span className="font-body text-sm font-semibold text-coach-t1">{c.n}</span>
-                <span className="font-body text-[11px] text-coach-t3">{c.ti}</span>
-              </div>
-              <div className="mt-0.5 truncate font-body text-[13px] text-coach-t3">{c.m}</div>
-            </div>
-            {c.u > 0 && (
-              <div className="flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-coach-orange font-body text-[11px] font-bold text-white">
-                {c.u}
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <div className="h-6" />
     </ScreenContainer>
   );
 }
@@ -679,6 +600,8 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _tierChangeError = useState(null), tierChangeError = _tierChangeError[0], setTierChangeError = _tierChangeError[1];
   // STORY-5.4 — admin feature-tier overrides (merged over FEATURE_TIER_REQUIREMENTS).
   var _ff = useState([]), featureFlagOverrides = _ff[0], setFeatureFlagOverrides = _ff[1];
+  var _pendingDm = useState(null), pendingChatDm = _pendingDm[0], setPendingChatDm = _pendingDm[1];
+  var _schedulePrefill = useState(null), schedulePrefill = _schedulePrefill[0], setSchedulePrefill = _schedulePrefill[1];
   var _fr = useState(null), featureRequirements = _fr[0], setFeatureRequirements = _fr[1];
 
   var refreshFeatureFlags = useCallback(function () {
@@ -892,9 +815,52 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     if (onboarding) return <OnboardingScreen user={user} onComplete={finishOnboarding} />;
     if (screen === "home") return <HomeScreen user={user} go={go} tryA={tryA} />;
     if (screen === "teams") return <RosterScreen user={user} tryA={tryA} />;
-    if (screen === "schedule") return <ScheduleScreen user={user} tryA={tryA} />;
-    if (screen === "chat") return <ChatScreen user={user} tryA={tryA} />;
+    if (screen === "schedule") {
+      return (
+        <ScheduleScreen
+          user={user}
+          tryA={tryA}
+          prefillCreate={schedulePrefill}
+          onPrefillConsumed={function () { setSchedulePrefill(null); }}
+        />
+      );
+    }
+    if (screen === "chat") {
+      return (
+        <ChatScreen
+          user={user}
+          tryA={tryA}
+          canAccess={canAccess}
+          initialDm={pendingChatDm}
+          onInitialDmConsumed={function () { setPendingChatDm(null); }}
+        />
+      );
+    }
     if (screen === "marketplace") return <StoreScreen user={user} tryA={tryA} />;
+    if (screen === "progress" && user.role === "coach") {
+      return (
+        <CoachProgressReviewScreen
+          user={user}
+          tryA={tryA}
+          onSendFeedback={function (payload) {
+            setPendingChatDm({
+              playerId: payload.playerId,
+              displayName: payload.displayName,
+              draftMessage: 'Nice work on your latest drill — keep it up!',
+            });
+            go("chat");
+          }}
+          onShareViaSchedule={function (payload) {
+            setSchedulePrefill({
+              playerId: payload.playerId,
+              contentKey: payload.contentKey,
+              title: "Shared corrective drill",
+            });
+            go("schedule");
+          }}
+        />
+      );
+    }
     if (screen === "progress") return <ProgressScreen user={user} tryA={tryA} />;
     if (screen === "join-team") {
       return (

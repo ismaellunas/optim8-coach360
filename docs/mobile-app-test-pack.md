@@ -146,7 +146,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
-8. **Epic 7** — Player session content + drill progress (8 tests)
+8. **Epic 7** — Player session content + drill progress + coach review (12 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -807,11 +807,12 @@ Only if you have (or the team can set) a **player account below Basic** — for 
 
 <div class="page-break"></div>
 
-## Epic 7 — Player Session Content & Progress (STORY-7.1, STORY-7.2)
+## Epic 7 — Player Session Content & Progress (STORY-7.1, STORY-7.2, STORY-7.3)
 
 Epic 7 covers the **player** experience after opening a shared session: viewing attached drills,
 videos, and packages, playing video content, marking items complete, logging drill reps/time, and
-tracking progress on profile and the **Progress** tab.
+tracking progress on profile and the **Progress** tab. It also covers the **coach** progress review
+dashboard: filtering drill completions, sending feedback via direct message, and assigning corrective drills.
 
 **Accounts needed:** **Player on Basic+** on a coach's roster (or 1-on-1 recipient), plus a **Coach
 on Advanced** (or active trial) who has created a session with attached content (use **E6-T10** /
@@ -900,9 +901,47 @@ Use **Player on Advanced** (paid Advanced, not trial). Skip if you have no Advan
 |---|---|---|
 | 1 | Tap **Progress**. | Locked message: upgrade to **Pro** for the full progress dashboard, with an **Upgrade** button. |
 
+### E7-T9: Coach views player progress dashboard (STORY-7.3 AC-1)
+
+Use **Coach on Advanced** (or active trial). A player on the coach's roster should have logged at
+least one drill (**E7-T5**).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Advanced+**. On **Home**, tap the **Player progress** card. | **PLAYER PROGRESS** screen with drill/completion summary stats. |
+| 2 | Scroll to **Drill completions**. | At least one row showing drill label, player name, date/time, and optional reps/time. |
+
+### E7-T10: Filter drill completions by player and date (STORY-7.3 AC-2)
+
+Requires two players with logged drills, or skip player filter if you only have one.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **PLAYER PROGRESS**, open the **Player** filter. | Dropdown lists players who have completions (**All players** plus each name). |
+| 2 | Select one player. | List shows only that player's completions. |
+| 3 | Set **From** / **To** dates around a known completion day. | List narrows to completions in that range. |
+| 4 | Clear filters. | Full list returns. |
+
+### E7-T11: Coach sends feedback via direct message (STORY-7.3 AC-3)
+
+Coach must be **Advanced+** (chat tier).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **PLAYER PROGRESS**, tap **Send feedback** on a completion row. | **Chat** opens to a direct message thread with that player; message field may have a prefilled draft. |
+| 2 | Type a short note and tap send. | Your message appears in the thread (orange bubble on the right). |
+| 3 | Go back to **Chat** list, then reopen the player thread. | Message persists. |
+
+### E7-T12: Coach assigns corrective drill from review (STORY-7.3 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **PLAYER PROGRESS**, tap **Assign drill** on a completion row. | Success note (e.g. **Corrective drill assigned.**). |
+| 2 | Sign in as that **Player**. Tap **Schedule** and check upcoming sessions. | New individual session with the corrective drill attached. |
+| 3 | As **Coach**, tap **Share via schedule** on another completion (optional). | **Schedule** opens with a **NEW SESSION** form prefilled for that player and drill. |
+
 ### Not testable by clicking (for awareness only)
 
-- **Coach progress dashboard** (reviewing player drill logs) ships in **STORY-7.3**.
 - **Mux CDN / coach-uploaded video URLs** ship in **STORY-9.3**; MVP uses demo playback URLs.
 
 ---
@@ -978,6 +1017,10 @@ Print this page and check off results as you go.
 | E7-T6 Session + profile progress | | |
 | E7-T7 Basic tier progress scope | | |
 | E7-T8 Advanced Progress paywall | | |
+| E7-T9 Coach player progress dashboard | | |
+| E7-T10 Filter completions player/date | | |
+| E7-T11 Coach DM feedback | | |
+| E7-T12 Assign corrective drill | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 
