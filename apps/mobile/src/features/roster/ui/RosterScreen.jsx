@@ -223,6 +223,7 @@ export function RosterScreen({ user, tryA }) {
       <ScreenContainer className="pb-6">
         <PageHeader title="CREATE TEAM" onBack={function () { setSub(null); setError(null); }} />
         <TeamProfileForm
+          key="create-team"
           mode="create"
           canManageAgeRange={canManageAgeRange}
           submitting={submitting}
@@ -242,6 +243,7 @@ export function RosterScreen({ user, tryA }) {
       <ScreenContainer className="pb-6">
         <PageHeader title="EDIT TEAM" onBack={function () { setSub(null); setError(null); }} />
         <TeamProfileForm
+          key={editingTeam.id}
           mode="edit"
           initialTeam={editingTeam}
           canManageAgeRange={canManageAgeRange}

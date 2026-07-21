@@ -19,6 +19,26 @@ function mapTeamInsert(input: TeamProfileInput) {
   };
 }
 
+function mapTeamUpdate(input: TeamProfileInput) {
+  const parsed = teamProfileInputSchema.parse(input);
+  const payload: Record<string, unknown> = {
+    name: parsed.name,
+    description: parsed.description ?? null,
+    age_min: parsed.ageMin ?? null,
+    age_max: parsed.ageMax ?? null,
+    grade_level: parsed.gradeLevel ?? null,
+    division: parsed.division ?? null,
+    season_start: parsed.seasonStart ?? null,
+    season_end: parsed.seasonEnd ?? null,
+  };
+
+  if (parsed.logoUrl !== undefined) {
+    payload.logo_url = parsed.logoUrl;
+  }
+
+  return payload;
+}
+
 export class SupabaseTeamRepository implements TeamRepository {
   constructor(private readonly client: SupabaseClient) {}
 
@@ -94,7 +114,7 @@ export class SupabaseTeamRepository implements TeamRepository {
     input: TeamProfileInput,
     logoFile?: TeamLogoFile,
   ): Promise<Team> {
-    const payload = mapTeamInsert(input);
+    const payload = mapTeamUpdate(input);
 
     if (logoFile) {
       try {

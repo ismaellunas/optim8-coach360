@@ -64,9 +64,13 @@ export function TeamProfileForm({
   const seasonEndId = 'team-profile-season-end';
   const logoId = 'team-profile-logo';
 
-  const [logoName, setLogoName] = useState(null);
   const [logoFile, setLogoFile] = useState(null);
-  const [logoPreview, setLogoPreview] = useState(initialTeam?.logoUrl ?? null);
+  const [localLogoPreview, setLocalLogoPreview] = useState(null);
+
+  const logoPreview = localLogoPreview ?? initialTeam?.logoUrl ?? null;
+  const logoName =
+    logoFile?.name ??
+    (mode === 'edit' && initialTeam?.logoUrl ? 'Current team logo' : null);
 
   const title = mode === 'edit' ? 'EDIT TEAM' : 'CREATE TEAM';
   const subtitle = canManageAgeRange
@@ -129,10 +133,7 @@ export function TeamProfileForm({
   function handleLogoChange(event) {
     const file = event.target.files?.[0] ?? null;
     setLogoFile(file);
-    setLogoName(file?.name ?? null);
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
-    }
+    setLocalLogoPreview(file ? URL.createObjectURL(file) : null);
   }
 
   return (

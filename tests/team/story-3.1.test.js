@@ -226,15 +226,25 @@ describe('STORY_3_1 AC4 — team logo uploads to storage', () => {
     expect(sql).toMatch(/team-logos/);
     expect(sql).toMatch(/team_logos_coach_insert/);
 
+    const fixSql = readFileSync(
+      path.join(REPO_ROOT, 'supabase', 'migrations', '20260721150000_fix_team_logo_storage_policy.sql'),
+      'utf8',
+    );
+    expect(fixSql).toMatch(/can_manage_team_logo/);
+    expect(fixSql).not.toMatch(/storage\.foldername\(t\.name\)/);
+
     expect(existsSync(TEAM_REPO_PATH)).toBe(true);
     const repo = readFileSync(TEAM_REPO_PATH, 'utf8');
     expect(repo).toMatch(/from\('team-logos'\)/);
     expect(repo).toMatch(/uploadLogo/);
     expect(repo).toMatch(/mapTeamError/);
+    expect(repo).toMatch(/mapTeamUpdate/);
 
     const form = readFileSync(FORM_PATH, 'utf8');
     expect(form).toMatch(/team-profile-logo/);
     expect(form).toMatch(/accept="image\/\*"/);
+    expect(form).toMatch(/initialTeam\?\.logoUrl/);
+    expect(form).toMatch(/localLogoPreview/);
   });
 });
 
