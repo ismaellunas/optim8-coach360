@@ -10,6 +10,8 @@ disable-model-invocation: true
 
 Create a GitHub PR for the current branch using `gh`.
 
+Prefer running `/compose-tests` first when the branch implements tracker stories, so the PR **Test plan** can list new `docs/mobile-app-test-pack.md` cases (and any story `verify.command` from implement-story).
+
 ## Process
 
 Run these commands in parallel first:

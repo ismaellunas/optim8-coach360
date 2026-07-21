@@ -29,5 +29,6 @@ Before building or touching UI, read `.cursor/rules/ui-design-system.mdc` — de
 ## Skills
 
 - `/implement-story STORY-X.Y` — plan then implement a tracker story, plan requires approval first
+- `/compose-tests` — add manual click-through cases to `docs/mobile-app-test-pack.md` for completed stories; run after implement-story, before create-pr
 - `/audit-tracker` — re-verify ticket statuses from test evidence
 - `/create-pr` — open a PR following team conventions

@@ -29,6 +29,11 @@ export type {
   TrialExpiryWarningPayload,
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
+export type {
+  LibraryRepository,
+  CoachLibraryItem,
+  PurchasedContentItem,
+} from './ports/library-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
@@ -42,6 +47,8 @@ export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';
 export { SupabaseSessionRepository } from './adapters/supabase/supabase-session-repository.js';
 export { RestSessionRepository } from './adapters/rest/rest-session-repository.js';
+export { SupabaseLibraryRepository } from './adapters/supabase/supabase-library-repository.js';
+export { RestLibraryRepository } from './adapters/rest/rest-library-repository.js';
 export {
   createRepositories,
   resolveAdapterMode,

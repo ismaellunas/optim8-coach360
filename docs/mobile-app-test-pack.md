@@ -145,6 +145,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 4. **Epic 4** — Plans and payments (10 tests) — **do before Epic 5**
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
+7. **Epic 6** — Schedule sessions + attach content (13 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -629,10 +630,11 @@ This is a two-person or two-browser test (Admin dashboard + mobile app).
 
 ---
 
-## Epic 6 — Session Scheduling (STORY-6.1)
+## Epic 6 — Session Scheduling (STORY-6.1, STORY-6.2)
 
 Epic 6 covers creating, viewing, editing, and cancelling practice sessions on the **Schedule**
-tab. Run Epic 3 (team + roster) and Epic 4/5 (subscription tier) first.
+tab, and attaching library or purchased content to those sessions. Run Epic 3 (team + roster)
+and Epic 4/5 (subscription tier) first.
 
 **Accounts needed**
 
@@ -643,9 +645,9 @@ tab. Run Epic 3 (team + roster) and Epic 4/5 (subscription tier) first.
 | **Player on Basic+** | Joined the coach's team and has at least one upcoming session assigned to them |
 | **Team Manager on Advanced** | Owns a team (Epic 3) — optional, for TM-only rules |
 
-**Before you start:** If Schedule ever showed a red **`session_load_failed`** error, ask a
-developer to run database migrations (`npm run supabase:deploy` locally). That error means
-the test environment schema is out of date.
+**Before you start:** If Schedule shows a red load error (for example mentioning `library` or
+`session`), ask a developer to apply the latest database migrations. Session content needs the
+coach library table from STORY-6.2.
 
 ### E6-T1: Schedule tab loads without error (regression)
 
@@ -653,7 +655,7 @@ the test environment schema is out of date.
 |---|---|---|
 | 1 | Sign in as **Coach on Advanced** or **active trial** (with a team from Epic 3). | Home screen. |
 | 2 | Tap the **Schedule** tab. | A weekly day selector (Sun–Sat) and either session cards or **No sessions scheduled**. |
-| 3 | Check for red error text on the screen. | **No** `session_load_failed` or other red error banner. |
+| 3 | Check for red error text on the screen. | **No** red error banner about loading the schedule or library. |
 
 ### E6-T2: Coach sees **+ Add Session** on Advanced/trial (regression)
 
@@ -722,11 +724,50 @@ Fail if you see **EDIT SESSION** or can change fields as a player.
 | 2 | Open the **Session type** dropdown. | **Practice** and **Film review** available; **1-on-1** is **not** offered (team managers schedule for the roster only). |
 | 3 | Create a **Practice** session for your team. | Session appears on Schedule. |
 
+### E6-T10: Attach content from personal library (STORY-6.2)
+
+First open of the library may show a few starter items (drill, video, strategy, package).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach on Advanced** or **active trial**, open **Schedule** → **+ Add Session**. | **NEW SESSION** form with a **Session content** section and **+ Add content**. |
+| 2 | Tap **+ Add content**. | **ADD CONTENT** screen with **Library** and **Purchased** tabs. **Library** is selected. |
+| 3 | Tap one library item (e.g. a drill). | Returns to the session form; **Session content** shows that item as **1.** with a **Library** label. |
+| 4 | Fill title, date, time, and team (or player). Tap **Create Session**. | Session appears on Schedule. |
+
+### E6-T11: Purchased tab for marketplace packages (STORY-6.2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **NEW SESSION** or **EDIT SESSION**, tap **+ Add content** → **Purchased**. | Purchased tab is available (next to Library). |
+| 2 | If the list is empty | Message like **No purchased packages yet** — that is OK when this account has no marketplace purchases. |
+| 3 | If a package is listed, tap it. | Returns to the form; content list shows the package as one row with a **Purchased** label (and **single unit**). |
+
+### E6-T12: Ordered content list on session detail (STORY-6.2)
+
+Use a session that already has at least one attached item from E6-T10 (or attach two items now).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach**, tap the session card. | **EDIT SESSION** with **Session content** listing items in order (**1.**, **2.**, …). |
+| 2 | Optionally tap **+ Add content**, attach a second library item, then **Save Session**. | Returns to Schedule. |
+| 3 | Re-open the same session. | The same ordered list is still there after save. |
+| 4 | Sign in as the **Player** on that team (or 1-on-1 recipient). Open the session. | **SESSION DETAILS** shows the same ordered content list. **No** **+ Add content** or **Remove** controls. |
+
+### E6-T13: Package attaches as a single unit (STORY-6.2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach**, open **NEW SESSION** or **EDIT SESSION** → **+ Add content** → **Library**. | Library items include a **Package** (for example **Weekend Practice Pack**) marked **single unit**. |
+| 2 | Tap that package. | Session content shows **one** row for the whole package — not a long list of drills inside it. |
+| 3 | Save the session and re-open it. | Still one package row with **single unit** (and **Library** or **Purchased** as appropriate). |
+
 ### Not testable by clicking (for awareness only)
 
 - **Push notifications** on create/edit/cancel are enqueued in the backend but not delivered
   in MVP (STORY-6.3). Do not expect a phone notification during these tests.
-- **Attaching drills/videos to sessions** is STORY-6.2 — out of scope for Epic 6.
+- **Buying a marketplace package in-app** may not be fully wired yet — E6-T11 can pass with an
+  empty Purchased list. Creating real purchase rows is a developer/setup step, not a click path.
 
 ---
 
@@ -786,6 +827,10 @@ Print this page and check off results as you go.
 | E6-T7 Player read-only session details | | |
 | E6-T8 Player no + Add Session | | |
 | E6-T9 Team Manager team-only session types | | |
+| E6-T10 Attach content from personal library | | |
+| E6-T11 Purchased tab for marketplace packages | | |
+| E6-T12 Ordered content list on session detail | | |
+| E6-T13 Package attaches as a single unit | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

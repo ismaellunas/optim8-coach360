@@ -392,26 +392,6 @@
         "STORY-9.2"
       ]
     },
-    {
-      "id": "OQ-3.1",
-      "question": "Is a session a calendar event only, or is there an in-session runtime experience (live run-through, timers, check-ins)?",
-      "source": "docs/product/stakeholder-questions.md#flow-3",
-      "status": "sent",
-      "blocks": [
-        "STORY-6.1",
-        "STORY-6.2",
-        "STORY-7.1"
-      ]
-    },
-    {
-      "id": "OQ-3.2",
-      "question": "How do coaches schedule sessions — date/time picker only, recurrence, or calendar sync (Google/Apple)?",
-      "source": "docs/product/stakeholder-questions.md#flow-3",
-      "status": "sent",
-      "blocks": [
-        "STORY-6.1"
-      ]
-    }
   ],
   "tickets": [
     {
@@ -1992,35 +1972,54 @@
         {
           "id": "AC-1",
           "statement": "Coach selects content from personal library",
-          "test": null
+          "test": "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC1_coach_selects_content_from_personal_library"
         },
         {
           "id": "AC-2",
           "statement": "Marketplace-purchased content attachable if OQ-3.3 resolved affirmatively",
-          "test": null
+          "test": "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC2_marketplace_purchased_content_attachable"
         },
         {
           "id": "AC-3",
           "statement": "Ordered content list displays on session detail screen",
-          "test": null
+          "test": "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC3_ordered_content_list_on_session_detail"
         },
         {
           "id": "AC-4",
           "statement": "Package can be attached as single unit if product decision allows",
-          "test": null
+          "test": "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC4_package_attaches_as_single_unit"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC1_coach_selects_content_from_personal_library",
+          "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC2_marketplace_purchased_content_attachable",
+          "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC3_ordered_content_list_on_session_detail",
+          "tests/sessions/story-6.2.test.js::test_STORY_6_2_AC4_package_attaches_as_single_unit"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "apps/mobile/src/types/database.ts",
+          "packages/api/src/adapters/rest/rest-library-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/session-mapper.ts",
+          "packages/api/src/adapters/supabase/supabase-library-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-session-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "packages/api/src/ports/library-repository.ts",
+          "packages/domain/src/index.ts",
+          "packages/domain/src/session/content-refs.ts",
+          "packages/domain/src/session/schema.ts",
+          "supabase/migrations/20260721090000_session_content_and_coach_library.sql",
+          "tests/sessions/story-6.2.test.js",
+          "docs/product/stakeholder-questions.md",
+          "package.json"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_6_2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-21T00:00:00Z",
+      "audit_notes": "OQ-3.3 both + OQ-3.4 package-as-unit resolved. Session content_refs + coach library/purchases attach UI; STORY_6_2 tests pass."
     },
     {
       "id": "STORY-6.3",

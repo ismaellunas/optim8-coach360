@@ -17,8 +17,8 @@
 | 2.1 | What does “track own progress” mean at Basic tier? | 2 |
 | 2.2 | What is included in “Full MVP access” at Pro tier? | 2 |
 | 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule | 2 |
-| 3.1 | Session = calendar event only, or in-session runtime experience? | 3 |
-| 3.2 | How are sessions scheduled (recurrence, calendar sync)? | 3 |
+| 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
+| 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
 | 4.1 | Who creates marketplace packages — admins, coaches, or both? | 4, 7, 12 |
 | 6.1 | What does “set objectives” at Pro include? | 6 |
 | 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
@@ -56,10 +56,10 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 3.1 | **P0** — Is a “session” a **calendar event only**, or is there an **in-session experience** (live run-through, timers, check-ins) when it starts? | Major scope gap in estimate | | | |
-| 3.2 | **P0** — How do coaches schedule sessions — date/time picker, recurrence, calendar sync (Google/Apple)? | Flow 3 vs calendar sync in hours doc | | | |
-| 3.3 | When adding content to a session, can coaches pick from **library**, **marketplace packages**, **both**, or only create new items? | Flow 3 ↔ Flow 12 ↔ Flow 4 | | | |
-| 3.4 | Can a session contain a **full package** as one item, or only individual drills/videos/strategies? | Content packaging model | | | |
+| 3.1 | **P0** — Is a “session” a **calendar event only**, or is there an **in-session experience** (live run-through, timers, check-ins) when it starts? | Major scope gap in estimate | **Calendar event only for MVP.** A session is a scheduled plan (date, time, type, recipients, ordered content list). No live run-through, timers, or check-ins at start. Matches shipped STORY-6.1. | product | 2026-07-21 |
+| 3.2 | **P0** — How do coaches schedule sessions — date/time picker, recurrence, calendar sync (Google/Apple)? | Flow 3 vs calendar sync in hours doc | **Date/time picker only for MVP.** No recurrence series and no Google/Apple calendar sync. Matches shipped STORY-6.1. | product | 2026-07-21 |
+| 3.3 | When adding content to a session, can coaches pick from **library**, **marketplace packages**, **both**, or only create new items? | Flow 3 ↔ Flow 12 ↔ Flow 4 | **Both.** Coaches attach from personal library and marketplace-purchased packages. Creating new items stays in Flow 12 (Create Content), not required mid-schedule. | product | 2026-07-21 |
+| 3.4 | Can a session contain a **full package** as one item, or only individual drills/videos/strategies? | Content packaging model | **Full package as one item.** A session’s ordered list may include atomic items (drill / video / strategy) and a package as a single unit (not auto-expanded into child rows). | product | 2026-07-21 |
 | 3.5 | What session types are required at MVP (practice, film review, 1-on-1, game, conditioning)? | Prototype lists 5 types; confirm for MVP | | | |
 | 3.6 | Who can create sessions — coaches only, or team managers too (matrix says TM can at Advanced+)? | Role permissions | | | |
 | 3.7 | What notifications fire on create, update, cancel, and reminder (how far in advance)? | DEP-07 push scope | | | |

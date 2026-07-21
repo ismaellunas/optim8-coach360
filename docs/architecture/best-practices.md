@@ -233,6 +233,14 @@ Stream tokens generated server-side; client uses web/React SDK in Vite app.
 - Sentry in Vite client for crashes.
 - Structured logs in Edge Functions with `userId`, `teamId`, event IDs.
 
+**User-facing validation and API errors (required practice):**
+
+- Never surface raw Zod dumps, PostgREST codes, or machine keys (e.g. `session_recipient_required`, JSON issue arrays) in the UI.
+- Map machine codes → short, actionable copy that names the missing or invalid field (“Select a team for this session.”).
+- Prefer field-level feedback (red border + helper under the control) plus one summary line when several fields fail.
+- Keep stable machine codes in Zod/`packages/domain` for tests; put human copy in mappers (e.g. `mapTeamError`, `mapSessionError`, `mapInviteErrorMessage`).
+- Pattern: domain code → adapter `map*Error` → UI shows only the mapped string.
+
 ### Local development
 
 | Integration | Tool |

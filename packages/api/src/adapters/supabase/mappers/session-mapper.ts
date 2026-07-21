@@ -1,4 +1,10 @@
-import { sessionSchema, type Session } from '@coach360/domain';
+import {
+  normalizeContentRefs,
+  sessionContentRefsSchema,
+  sessionSchema,
+  type Session,
+  type SessionContentRef,
+} from '@coach360/domain';
 
 type SessionRow = {
   id: string;
@@ -10,9 +16,18 @@ type SessionRow = {
   scheduled_at: string;
   duration_minutes: number;
   session_type: 'practice' | 'film' | 'individual';
+  content_refs: unknown;
   created_at: string;
   updated_at: string;
 };
+
+function mapContentRefs(raw: unknown): SessionContentRef[] {
+  const parsed = sessionContentRefsSchema.safeParse(raw ?? []);
+  if (!parsed.success) {
+    return [];
+  }
+  return normalizeContentRefs(parsed.data);
+}
 
 export function mapSessionRow(row: SessionRow): Session {
   return sessionSchema.parse({
@@ -27,10 +42,11 @@ export function mapSessionRow(row: SessionRow): Session {
     sessionType: row.session_type,
     // Cancel is a hard delete in MVP — rows that exist are always scheduled.
     status: 'scheduled',
+    contentRefs: mapContentRefs(row.content_refs),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   });
 }
 
 export const SESSION_SELECT =
-  'id, coach_id, team_id, player_id, title, notes, scheduled_at, duration_minutes, session_type, created_at, updated_at';
+  'id, coach_id, team_id, player_id, title, notes, scheduled_at, duration_minutes, session_type, content_refs, created_at, updated_at';
