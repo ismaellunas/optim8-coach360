@@ -3,6 +3,7 @@ import { useRepositories } from '@coach360/api';
 import {
   SESSION_MVP_TYPES,
   attachContentRef,
+  buildCorrectiveSessionInput,
   canCreateIndividualSession,
   canEditSession,
   canViewSharedSchedule,
@@ -523,7 +524,7 @@ function SessionForm({
   );
 }
 
-export function ScheduleScreen({ user, tryA }) {
+export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed }) {
   const repos = useRepositories();
   const { session } = useAuth();
   const userId = session?.user?.id ?? null;
@@ -545,6 +546,7 @@ export function ScheduleScreen({ user, tryA }) {
   const [editingSession, setEditingSession] = useState(null);
   const [viewingSession, setViewingSession] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [createDraft, setCreateDraft] = useState(null);
 
   const canCreateIndividual = useMemo(
     () =>
@@ -638,6 +640,36 @@ export function ScheduleScreen({ user, tryA }) {
     [loadBaseData],
   );
 
+  useEffect(
+    function () {
+      if (!prefillCreate || loading) {
+        return;
+      }
+      const input = prefillCreate.contentKey
+        ? buildCorrectiveSessionInput(
+            prefillCreate.playerId,
+            prefillCreate.contentKey,
+            prefillCreate.title ?? 'Shared corrective drill',
+          )
+        : null;
+      if (input) {
+        setCreateDraft({
+          title: input.title,
+          notes: input.notes ?? null,
+          scheduledAt: input.scheduledAt,
+          durationMinutes: input.durationMinutes,
+          sessionType: input.sessionType,
+          teamId: null,
+          playerId: input.playerId ?? null,
+          contentRefs: input.contentRefs ?? [],
+        });
+        setShowCreate(true);
+      }
+      onPrefillConsumed?.();
+    },
+    [loading, onPrefillConsumed, prefillCreate],
+  );
+
   async function handleSaveSession(input) {
     if (!userId) {
       return;
@@ -668,6 +700,7 @@ export function ScheduleScreen({ user, tryA }) {
       }
       setShowCreate(false);
       setEditingSession(null);
+      setCreateDraft(null);
       await loadBaseData();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'session_save_failed');
@@ -694,6 +727,7 @@ export function ScheduleScreen({ user, tryA }) {
       });
       setEditingSession(null);
       setShowCreate(false);
+      setCreateDraft(null);
       await loadBaseData();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'session_cancel_failed');
@@ -719,7 +753,7 @@ export function ScheduleScreen({ user, tryA }) {
   }
 
   if (showCreate || editingSession || viewingSession) {
-    const activeSession = editingSession ?? viewingSession;
+    const activeSession = editingSession ?? viewingSession ?? (showCreate && createDraft ? createDraft : null);
     const isReadOnly = Boolean(viewingSession);
     if (viewingSession && appRole === 'player') {
       return (
@@ -752,6 +786,7 @@ export function ScheduleScreen({ user, tryA }) {
           setShowCreate(false);
           setEditingSession(null);
           setViewingSession(null);
+          setCreateDraft(null);
           setError(null);
         }}
         onDelete={handleDeleteSession}

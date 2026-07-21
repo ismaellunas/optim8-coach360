@@ -1,4 +1,5 @@
 import type {
+  CoachCompletionFilters,
   DrillLogInput,
   SessionContentCompletion,
   SessionContentRef,
@@ -10,6 +11,8 @@ export type SessionContentRepository = {
   listCompletions(sessionId: string, playerId: string): Promise<SessionContentCompletion[]>;
   /** All completion rows for a player — coach dashboard consumption (STORY-7.2 AC-4). */
   listPlayerProgress(playerId: string): Promise<SessionContentCompletion[]>;
+  /** Coach-owned session completions for progress review dashboard (STORY-7.3). */
+  listCoachCompletions(filters?: CoachCompletionFilters): Promise<SessionContentCompletion[]>;
   markComplete(
     sessionId: string,
     playerId: string,

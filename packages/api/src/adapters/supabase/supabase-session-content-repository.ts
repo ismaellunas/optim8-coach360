@@ -1,4 +1,8 @@
-import type { DrillLogInput, SessionContentRef } from '@coach360/domain';
+import type {
+  CoachCompletionFilters,
+  DrillLogInput,
+  SessionContentRef,
+} from '@coach360/domain';
 import { drillLogInputSchema, sessionContentKey } from '@coach360/domain';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
@@ -60,6 +64,34 @@ export class SupabaseSessionContentRepository implements SessionContentRepositor
 
     if (error) {
       throw new Error(`player_progress_load_failed:${error.message}`);
+    }
+
+    return (data ?? []).map(mapCompletionRow);
+  }
+
+  async listCoachCompletions(
+    filters?: CoachCompletionFilters,
+  ): Promise<SessionContentCompletion[]> {
+    let query = this.client
+      .from('session_content_completions')
+      .select(COMPLETION_SELECT)
+      .order('completed_at', { ascending: false });
+
+    if (filters?.playerId) {
+      query = query.eq('player_id', filters.playerId);
+    }
+    if (filters?.from) {
+      query = query.gte('completed_at', filters.from);
+    }
+    if (filters?.to) {
+      const end = filters.to.includes('T') ? filters.to : `${filters.to}T23:59:59.999Z`;
+      query = query.lte('completed_at', end);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(`coach_completions_load_failed:${error.message}`);
     }
 
     return (data ?? []).map(mapCompletionRow);

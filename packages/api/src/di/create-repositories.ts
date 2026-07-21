@@ -14,6 +14,7 @@ import type { BillingRepository } from '../ports/billing-repository.js';
 import type { SessionRepository } from '../ports/session-repository.js';
 import type { SessionContentRepository } from '../ports/session-content-repository.js';
 import type { LibraryRepository } from '../ports/library-repository.js';
+import type { MessagingRepository } from '../ports/messaging-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
@@ -27,6 +28,7 @@ import { RestAnalyticsRepository } from '../adapters/rest/rest-analytics-reposit
 import { RestSessionRepository } from '../adapters/rest/rest-session-repository.js';
 import { RestSessionContentRepository } from '../adapters/rest/rest-session-content-repository.js';
 import { RestLibraryRepository } from '../adapters/rest/rest-library-repository.js';
+import { RestMessagingRepository } from '../adapters/rest/rest-messaging-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -44,6 +46,7 @@ import { SupabaseRosterRepository } from '../adapters/supabase/supabase-roster-r
 import { SupabaseSessionRepository } from '../adapters/supabase/supabase-session-repository.js';
 import { SupabaseSessionContentRepository } from '../adapters/supabase/supabase-session-content-repository.js';
 import { SupabaseLibraryRepository } from '../adapters/supabase/supabase-library-repository.js';
+import { SupabaseMessagingRepository } from '../adapters/supabase/supabase-messaging-repository.js';
 import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
 import { ConsoleNotificationRepository } from '../adapters/console/console-notification-repository.js';
 
@@ -62,6 +65,7 @@ export type RepositoryBundle = {
   notifications: NotificationRepository;
   sessions: SessionRepository;
   sessionContent: SessionContentRepository;
+  messaging: MessagingRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -94,6 +98,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       notifications: new ConsoleNotificationRepository(),
       sessions: new RestSessionRepository(),
       sessionContent: new RestSessionContentRepository(),
+      messaging: new RestMessagingRepository(),
     };
   }
 
@@ -126,6 +131,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     notifications: new ConsoleNotificationRepository(),
     sessions: new SupabaseSessionRepository(appClient),
     sessionContent: new SupabaseSessionContentRepository(appClient),
+    messaging: new SupabaseMessagingRepository(appClient),
   };
 }
 

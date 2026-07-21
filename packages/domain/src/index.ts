@@ -248,6 +248,15 @@ export {
   type PlayerProgressFeatures,
 } from './session/progress.js';
 export {
+  coachProgressFeaturesForAccess,
+  filterCoachCompletions,
+  parseSessionContentKey,
+  formatCompletionLabel,
+  buildCorrectiveSessionInput,
+  type CoachProgressFeatures,
+  type CoachCompletionFilters,
+} from './session/coach-progress.js';
+export {
   DEFAULT_SESSION_REMINDER_HOURS_BEFORE,
   SESSION_REMINDER_SETTING_KEY,
   normalizeSessionReminderHours,
