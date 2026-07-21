@@ -2179,35 +2179,46 @@
         {
           "id": "AC-1",
           "statement": "Player can mark drill complete and optionally log reps/time",
-          "test": null
+          "test": "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC1_player_logs_drill_completion_with_optional_reps_and_time"
         },
         {
           "id": "AC-2",
           "statement": "Progress percentage updates on profile and assigned content",
-          "test": null
+          "test": "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC2_progress_percentage_updates_on_profile_and_assigned_content"
         },
         {
           "id": "AC-3",
           "statement": "Basic tier progress scope matches OQ-2.1 resolution",
-          "test": null
+          "test": "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC3_basic_tier_progress_scope_matches_resolution"
         },
         {
           "id": "AC-4",
           "statement": "Progress data stored in Supabase for coach dashboard consumption",
-          "test": null
+          "test": "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC4_progress_data_persists_for_coach_dashboard_consumption"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC1_player_logs_drill_completion_with_optional_reps_and_time",
+          "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC2_progress_percentage_updates_on_profile_and_assigned_content",
+          "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC3_basic_tier_progress_scope_matches_resolution",
+          "tests/sessions/story-7.2.test.js::test_STORY_7_2_AC4_progress_data_persists_for_coach_dashboard_consumption"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/session/ui/PlayerSessionDetailScreen.jsx",
+          "apps/mobile/src/features/progress/ui/ProgressScreen.jsx",
+          "apps/mobile/src/features/profile/ui/ProfileScreen.jsx",
+          "packages/domain/src/session/completion.ts",
+          "packages/domain/src/session/progress.ts",
+          "packages/api/src/ports/session-content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-session-content-repository.ts",
+          "supabase/migrations/20260721160000_drill_progress_logging.sql"
+        ],
+        "command": "npm run test:story-7.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-21T00:00:00Z",
+      "audit_notes": "Drill log form with optional reps/time on session detail; session progress bar; extracted ProgressScreen + profile summary; Supabase reps/duration_seconds + listPlayerProgress for coach dashboard; Basic readonly vs Pro full per OQ-2.1; all STORY_7_2 tests pass."
     },
     {
       "id": "STORY-7.3",

@@ -146,7 +146,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 5. **Epic 5** — Feature gating on mobile (10 tests)
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
-8. **Epic 7** — Player session content consumption (4 tests)
+8. **Epic 7** — Player session content + drill progress (8 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -807,10 +807,11 @@ Only if you have (or the team can set) a **player account below Basic** — for 
 
 <div class="page-break"></div>
 
-## Epic 7 — Player Session Content (STORY-7.1)
+## Epic 7 — Player Session Content & Progress (STORY-7.1, STORY-7.2)
 
 Epic 7 covers the **player** experience after opening a shared session: viewing attached drills,
-videos, and packages, playing video content, and marking items complete.
+videos, and packages, playing video content, marking items complete, logging drill reps/time, and
+tracking progress on profile and the **Progress** tab.
 
 **Accounts needed:** **Player on Basic+** on a coach's roster (or 1-on-1 recipient), plus a **Coach
 on Advanced** (or active trial) who has created a session with attached content (use **E6-T10** /
@@ -861,9 +862,47 @@ Skip step 2 if you have no past-dated sessions.
 | 3 | Go back to Schedule, then re-open the same session. | That item still shows **Done**. |
 | 4 | Mark a second item if the session has more than one. | Each row tracks completion independently. |
 
+### E7-T5: Log drill complete with optional reps and time (STORY-7.2 AC-1)
+
+The coach must attach at least one **Drill** row when building the session (**E6-T10**).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **SESSION DETAILS**, find a **Drill** row that shows **To do**. | **Reps (optional)** and **Time (min, optional)** fields below the drill title. |
+| 2 | Enter **50** reps and **10** minutes (or leave fields blank). Tap **Log drill complete**. | Badge changes to **Done**; button shows **Completed** (disabled). Logged values appear under the title (e.g. **50 reps · 10 min**). |
+| 3 | Go back to Schedule, then re-open the same session. | Drill still shows **Done** with your logged reps/time. |
+
+### E7-T6: Session and profile progress update (STORY-7.2 AC-2)
+
+Complete at least two content items in one session (use **E7-T4** and **E7-T5**).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **SESSION DETAILS**, check the top session card. | **Session progress** bar with a percentage (e.g. **50%** when half the items are done). |
+| 2 | Tap **Home** → open your **Profile** (avatar or settings path you normally use). | **Training progress** card with drill count and items completed. |
+| 3 | Tap the **Progress** tab. | **Drills completed** stat reflects drills you logged; count matches your session work. |
+
+### E7-T7: Basic tier progress scope (STORY-7.2 AC-3)
+
+Use **Player on Basic** (not trial, not Pro).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Tap **Progress**. | **Basic progress** banner explaining limited stats; **Drills completed** count visible. |
+| 2 | Check for practice-minute trends or coach feedback sections. | **Not** shown on Basic — only the completion count and banner (full dashboard is Pro). |
+| 3 | On **Profile**, read the progress card footnote. | Mentions upgrading to **Pro** for full stats. |
+
+### E7-T8: Advanced player sees Progress paywall (STORY-7.2 AC-3)
+
+Use **Player on Advanced** (paid Advanced, not trial). Skip if you have no Advanced player account.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Tap **Progress**. | Locked message: upgrade to **Pro** for the full progress dashboard, with an **Upgrade** button. |
+
 ### Not testable by clicking (for awareness only)
 
-- **Drill reps/time logging** and **progress %** on profile are **STORY-7.2** — not in this epic.
+- **Coach progress dashboard** (reviewing player drill logs) ships in **STORY-7.3**.
 - **Mux CDN / coach-uploaded video URLs** ship in **STORY-9.3**; MVP uses demo playback URLs.
 
 ---
@@ -935,6 +974,10 @@ Print this page and check off results as you go.
 | E7-T2 Video playback library + purchased | | |
 | E7-T3 Content on scheduled session day | | |
 | E7-T4 Mark content complete per item | | |
+| E7-T5 Log drill with reps/time | | |
+| E7-T6 Session + profile progress | | |
+| E7-T7 Basic tier progress scope | | |
+| E7-T8 Advanced Progress paywall | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

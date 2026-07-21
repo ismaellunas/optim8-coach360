@@ -3,6 +3,7 @@ import { useRepositories } from '@coach360/api';
 import {
   SESSION_MVP_TYPES,
   canAccessSessionContent,
+  computeCompletionPercent,
   sessionContentAccessMessage,
   sessionContentKey,
 } from '@coach360/domain';
@@ -52,16 +53,30 @@ function contentKindLabel(kind) {
   return 'Drill';
 }
 
+function parseOptionalInt(raw) {
+  const trimmed = String(raw ?? '').trim();
+  if (trimmed === '') {
+    return null;
+  }
+  const value = Number.parseInt(trimmed, 10);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
 function SessionContentRow({
   refItem,
   index,
   completed,
+  completionEntry,
   mediaUrl,
   canInteract,
   busy,
   onToggleComplete,
+  onLogDrill,
 }) {
   const showVideo = refItem.kind === 'video' || refItem.kind === 'package';
+  const isDrill = refItem.kind === 'drill';
+  const [reps, setReps] = useState('');
+  const [durationMinutes, setDurationMinutes] = useState('');
 
   return (
     <Card
@@ -76,6 +91,15 @@ function SessionContentRow({
             {refItem.kind === 'package' ? ' · single unit' : ''}
           </div>
           <div className="font-display text-base font-bold text-coach-t1">{refItem.title}</div>
+          {completed && completionEntry && (completionEntry.reps != null || completionEntry.durationSeconds != null) ? (
+            <div className="mt-1 font-body text-xs text-coach-t3" data-testid="drill-log-summary">
+              {completionEntry.reps != null ? `${completionEntry.reps} reps` : null}
+              {completionEntry.reps != null && completionEntry.durationSeconds != null ? ' · ' : null}
+              {completionEntry.durationSeconds != null
+                ? `${Math.round(completionEntry.durationSeconds / 60)} min`
+                : null}
+            </div>
+          ) : null}
         </div>
         {completed ? (
           <Badge tone="green">Done</Badge>
@@ -90,16 +114,64 @@ function SessionContentRow({
         </div>
       ) : null}
 
+      {canInteract && isDrill && !completed ? (
+        <div className="mb-3 grid grid-cols-2 gap-3" data-testid="drill-log-form">
+          <div>
+            <label className="mb-1.5 block font-body text-xs uppercase text-coach-t3" htmlFor={`drill-reps-${index}`}>
+              Reps (optional)
+            </label>
+            <input
+              id={`drill-reps-${index}`}
+              type="number"
+              min={0}
+              value={reps}
+              onChange={function (event) {
+                setReps(event.target.value);
+              }}
+              placeholder="e.g. 50"
+              className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-3 py-2.5 font-body text-sm text-coach-t1 outline-none"
+            />
+          </div>
+          <div>
+            <label
+              className="mb-1.5 block font-body text-xs uppercase text-coach-t3"
+              htmlFor={`drill-time-${index}`}
+            >
+              Time (min, optional)
+            </label>
+            <input
+              id={`drill-time-${index}`}
+              type="number"
+              min={0}
+              value={durationMinutes}
+              onChange={function (event) {
+                setDurationMinutes(event.target.value);
+              }}
+              placeholder="e.g. 10"
+              className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-3 py-2.5 font-body text-sm text-coach-t1 outline-none"
+            />
+          </div>
+        </div>
+      ) : null}
+
       {canInteract ? (
         <Btn
           small
           primary={!completed}
           disabled={busy || completed}
           onClick={function () {
+            if (isDrill && !completed) {
+              const durationSeconds = parseOptionalInt(durationMinutes);
+              onLogDrill(refItem, {
+                reps: parseOptionalInt(reps),
+                durationSeconds: durationSeconds != null ? durationSeconds * 60 : null,
+              });
+              return;
+            }
             onToggleComplete(refItem);
           }}
         >
-          {completed ? 'Completed' : 'Mark complete'}
+          {completed ? 'Completed' : isDrill ? 'Log drill complete' : 'Mark complete'}
         </Btn>
       ) : (
         <p className="font-body text-xs text-coach-t3">Complete this when the session is available.</p>
@@ -124,10 +196,21 @@ export function PlayerSessionDetailScreen({ session, playerId, onBack }) {
   const canInteract = canAccessSessionContent(session);
   const accessMessage = sessionContentAccessMessage(session);
 
-  const completedKeys = useMemo(
-    () => new Set(completions.map((entry) => entry.contentKey)),
+  const completionByKey = useMemo(
+    () => new Map(completions.map((entry) => [entry.contentKey, entry])),
     [completions],
   );
+
+  const completedCount = useMemo(
+    function () {
+      return orderedContent.filter(function (refItem) {
+        return completionByKey.has(sessionContentKey(refItem));
+      }).length;
+    },
+    [completionByKey, orderedContent],
+  );
+
+  const sessionProgressPercent = computeCompletionPercent(completedCount, orderedContent.length);
 
   const loadData = useCallback(
     async function () {
@@ -178,19 +261,24 @@ export function PlayerSessionDetailScreen({ session, playerId, onBack }) {
     [loadData],
   );
 
-  async function handleToggleComplete(refItem) {
+  async function saveCompletion(refItem, drillLog) {
     if (!playerId || !canInteract) {
       return;
     }
     const key = sessionContentKey(refItem);
-    if (completedKeys.has(key)) {
+    if (completionByKey.has(key)) {
       return;
     }
 
     setBusyKey(key);
     setError(null);
     try {
-      const saved = await repos.sessionContent.markComplete(session.id, playerId, refItem);
+      const saved = await repos.sessionContent.markComplete(
+        session.id,
+        playerId,
+        refItem,
+        drillLog,
+      );
       setCompletions(function (current) {
         const without = current.filter((entry) => entry.contentKey !== saved.contentKey);
         return [...without, saved];
@@ -217,6 +305,20 @@ export function PlayerSessionDetailScreen({ session, playerId, onBack }) {
           {session.notes ? (
             <p className="mt-3 font-body text-sm leading-relaxed text-coach-t2">{session.notes}</p>
           ) : null}
+          {orderedContent.length > 0 ? (
+            <div className="mt-4" data-testid="session-progress-bar">
+              <div className="mb-1 flex justify-between font-body text-xs text-coach-t3">
+                <span>Session progress</span>
+                <span className="font-mono text-coach-t2">{sessionProgressPercent}%</span>
+              </div>
+              <div className="h-1.5 rounded-sm bg-coach-border">
+                <div
+                  className="h-full rounded-sm bg-coach-orange"
+                  style={{ width: `${sessionProgressPercent}%` }}
+                />
+              </div>
+            </div>
+          ) : null}
         </Card>
 
         {!canInteract && accessMessage ? (
@@ -242,16 +344,19 @@ export function PlayerSessionDetailScreen({ session, playerId, onBack }) {
           ) : (
             orderedContent.map(function (refItem, index) {
               const key = sessionContentKey(refItem);
+              const completionEntry = completionByKey.get(key) ?? null;
               return (
                 <SessionContentRow
                   key={key}
                   refItem={refItem}
                   index={index}
-                  completed={completedKeys.has(key)}
+                  completed={Boolean(completionEntry)}
+                  completionEntry={completionEntry}
                   mediaUrl={mediaUrls[key] ?? null}
                   canInteract={canInteract}
                   busy={busyKey === key}
-                  onToggleComplete={handleToggleComplete}
+                  onToggleComplete={saveCompletion}
+                  onLogDrill={saveCompletion}
                 />
               );
             })

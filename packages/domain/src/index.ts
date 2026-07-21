@@ -234,8 +234,19 @@ export {
 } from './session/content-access.js';
 export {
   sessionContentKey,
+  drillLogInputSchema,
+  type DrillLogInput,
   type SessionContentCompletion,
 } from './session/completion.js';
+export {
+  BASIC_TIER_PROGRESS_SCOPE,
+  computeCompletionPercent,
+  summarizePlayerProgress,
+  playerProgressFeaturesForAccess,
+  progressScopeLabel,
+  type PlayerProgressSummary,
+  type PlayerProgressFeatures,
+} from './session/progress.js';
 export {
   DEFAULT_SESSION_REMINDER_HOURS_BEFORE,
   SESSION_REMINDER_SETTING_KEY,

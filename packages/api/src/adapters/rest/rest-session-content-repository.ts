@@ -1,4 +1,4 @@
-import type { SessionContentRef } from '@coach360/domain';
+import type { DrillLogInput, SessionContentRef } from '@coach360/domain';
 import { NotImplementedAdapterError } from '../../client/types.js';
 import type {
   SessionContentCompletion,
@@ -12,14 +12,21 @@ export class RestSessionContentRepository implements SessionContentRepository {
     throw new NotImplementedAdapterError('rest', 'listCompletions');
   }
 
+  async listPlayerProgress(playerId: string): Promise<SessionContentCompletion[]> {
+    void playerId;
+    throw new NotImplementedAdapterError('rest', 'listPlayerProgress');
+  }
+
   async markComplete(
     sessionId: string,
     playerId: string,
     ref: Pick<SessionContentRef, 'kind' | 'source' | 'id'>,
+    drillLog?: DrillLogInput,
   ): Promise<SessionContentCompletion> {
     void sessionId;
     void playerId;
     void ref;
+    void drillLog;
     throw new NotImplementedAdapterError('rest', 'markComplete');
   }
 
