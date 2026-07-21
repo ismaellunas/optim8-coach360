@@ -93,10 +93,18 @@ function canShowScheduleCreateAction(role) {
   return role === 'coach' || role === 'team_manager' || role === 'admin';
 }
 
+/** Calendar date in the current week for a Sunday=0..Saturday=6 weekday index. */
+function dateForWeekday(weekdayIndex, now = new Date()) {
+  const next = new Date(now);
+  next.setDate(now.getDate() + (weekdayIndex - now.getDay()));
+  return next;
+}
+
 function SessionForm({
   mode,
   readOnly = false,
   initialSession,
+  defaultDate,
   teams,
   players,
   libraryItems,
@@ -109,7 +117,11 @@ function SessionForm({
   onCancel,
   onDelete,
 }) {
-  const baseDate = initialSession ? new Date(initialSession.scheduledAt) : new Date();
+  const baseDate = initialSession
+    ? new Date(initialSession.scheduledAt)
+    : defaultDate
+      ? new Date(defaultDate)
+      : new Date();
   const [title, setTitle] = useState(initialSession?.title ?? '');
   const [date, setDate] = useState(toLocalDateInput(baseDate));
   const [time, setTime] = useState(toLocalTimeInput(baseDate));
@@ -713,6 +725,7 @@ export function ScheduleScreen({ user, tryA }) {
         mode={editingSession ? 'edit' : 'create'}
         readOnly={isReadOnly}
         initialSession={activeSession}
+        defaultDate={showCreate && !activeSession ? dateForWeekday(selectedDay) : undefined}
         teams={teams}
         players={players}
         libraryItems={libraryItems}

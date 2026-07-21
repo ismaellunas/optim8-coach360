@@ -76,6 +76,8 @@ describe('STORY_6_3 AC1 — share to full team roster or individual player selec
     expect(ui).toMatch(/Individual player/);
     expect(ui).toMatch(/data-testid="share-recipient-team"/);
     expect(ui).toMatch(/data-testid="share-recipient-player"/);
+    expect(ui).toMatch(/dateForWeekday\(selectedDay\)/);
+    expect(ui).toMatch(/defaultDate=\{showCreate && !activeSession \? dateForWeekday\(selectedDay\)/);
   });
 });
 
