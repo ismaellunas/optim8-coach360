@@ -40,12 +40,13 @@ export function shouldSendSessionReminder(options: {
   return hoursRemaining > 0 && hoursRemaining <= reminderHours;
 }
 
-/** Non-cancelled sessions with scheduledAt at or after `now`. */
+/** Non-cancelled sessions on today (local calendar day) or later. */
 export function filterUpcomingSessions<T extends { scheduledAt: string; status?: string }>(
   sessions: readonly T[],
   now: Date = new Date(),
 ): T[] {
-  const cutoff = now.getTime();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const cutoff = startOfToday.getTime();
   return sessions.filter((entry) => {
     if (entry.status === 'cancelled') {
       return false;

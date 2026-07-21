@@ -564,12 +564,16 @@ export function ScheduleScreen({ user, tryA }) {
       setLoading(true);
       setError(null);
       try {
+        const isCoachLike =
+          appRole === 'coach' || appRole === 'team_manager' || appRole === 'admin';
         const [sessionRows, ownedTeams, memberTeams, libraryRows, purchaseRows] = await Promise.all([
           repos.sessions.listForUser(userId),
-          repos.teams.listForUser(userId),
-          appRole === 'team_manager' ? repos.rosters.listMemberTeams(userId) : Promise.resolve([]),
-          repos.library.listCoachLibrary(userId),
-          repos.library.listPurchasedContent(userId),
+          isCoachLike ? repos.teams.listForUser(userId) : Promise.resolve([]),
+          appRole === 'team_manager' || appRole === 'player'
+            ? repos.rosters.listMemberTeams(userId)
+            : Promise.resolve([]),
+          isCoachLike ? repos.library.listCoachLibrary(userId) : Promise.resolve([]),
+          isCoachLike ? repos.library.listPurchasedContent(userId) : Promise.resolve([]),
         ]);
         const nextTeams = uniqueTeams([...(ownedTeams ?? []), ...(memberTeams ?? [])]);
         setSessions(sessionRows.filter((entry) => entry.status !== 'cancelled'));
@@ -577,7 +581,7 @@ export function ScheduleScreen({ user, tryA }) {
         setLibraryItems(libraryRows ?? []);
         setPurchasedItems(purchaseRows ?? []);
 
-        if (nextTeams.length > 0) {
+        if (isCoachLike && nextTeams.length > 0) {
           const rosterLists = await Promise.all(
             nextTeams.map((team) => repos.rosters.listMembers(team.id)),
           );
@@ -743,6 +747,10 @@ export function ScheduleScreen({ user, tryA }) {
   const dayData = scheduleSessions.filter(
     (entry) => new Date(entry.scheduledAt).getDay() === selectedDay,
   );
+  const daysWithSessions = Array.from({ length: 7 }, () => false);
+  for (const entry of scheduleSessions) {
+    daysWithSessions[new Date(entry.scheduledAt).getDay()] = true;
+  }
 
   return (
     <ScreenContainer>
@@ -750,6 +758,7 @@ export function ScheduleScreen({ user, tryA }) {
       <div className="mb-5 flex gap-1.5">
         {days.map(function (day, index) {
           const active = selectedDay === index;
+          const hasSessions = daysWithSessions[index];
           return (
             <div
               key={day}
@@ -760,6 +769,14 @@ export function ScheduleScreen({ user, tryA }) {
             >
               <div className={`font-body text-[10px] uppercase ${active ? 'text-white/70' : 'text-coach-t3'}`}>{day}</div>
               <div className={`mt-0.5 font-display text-lg font-bold ${active ? 'text-white' : 'text-coach-t1'}`}>{dates[index]}</div>
+              {hasSessions ? (
+                <div
+                  className={`mx-auto mt-1 h-1.5 w-1.5 rounded-full ${active ? 'bg-white' : 'bg-coach-orange'}`}
+                  aria-hidden
+                />
+              ) : (
+                <div className="mt-1 h-1.5" aria-hidden />
+              )}
             </div>
           );
         })}
@@ -771,7 +788,13 @@ export function ScheduleScreen({ user, tryA }) {
           <div className="font-body text-sm text-coach-red">{error}</div>
         </Card>
       ) : dayData.length === 0 ? (
-        <div className="px-10 py-10 text-center font-body text-coach-t3">No sessions scheduled</div>
+        <div className="px-10 py-10 text-center font-body text-coach-t3">
+          {scheduleSessions.length > 0
+            ? 'No sessions on this day — try a day with an orange dot.'
+            : appRole === 'player'
+              ? 'No upcoming sessions shared with you yet.'
+              : 'No sessions scheduled'}
+        </div>
       ) : (
         dayData.map(function (entry) {
           return (

@@ -123,16 +123,17 @@ describe('STORY_6_3 AC3 — in-app schedule shows upcoming for players at Basic+
     const paywall = readFileSync(PAYWALL_PATH, 'utf8');
     expect(paywall).toMatch(/viewSchedule:\s*\{\s*player:\s*'basic'/);
 
-    const now = new Date('2026-07-21T12:00:00.000Z');
+    const now = new Date(2026, 6, 21, 12, 0, 0);
     const upcoming = filterUpcomingSessions(
       [
-        { id: 'past', scheduledAt: '2026-07-20T08:00:00.000Z', status: 'scheduled' },
-        { id: 'soon', scheduledAt: '2026-07-22T08:00:00.000Z', status: 'scheduled' },
-        { id: 'gone', scheduledAt: '2026-07-23T08:00:00.000Z', status: 'cancelled' },
+        { id: 'past', scheduledAt: new Date(2026, 6, 19, 8, 0, 0).toISOString(), status: 'scheduled' },
+        { id: 'today', scheduledAt: new Date(2026, 6, 21, 8, 0, 0).toISOString(), status: 'scheduled' },
+        { id: 'soon', scheduledAt: new Date(2026, 6, 22, 8, 0, 0).toISOString(), status: 'scheduled' },
+        { id: 'gone', scheduledAt: new Date(2026, 6, 23, 8, 0, 0).toISOString(), status: 'cancelled' },
       ],
       now,
     );
-    expect(upcoming.map((entry) => entry.id)).toEqual(['soon']);
+    expect(upcoming.map((entry) => entry.id)).toEqual(['today', 'soon']);
 
     const ui = readFileSync(UI_PATH, 'utf8');
     expect(ui).toMatch(/canViewSharedSchedule/);
