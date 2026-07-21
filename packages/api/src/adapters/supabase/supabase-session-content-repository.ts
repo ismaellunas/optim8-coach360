@@ -1,5 +1,5 @@
-import type { SessionContentRef } from '@coach360/domain';
-import { sessionContentKey } from '@coach360/domain';
+import type { DrillLogInput, SessionContentRef } from '@coach360/domain';
+import { drillLogInputSchema, sessionContentKey } from '@coach360/domain';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   SessionContentCompletion,
@@ -13,17 +13,24 @@ export const PURCHASED_PACKAGE_DEMO_VIDEO_URL =
 export const LIBRARY_VIDEO_DEMO_URL =
   'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
 
+const COMPLETION_SELECT =
+  'session_id, player_id, content_key, completed_at, reps, duration_seconds';
+
 function mapCompletionRow(row: {
   session_id: string;
   player_id: string;
   content_key: string;
   completed_at: string;
+  reps?: number | null;
+  duration_seconds?: number | null;
 }): SessionContentCompletion {
   return {
     sessionId: row.session_id,
     playerId: row.player_id,
     contentKey: row.content_key,
     completedAt: row.completed_at,
+    reps: row.reps ?? null,
+    durationSeconds: row.duration_seconds ?? null,
   };
 }
 
@@ -33,7 +40,7 @@ export class SupabaseSessionContentRepository implements SessionContentRepositor
   async listCompletions(sessionId: string, playerId: string): Promise<SessionContentCompletion[]> {
     const { data, error } = await this.client
       .from('session_content_completions')
-      .select('session_id, player_id, content_key, completed_at')
+      .select(COMPLETION_SELECT)
       .eq('session_id', sessionId)
       .eq('player_id', playerId);
 
@@ -44,24 +51,48 @@ export class SupabaseSessionContentRepository implements SessionContentRepositor
     return (data ?? []).map(mapCompletionRow);
   }
 
+  async listPlayerProgress(playerId: string): Promise<SessionContentCompletion[]> {
+    const { data, error } = await this.client
+      .from('session_content_completions')
+      .select(COMPLETION_SELECT)
+      .eq('player_id', playerId)
+      .order('completed_at', { ascending: false });
+
+    if (error) {
+      throw new Error(`player_progress_load_failed:${error.message}`);
+    }
+
+    return (data ?? []).map(mapCompletionRow);
+  }
+
   async markComplete(
     sessionId: string,
     playerId: string,
     ref: Pick<SessionContentRef, 'kind' | 'source' | 'id'>,
+    drillLog?: DrillLogInput,
   ): Promise<SessionContentCompletion> {
     const contentKey = sessionContentKey(ref);
+    const parsedLog = drillLog ? drillLogInputSchema.parse(drillLog) : null;
+    const payload: Record<string, unknown> = {
+      session_id: sessionId,
+      player_id: playerId,
+      content_key: contentKey,
+      completed_at: new Date().toISOString(),
+    };
+
+    if (parsedLog) {
+      if (parsedLog.reps !== undefined) {
+        payload.reps = parsedLog.reps;
+      }
+      if (parsedLog.durationSeconds !== undefined) {
+        payload.duration_seconds = parsedLog.durationSeconds;
+      }
+    }
+
     const { data, error } = await this.client
       .from('session_content_completions')
-      .upsert(
-        {
-          session_id: sessionId,
-          player_id: playerId,
-          content_key: contentKey,
-          completed_at: new Date().toISOString(),
-        },
-        { onConflict: 'session_id,player_id,content_key' },
-      )
-      .select('session_id, player_id, content_key, completed_at')
+      .upsert(payload, { onConflict: 'session_id,player_id,content_key' })
+      .select(COMPLETION_SELECT)
       .single();
 
     if (error) {
@@ -96,8 +127,6 @@ export class SupabaseSessionContentRepository implements SessionContentRepositor
         return data.media_url;
       }
 
-      // Players cannot SELECT coach_library_items (owner-only RLS); session
-      // content_refs already carry kind=video — use demo URL until STORY-9.3.
       return LIBRARY_VIDEO_DEMO_URL;
     }
 

@@ -11,6 +11,7 @@ import { ScheduleScreen } from "./features/schedule/ui/ScheduleScreen.jsx";
 import { PlayerTeamContext } from "./features/roster/ui/PlayerTeamContext.jsx";
 import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.jsx";
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
+import { ProgressScreen } from "./features/progress/ui/ProgressScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
@@ -536,32 +537,6 @@ function StoreScreen({ user, tryA }) {
   );
 }
 
-/* ── Progress (Player) ── */
-function ProgressScreen({ user }) {
-  return (
-    <ScreenContainer>
-      <PageHeader title="MY PROGRESS" user={user} />
-      {[{ l: "Drills completed", v: "124", tr: "+12 this week" }, { l: "Practice hours", v: "48h", tr: "+6h this week" }, { l: "Shooting %", v: "67%", tr: "+4% this month" }].map(function(s, i) {
-        return (
-          <Card key={i}>
-            <div className="font-body text-xs uppercase text-coach-t3">{s.l}</div>
-            <div className="mt-1 flex items-baseline justify-between">
-              <span className="font-display text-[28px] font-bold text-coach-t1">{s.v}</span>
-              <span className="font-body text-xs text-coach-green">{s.tr}</span>
-            </div>
-          </Card>
-        );
-      })}
-      <div className="mb-2.5 mt-4 font-display text-base font-semibold uppercase text-coach-t1">Coach Feedback</div>
-      <Card className="border-l-[3px] border-l-coach-orange">
-        <div className="font-body text-[13px] leading-relaxed text-coach-t1">Great improvement on the crossover. Focus on finishing with your left hand.</div>
-        <div className="mt-2 font-body text-[11px] text-coach-t3">Coach Marcus - 2 days ago</div>
-      </Card>
-      <div className="h-6" />
-    </ScreenContainer>
-  );
-}
-
 /* ── Content Creation ── */
 function CreateContentScreen({ onBack }) {
   var _t = useState(null), ty = _t[0], setTy = _t[1];
@@ -920,7 +895,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     if (screen === "schedule") return <ScheduleScreen user={user} tryA={tryA} />;
     if (screen === "chat") return <ChatScreen user={user} tryA={tryA} />;
     if (screen === "marketplace") return <StoreScreen user={user} tryA={tryA} />;
-    if (screen === "progress") return <ProgressScreen user={user} />;
+    if (screen === "progress") return <ProgressScreen user={user} tryA={tryA} />;
     if (screen === "join-team") {
       return (
         <PlayerJoinTeamScreen
