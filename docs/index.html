@@ -2121,35 +2121,47 @@
         {
           "id": "AC-1",
           "statement": "Player sees session detail with attached content list",
-          "test": null
+          "test": "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC1_player_sees_session_detail_with_content_list"
         },
         {
           "id": "AC-2",
           "statement": "Video playback works for shared and purchased content",
-          "test": null
+          "test": "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC2_video_playback_shared_and_purchased"
         },
         {
           "id": "AC-3",
           "statement": "Content access timing follows session schedule rules (OQ-3.1 dependent)",
-          "test": null
+          "test": "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC3_content_access_follows_calendar_schedule_rules"
         },
         {
           "id": "AC-4",
           "statement": "Completion state tracked per content item",
-          "test": null
+          "test": "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC4_completion_state_tracked_per_content_item"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC1_player_sees_session_detail_with_content_list",
+          "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC2_video_playback_shared_and_purchased",
+          "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC3_content_access_follows_calendar_schedule_rules",
+          "tests/sessions/story-7.1.test.js::test_STORY_7_1_AC4_completion_state_tracked_per_content_item"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/session/ui/PlayerSessionDetailScreen.jsx",
+          "apps/mobile/src/features/session/ui/SessionVideoPlayer.jsx",
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "packages/domain/src/session/content-access.ts",
+          "packages/domain/src/session/completion.ts",
+          "packages/api/src/ports/session-content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-session-content-repository.ts",
+          "supabase/migrations/20260721140000_session_content_completions.sql",
+          "supabase/migrations/20260721140100_coach_library_media_url.sql"
+        ],
+        "command": "npm run test:story-7.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-21T00:00:00Z",
+      "audit_notes": "Player session detail with content list, HTML5 video (library + purchase demo URLs), calendar-only access gate, per-item completion in Supabase; all STORY_7_1 tests pass. OQ-8.2 early-access default: content available once session is on schedule."
     },
     {
       "id": "STORY-7.2",

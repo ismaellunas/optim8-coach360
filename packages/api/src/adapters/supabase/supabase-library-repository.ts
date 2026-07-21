@@ -6,9 +6,18 @@ import type {
   PurchasedContentItem,
 } from '../../ports/library-repository.js';
 
-const DEMO_LIBRARY: ReadonlyArray<{ kind: SessionContentKind; title: string }> = [
+const DEMO_LIBRARY: ReadonlyArray<{
+  kind: SessionContentKind;
+  title: string;
+  media_url?: string;
+}> = [
   { kind: 'drill', title: 'Ball Handling Ladder' },
-  { kind: 'video', title: 'Form Shooting Demo' },
+  {
+    kind: 'video',
+    title: 'Form Shooting Demo',
+    media_url:
+      'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+  },
   { kind: 'strategy', title: 'Motion Offense Sets' },
   { kind: 'package', title: 'Weekend Practice Pack' },
 ];
@@ -52,6 +61,7 @@ export class SupabaseLibraryRepository implements LibraryRepository {
           owner_id: userId,
           kind: item.kind,
           title: item.title,
+          media_url: item.media_url ?? null,
         })),
       )
       .select('id, kind, title');
