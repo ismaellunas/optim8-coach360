@@ -17,6 +17,14 @@ export function AppProviders({ children }) {
         storage: createSupabaseAuthStorage(),
         detectSessionInUrl: false,
       },
+      sanity: env.sanityProjectId
+        ? {
+            projectId: env.sanityProjectId,
+            dataset: env.sanityDataset || 'production',
+            token: env.sanityReadToken || undefined,
+            useCdn: !env.sanityReadToken,
+          }
+        : undefined,
     });
   }, []);
 

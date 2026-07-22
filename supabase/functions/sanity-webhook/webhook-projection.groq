@@ -1,0 +1,27 @@
+// Sanity webhook configuration (manage.sanity.io → API → Webhooks)
+//
+// Name: coach360-package-publish
+// URL:  https://<tunnel-or-project>.supabase.co/functions/v1/sanity-webhook
+//       Local: https://<ngrok-host>/functions/v1/sanity-webhook
+// Method: POST
+// Secret: same value as SANITY_WEBHOOK_SECRET
+// Dataset: production
+//
+// Filter (fire on trainingPackage create/update/delete):
+_type == "trainingPackage"
+//
+// Projection (document body posted to the Edge Function):
+{
+  _id,
+  _type,
+  title,
+  description,
+  skills,
+  ageRange,
+  objectives,
+  stripePriceId,
+  dripSchedule,
+  status,
+  published,
+  "modules": modules[]._ref
+}

@@ -1244,11 +1244,22 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 | 1 | Open a **Training package** (or create one). Find **Workflow status**. | Options include **Draft**, **Pending review**, **Approved**, and **Rejected**. |
 | 2 | Set status to **Pending review**, then **Approved**. Toggle **Published** on. | Both fields save. Published can be on while status is Approved. |
 
+### E9-T17: Store shows published Sanity packages (STORY-9.5 AC-4)
+
+*Needs `VITE_SANITY_PROJECT_ID` / `VITE_SANITY_DATASET` and either a public dataset or `VITE_SANITY_READ_TOKEN` (Viewer). Seed packages from `npm run seed:sanity` should already exist.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as a **Coach** (or Team Manager) who can browse the marketplace. | Home screen. |
+| 2 | Open the **Store** tab. | Catalog loads (not stuck on an error). |
+| 3 | Look for package titles from Studio (e.g. **Elite Shooting System**, **Lockdown Defense**, **Court Vision Mastery**). | Those titles appear as cards. |
+| 4 | Tap one package. | Package detail shows title and description from Sanity. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Mux webhook configuration** (dashboard URL + signing secret) is ops setup, not an in-app screen — required for E9-T10.
 - **Native push delivery** (FCM/APNs) for content assignment remains DEP-07 / STORY-14.x — E9-T16 covers in-app assigned list after share.
-- **Sanity → Supabase webhook sync** is **STORY-9.5**.
+- **Sanity → Supabase webhook** (STORY-9.5 AC-1–AC-3): configure in Sanity manage after `functions:serve` / tunnel; verify with curl or by publishing a package and checking `package_metadata` / `rag_embedding_jobs` in Supabase. See smoke-test notes in the STORY-9.5 handoff.
 
 ---
 
@@ -1357,6 +1368,7 @@ Print this page and check off results as you go.
 | E9-T14 Player Content tab shows assigned | | |
 | E9-T15 Solo clients need team roster first | | |
 | E9-T16 Assignment shows for player after share | | |
+| E9-T17 Store shows published Sanity packages | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

@@ -79,54 +79,38 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
   const [fil, setFil] = useState('all');
   const [viewing, setViewing] = useState(null);
   const [viewingAssigned, setViewingAssigned] = useState(null);
+  const [pkgs, setPkgs] = useState([]);
 
   const filters = ['all', 'shooting', 'defense', 'conditioning'];
-  const pkgs = [
-    {
-      id: 1,
-      t: 'Elite Shooting System',
-      l: 24,
-      p: '$49.99',
-      tag: 'shooting',
-      own: false,
-      c: COLORS.orange,
-      dr: '8 weeks',
-      pr: 0,
-    },
-    {
-      id: 2,
-      t: 'Lockdown Defense',
-      l: 18,
-      p: '$39.99',
-      tag: 'defense',
-      own: false,
-      c: COLORS.blue,
-      dr: '6 weeks',
-      pr: 0,
-    },
-    {
-      id: 3,
-      t: 'Court Vision Mastery',
-      l: 16,
-      p: '$34.99',
-      tag: 'conditioning',
-      own: true,
-      c: COLORS.purple,
-      dr: '5 weeks',
-      pr: 62,
-    },
-    {
-      id: 4,
-      t: 'Free Throw Routine',
-      l: 8,
-      p: 'FREE',
-      tag: 'shooting',
-      own: true,
-      c: COLORS.yellow,
-      dr: '2 weeks',
-      pr: 100,
-    },
-  ];
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await repos.marketplaceCatalog.listPublished();
+        if (cancelled) return;
+        setPkgs(
+          (rows || []).map((row, index) => ({
+            id: row.id,
+            t: row.title,
+            l: row.moduleCount || 0,
+            p: row.priceLabel || 'See details',
+            tag: row.tag || 'training',
+            own: false,
+            c: COLORS[['orange', 'blue', 'purple', 'yellow'][index % 4]] || COLORS.orange,
+            dr: row.dripLabel || 'Scheduled drip',
+            pr: 0,
+          })),
+        );
+      } catch {
+        if (!cancelled) setPkgs([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [repos.marketplaceCatalog]);
+
   const filtered = fil === 'all' ? pkgs : pkgs.filter((p) => p.tag === fil);
 
   const loadAssigned = useCallback(

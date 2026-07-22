@@ -16,6 +16,7 @@ import type { SessionContentRepository } from '../ports/session-content-reposito
 import type { LibraryRepository } from '../ports/library-repository.js';
 import type { ContentAssignmentRepository } from '../ports/content-assignment-repository.js';
 import type { MessagingRepository } from '../ports/messaging-repository.js';
+import type { MarketplaceCatalogRepository } from '../ports/marketplace-catalog-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
@@ -31,6 +32,7 @@ import { RestSessionContentRepository } from '../adapters/rest/rest-session-cont
 import { RestLibraryRepository } from '../adapters/rest/rest-library-repository.js';
 import { RestContentAssignmentRepository } from '../adapters/rest/rest-content-assignment-repository.js';
 import { RestMessagingRepository } from '../adapters/rest/rest-messaging-repository.js';
+import { RestMarketplaceCatalogRepository } from '../adapters/rest/rest-marketplace-catalog-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -50,6 +52,10 @@ import { SupabaseSessionContentRepository } from '../adapters/supabase/supabase-
 import { SupabaseLibraryRepository } from '../adapters/supabase/supabase-library-repository.js';
 import { SupabaseContentAssignmentRepository } from '../adapters/supabase/supabase-content-assignment-repository.js';
 import { SupabaseMessagingRepository } from '../adapters/supabase/supabase-messaging-repository.js';
+import {
+  SanityMarketplaceCatalogRepository,
+  type SanityCatalogEnv,
+} from '../adapters/sanity/sanity-marketplace-catalog-repository.js';
 import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
 import { ConsoleNotificationRepository } from '../adapters/console/console-notification-repository.js';
 
@@ -70,6 +76,7 @@ export type RepositoryBundle = {
   sessions: SessionRepository;
   sessionContent: SessionContentRepository;
   messaging: MessagingRepository;
+  marketplaceCatalog: MarketplaceCatalogRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -82,7 +89,17 @@ export type CreateRepositoriesOptions = {
   supabase?: SupabaseEnv;
   supabaseClientAuth?: SupabaseClientAuthOptions;
   restBaseUrl?: string;
+  sanity?: SanityCatalogEnv;
 };
+
+function createMarketplaceCatalog(
+  sanity: SanityCatalogEnv | undefined,
+): MarketplaceCatalogRepository {
+  if (sanity?.projectId?.trim()) {
+    return new SanityMarketplaceCatalogRepository(sanity);
+  }
+  return new RestMarketplaceCatalogRepository();
+}
 
 export function createRepositories(options: CreateRepositoriesOptions): RepositoryBundle {
   if (options.adapter === 'rest') {
@@ -104,6 +121,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       sessions: new RestSessionRepository(),
       sessionContent: new RestSessionContentRepository(),
       messaging: new RestMessagingRepository(),
+      marketplaceCatalog: createMarketplaceCatalog(options.sanity),
     };
   }
 
@@ -138,6 +156,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     sessions: new SupabaseSessionRepository(appClient),
     sessionContent: new SupabaseSessionContentRepository(appClient),
     messaging: new SupabaseMessagingRepository(appClient),
+    marketplaceCatalog: createMarketplaceCatalog(options.sanity),
   };
 }
 
