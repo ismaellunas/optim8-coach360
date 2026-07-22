@@ -995,9 +995,9 @@ Use **Player on Basic** (not trial, not Pro).
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | Sign in as **Coach on Advanced+**. Tap **Chat**. | **MESSAGES** list opens (not **Chat Locked**). |
-| 2 | Check the conversation rows. | At least one **team** chat for your team (group icon), and any existing player DMs — **not** fake names like a hardcoded demo-only list when you have real teams. |
-| 3 | Tap a **team** conversation. | Thread opens for that team. |
-| 4 | Go back, then open a **player** DM (or create one via **Send feedback** from **PLAYER PROGRESS** as in **E7-T11**). | Direct message thread with that player. |
+| 2 | If the list is empty, tap **New message** (orange **+** or the empty-state button). | **NEW MESSAGE** screen listing roster players. |
+| 3 | Tap a player with no prior chat. | Direct message thread opens (may be empty). |
+| 4 | Send a short message, go back to **MESSAGES**. | That player conversation appears in the list. Team chats (group icon) may also appear if you have teams. |
 
 ### E8-T2: Send and receive in real time (STORY-8.1 AC-3)
 

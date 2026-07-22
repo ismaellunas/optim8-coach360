@@ -147,6 +147,10 @@ describe('STORY_8_1 AC2 — team, DM, and P2P channel types', () => {
     expect(chat).toMatch(/listConversations/);
     expect(chat).not.toMatch(/U14 Eagles/);
     expect(chat).toMatch(/chat-conversation-team|chat-conversation-\$\{c\.type\}/);
+    expect(chat).toMatch(/chat-new-message/);
+    expect(chat).toMatch(/chat-compose-player/);
+    expect(chat).toMatch(/ensureDmChannel/);
+    expect(chat).toMatch(/New message/);
   });
 });
 

@@ -43,6 +43,15 @@ function IconSend() {
   );
 }
 
+function IconPlus() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
 function formatMessageTime(iso) {
   if (!iso) {
     return '';
@@ -61,6 +70,7 @@ export function ChatScreen({
   const repos = useRepositories();
   const userId = session?.user.id;
   const isCoach = user?.role === 'coach';
+  const canComposeDm = user?.role === 'coach' || user?.role === 'team_manager';
 
   const [conversations, setConversations] = useState([]);
   const [activeChannelId, setActiveChannelId] = useState(null);
@@ -73,6 +83,10 @@ export function ChatScreen({
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState(null);
+  const [pickingPlayer, setPickingPlayer] = useState(false);
+  const [rosterPlayers, setRosterPlayers] = useState([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(false);
+  const [startingDm, setStartingDm] = useState(false);
 
   const chatAllowed = canAccess(user, 'chat');
 
@@ -85,6 +99,7 @@ export function ChatScreen({
       try {
         const rows = await repos.messaging.listConversations(userId);
         setConversations(rows);
+        setError(null);
 
         const peerIds = rows
           .filter(function (row) {
@@ -96,13 +111,67 @@ export function ChatScreen({
         if (peerIds.length > 0) {
           const teamList = await repos.teams.listForUser(userId);
           const nameMap = await resolvePlayerDisplayNames(repos, teamList, peerIds);
-          setPlayerNames(nameMap);
+          setPlayerNames(function (prev) {
+            return { ...prev, ...nameMap };
+          });
         }
-      } catch {
+      } catch (cause) {
         setConversations([]);
+        setError(cause instanceof Error ? cause.message : 'chat_conversations_load_failed');
       }
     },
     [chatAllowed, repos, userId],
+  );
+
+  const loadRosterPlayers = useCallback(
+    async function () {
+      if (!userId || !canComposeDm) {
+        setRosterPlayers([]);
+        return;
+      }
+      setLoadingPlayers(true);
+      try {
+        const teamList = await repos.teams.listForUser(userId);
+        const memberLists = await Promise.all(
+          teamList.map(function (team) {
+            return repos.rosters.listMembers(team.id);
+          }),
+        );
+        const byId = new Map();
+        for (const members of memberLists) {
+          for (const member of members) {
+            if (
+              member.rosterRole === 'player'
+              && member.status === 'active'
+              && member.profileId
+              && member.profileId !== userId
+            ) {
+              byId.set(member.profileId, {
+                profileId: member.profileId,
+                displayName: member.displayName?.trim() || 'Player',
+              });
+            }
+          }
+        }
+        const players = [...byId.values()].sort(function (a, b) {
+          return a.displayName.localeCompare(b.displayName);
+        });
+        setRosterPlayers(players);
+        setPlayerNames(function (prev) {
+          const next = { ...prev };
+          for (const player of players) {
+            next[player.profileId] = player.displayName;
+          }
+          return next;
+        });
+      } catch (cause) {
+        setRosterPlayers([]);
+        setError(cause instanceof Error ? cause.message : 'roster_players_load_failed');
+      } finally {
+        setLoadingPlayers(false);
+      }
+    },
+    [canComposeDm, repos.rosters, repos.teams, userId],
   );
 
   const loadMessages = useCallback(
@@ -122,6 +191,31 @@ export function ChatScreen({
       }
     },
     [loadConversations, repos.messaging],
+  );
+
+  const openDmWithPlayer = useCallback(
+    async function (playerId, displayName) {
+      if (!userId || !chatAllowed) {
+        return;
+      }
+      setStartingDm(true);
+      setError(null);
+      try {
+        const conversation = await repos.messaging.ensureDmChannel(userId, playerId);
+        setPickingPlayer(false);
+        setActiveChannelId(conversation.id);
+        setActiveType('dm');
+        setActivePeerId(playerId);
+        setActiveTitle(displayName || conversation.title || playerDisplayLabel(playerNames, playerId));
+        setMessages([]);
+        await loadMessages(conversation.id);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'direct_messages_load_failed');
+      } finally {
+        setStartingDm(false);
+      }
+    },
+    [chatAllowed, loadMessages, playerNames, repos.messaging, userId],
   );
 
   const handleRealtimeMessage = useCallback(
@@ -153,6 +247,16 @@ export function ChatScreen({
 
   useEffect(
     function () {
+      if (!pickingPlayer) {
+        return;
+      }
+      loadRosterPlayers();
+    },
+    [loadRosterPlayers, pickingPlayer],
+  );
+
+  useEffect(
+    function () {
       if (!initialDm || !userId || !chatAllowed) {
         return;
       }
@@ -161,8 +265,8 @@ export function ChatScreen({
 
       (async function () {
         try {
-          const coachId = isCoach ? userId : initialDm.playerId;
-          const playerId = isCoach ? initialDm.playerId : userId;
+          const coachId = isCoach || canComposeDm ? userId : initialDm.playerId;
+          const playerId = isCoach || canComposeDm ? initialDm.playerId : userId;
           const conversation = await repos.messaging.ensureDmChannel(coachId, playerId);
           if (cancelled) {
             return;
@@ -193,6 +297,7 @@ export function ChatScreen({
       };
     },
     [
+      canComposeDm,
       chatAllowed,
       initialDm,
       isCoach,
@@ -227,8 +332,8 @@ export function ChatScreen({
     setError(null);
     try {
       if (activeType === 'dm' && activePeerId) {
-        const coachId = isCoach ? userId : activePeerId;
-        const playerId = isCoach ? activePeerId : userId;
+        const coachId = canComposeDm ? userId : activePeerId;
+        const playerId = canComposeDm ? activePeerId : userId;
         await repos.messaging.sendDirectMessage({
           coachId,
           playerId,
@@ -250,6 +355,11 @@ export function ChatScreen({
     }
   }
 
+  function startCompose() {
+    setPickingPlayer(true);
+    setError(null);
+  }
+
   if (!chatAllowed) {
     return (
       <ScreenContainer>
@@ -260,6 +370,71 @@ export function ChatScreen({
           <div className="mb-5 font-body text-[13px] text-coach-t3">Upgrade to Advanced to message.</div>
           <Btn primary onClick={function () { tryA('chat', function () {}); }}>Upgrade</Btn>
         </div>
+      </ScreenContainer>
+    );
+  }
+
+  if (pickingPlayer) {
+    const existingPeerIds = new Set(
+      conversations
+        .filter(function (row) {
+          return row.type === 'dm' && row.peerId;
+        })
+        .map(function (row) {
+          return row.peerId;
+        }),
+    );
+
+    return (
+      <ScreenContainer data-testid="chat-compose-screen">
+        <PageHeader
+          title="NEW MESSAGE"
+          user={user}
+          onBack={function () {
+            setPickingPlayer(false);
+            setError(null);
+          }}
+        />
+        <p className="mb-3 font-body text-[13px] text-coach-t3">
+          Choose a player from your roster to start a conversation.
+        </p>
+        {error ? (
+          <p className="mb-3 font-body text-xs text-coach-red">{error}</p>
+        ) : null}
+        {loadingPlayers ? (
+          <p className="font-body text-sm text-coach-t3">Loading players…</p>
+        ) : null}
+        {!loadingPlayers && rosterPlayers.length === 0 ? (
+          <p className="font-body text-sm text-coach-t3">
+            No active players on your teams yet. Add players from Roster first.
+          </p>
+        ) : null}
+        {rosterPlayers.map(function (player) {
+          const hasThread = existingPeerIds.has(player.profileId);
+          return (
+            <button
+              key={player.profileId}
+              type="button"
+              disabled={startingDm}
+              data-testid="chat-compose-player"
+              onClick={function () {
+                openDmWithPlayer(player.profileId, player.displayName);
+              }}
+              className="mb-0 flex w-full cursor-pointer items-center gap-3.5 border-0 border-b border-solid border-coach-border bg-transparent py-3.5 text-left disabled:opacity-50"
+            >
+              <div className="flex h-[46px] w-[46px] items-center justify-center rounded-full bg-coach-blue/20 text-coach-blue">
+                <span className="font-display text-lg font-bold">{player.displayName[0] || '?'}</span>
+              </div>
+              <div className="flex-1">
+                <div className="font-body text-sm font-semibold text-coach-t1">{player.displayName}</div>
+                <div className="mt-0.5 font-body text-[13px] text-coach-t3">
+                  {hasThread ? 'Open conversation' : 'Start new conversation'}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+        <div className="h-6" />
       </ScreenContainer>
     );
   }
@@ -351,9 +526,45 @@ export function ChatScreen({
 
   return (
     <ScreenContainer data-testid="chat-screen">
-      <PageHeader title="MESSAGES" user={user} />
+      <PageHeader
+        title="MESSAGES"
+        user={user}
+        trailing={
+          canComposeDm ? (
+            <button
+              type="button"
+              onClick={startCompose}
+              data-testid="chat-new-message"
+              aria-label="New message"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-none bg-coach-orange text-white"
+            >
+              <IconPlus />
+            </button>
+          ) : null
+        }
+      />
+      {error ? (
+        <p className="mb-3 font-body text-xs text-coach-red">{error}</p>
+      ) : null}
       {conversations.length === 0 ? (
-        <p className="font-body text-sm text-coach-t3">No conversations yet.</p>
+        <div className="py-10 text-center" data-testid="chat-empty-state">
+          <p className="mb-2 font-body text-sm text-coach-t3">No conversations yet.</p>
+          {canComposeDm ? (
+            <>
+              <p className="mb-4 font-body text-[13px] text-coach-t3">
+                Message a player from your roster to get started.
+              </p>
+              <button
+                type="button"
+                onClick={startCompose}
+                data-testid="chat-empty-new-message"
+                className="cursor-pointer rounded-xl border-none bg-coach-orange px-5 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white"
+              >
+                New message
+              </button>
+            </>
+          ) : null}
+        </div>
       ) : null}
       {conversations.map(function (c) {
         const unread = computeUnreadCount(c.unreadCount);
