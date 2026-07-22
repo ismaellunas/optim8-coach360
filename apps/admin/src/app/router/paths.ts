@@ -4,6 +4,7 @@ export const adminPaths = {
   users: '/admin/users',
   subscriptions: '/admin/subscriptions',
   content: '/admin/content',
+  studio: '/admin/studio',
   monitor: '/admin/monitor',
 } as const;
 

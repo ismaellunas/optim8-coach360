@@ -148,6 +148,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
+10. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1093,6 +1094,50 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
+## Epic 9 — Content Authoring & Sanity Studio (STORY-9.1)
+
+*Admin website only. Skip if you were not given an Admin account. Coach mobile upload is STORY-9.2 (not in this pack yet).*
+
+**Accounts needed:** Admin account + Admin dashboard URL.
+
+### E9-T1: Studio opens with content document types (STORY-9.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open the Admin dashboard. Sign in as **Admin**. | Dashboard loads. |
+| 2 | Open **Content**, then tap **Open Sanity Studio**. | Sanity Studio loads (URL contains `/admin/studio`). You may be asked to log in with Sanity — use the account that has access to the Coach360 Sanity project. |
+| 3 | Look at the left document list / Create menu. | Types include **Drill**, **Video**, **Strategy / Playbook**, **Training package**, and **Module**. |
+
+### E9-T2: Studio route is under /admin/studio (STORY-9.1 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | From Admin **Content**, tap **Open Sanity Studio**. | Browser address shows `/admin/studio` (same Admin site, not a random third-party URL). |
+| 2 | Refresh the page while still on Studio. | Studio reloads without dumping you on the login dead-end (you may need to re-auth if the session expired). |
+
+### E9-T3: Package hierarchy program → module → lesson → item (STORY-9.1 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | In Studio, create a **Drill** titled `QA Hierarchy Drill` and publish/save it. | Document saves. |
+| 2 | Create a **Lesson**, add the drill under **Content items**, save. | Lesson lists the drill. |
+| 3 | Create a **Module**, add that lesson under **Lessons**, save. | Module lists the lesson. |
+| 4 | Create a **Training package**, add that module under **Modules**, save. | Package lists the module — chain is package → module → lesson → drill. |
+
+### E9-T4: Workflow status and published flag (STORY-9.1 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open a **Training package** (or create one). Find **Workflow status**. | Options include **Draft**, **Pending review**, **Approved**, and **Rejected**. |
+| 2 | Set status to **Pending review**, then **Approved**. Toggle **Published** on. | Both fields save. Published can be on while status is Approved. |
+
+### Not testable by clicking (for awareness only)
+
+- **Mux video transcoding** and coach mobile create flows are later Epic 9 stories (9.2–9.3).
+- **Sanity → Supabase webhook sync** is STORY-9.5.
+
+---
+
 <div class="page-break"></div>
 
 ## Part 3 — Quick Results Sheet
@@ -1182,6 +1227,10 @@ Print this page and check off results as you go.
 | E8-T9 Share tip to team chat | | |
 | E8-T10 Coach peer engagement at Pro | | |
 | E8-T11 Peer shares team-only | | |
+| E9-T1 Studio content document types | | |
+| E9-T2 Studio at /admin/studio | | |
+| E9-T3 Package hierarchy chain | | |
+| E9-T4 Workflow status + published | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 
