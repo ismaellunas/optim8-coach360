@@ -1,4 +1,4 @@
-/** Resolve player display names for coach-facing UI (roster + profile fallback). */
+/** Resolve peer display names for chat (roster + profile fallback). */
 
 export function playerDisplayLabel(nameMap, playerId) {
   const name = nameMap[playerId];
@@ -6,6 +6,18 @@ export function playerDisplayLabel(nameMap, playerId) {
     return name.trim();
   }
   return 'Player';
+}
+
+/** Prefer mapped name, then conversation title — never invent "Player" for unknown peers. */
+export function chatPeerDisplayLabel(nameMap, peerId, fallbackTitle) {
+  const mapped = nameMap?.[peerId];
+  if (mapped && mapped.trim()) {
+    return mapped.trim();
+  }
+  if (fallbackTitle && fallbackTitle.trim()) {
+    return fallbackTitle.trim();
+  }
+  return 'Conversation';
 }
 
 export async function resolvePlayerDisplayNames(repos, teamList, playerIds) {
@@ -20,13 +32,19 @@ export async function resolvePlayerDisplayNames(repos, teamList, playerIds) {
 
   for (const members of memberLists) {
     for (const member of members) {
-      if (member.rosterRole === 'player' && member.profileId && member.displayName) {
+      if (member.profileId && member.displayName) {
         nameMap[member.profileId] = member.displayName;
       }
     }
   }
 
-  const missing = uniqueIds.filter(function (id) {
+  for (const team of teamList) {
+    if (team.createdBy && !nameMap[team.createdBy]) {
+      uniqueIds.push(team.createdBy);
+    }
+  }
+
+  const missing = [...new Set(uniqueIds)].filter(function (id) {
     return !nameMap[id];
   });
 
@@ -38,7 +56,7 @@ export async function resolvePlayerDisplayNames(repos, teamList, playerIds) {
           nameMap[playerId] = profile.displayName.trim();
         }
       } catch {
-        // RLS or network — leave unset; UI falls back to "Player"
+        // RLS or network — leave unset; UI falls back to conversation title
       }
     }),
   );

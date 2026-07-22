@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { computeUnreadCount } from '@coach360/domain';
+import {
+  buildContentLinkAttachment,
+  canSendTextOnChannelType,
+  computeUnreadCount,
+} from '@coach360/domain';
 import { useRepositories } from '@coach360/api';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
-  playerDisplayLabel,
+  chatPeerDisplayLabel,
   resolvePlayerDisplayNames,
 } from '@/features/progress/lib/resolve-player-display-names.js';
 import { useChatRealtime } from '@/features/chat/lib/use-chat-realtime.js';
+import { ChatAttachMenu } from '@/features/chat/ui/ChatAttachMenu.jsx';
+import { ChatMessageBubble } from '@/features/chat/ui/ChatMessageBubble.jsx';
 import {
   Button as Btn,
   IconBack,
@@ -87,6 +93,8 @@ export function ChatScreen({
   const [rosterPlayers, setRosterPlayers] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
   const [startingDm, setStartingDm] = useState(false);
+  const [attaching, setAttaching] = useState(false);
+  const [linkDetail, setLinkDetail] = useState(null);
 
   const chatAllowed = canAccess(user, 'chat');
 
@@ -206,7 +214,7 @@ export function ChatScreen({
         setActiveChannelId(conversation.id);
         setActiveType('dm');
         setActivePeerId(playerId);
-        setActiveTitle(displayName || conversation.title || playerDisplayLabel(playerNames, playerId));
+        setActiveTitle(displayName || conversation.title || chatPeerDisplayLabel(playerNames, playerId));
         setMessages([]);
         await loadMessages(conversation.id);
       } catch (cause) {
@@ -276,7 +284,7 @@ export function ChatScreen({
           setActivePeerId(initialDm.playerId);
           setActiveTitle(
             initialDm.displayName
-              ?? playerDisplayLabel(playerNames, initialDm.playerId)
+              ?? chatPeerDisplayLabel(playerNames, initialDm.playerId, conversation.title)
               ?? conversation.title,
           );
           if (initialDm.draftMessage) {
@@ -315,7 +323,7 @@ export function ChatScreen({
     setActivePeerId(conversation.peerId);
     setActiveTitle(
       conversation.peerId
-        ? playerDisplayLabel(playerNames, conversation.peerId) || conversation.title
+        ? chatPeerDisplayLabel(playerNames, conversation.peerId, conversation.title)
         : conversation.title,
     );
     setError(null);
@@ -325,6 +333,9 @@ export function ChatScreen({
   async function handleSend() {
     const trimmed = msg.trim();
     if (!trimmed || !userId || !activeChannelId || !chatAllowed) {
+      return;
+    }
+    if (activeType && !canSendTextOnChannelType(activeType, chatAllowed)) {
       return;
     }
 
@@ -343,6 +354,7 @@ export function ChatScreen({
         await repos.messaging.sendChannelMessage({
           channelId: activeChannelId,
           body: trimmed,
+          messageType: 'text',
         });
       }
       setMsg('');
@@ -350,6 +362,60 @@ export function ChatScreen({
       await loadConversations();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_message_send_failed');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSendContentLink(ref) {
+    if (!userId || !activeChannelId || !chatAllowed) {
+      return;
+    }
+    setSending(true);
+    setError(null);
+    setAttaching(false);
+    try {
+      const attachment = buildContentLinkAttachment(ref);
+      await repos.messaging.sendChannelMessage({
+        channelId: activeChannelId,
+        messageType: 'content_link',
+        attachment,
+        body: msg.trim() || attachment.title,
+      });
+      setMsg('');
+      await loadMessages(activeChannelId);
+      await loadConversations();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'chat_content_link_send_failed');
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSendVideoFile(file) {
+    if (!userId || !activeChannelId || !chatAllowed) {
+      return;
+    }
+    setSending(true);
+    setError(null);
+    setAttaching(false);
+    try {
+      const attachment = await repos.messaging.uploadChatVideo(
+        activeChannelId,
+        file,
+        file.name || 'chat-video.mp4',
+      );
+      await repos.messaging.sendChannelMessage({
+        channelId: activeChannelId,
+        messageType: 'video',
+        attachment,
+        body: msg.trim(),
+      });
+      setMsg('');
+      await loadMessages(activeChannelId);
+      await loadConversations();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'chat_video_send_failed');
     } finally {
       setSending(false);
     }
@@ -370,6 +436,37 @@ export function ChatScreen({
           <div className="mb-5 font-body text-[13px] text-coach-t3">Upgrade to Advanced to message.</div>
           <Btn primary onClick={function () { tryA('chat', function () {}); }}>Upgrade</Btn>
         </div>
+      </ScreenContainer>
+    );
+  }
+
+  if (attaching && activeChannelId) {
+    return (
+      <ChatAttachMenu
+        onBack={function () {
+          setAttaching(false);
+        }}
+        onPickContentLink={handleSendContentLink}
+        onPickVideoFile={handleSendVideoFile}
+      />
+    );
+  }
+
+  if (linkDetail) {
+    return (
+      <ScreenContainer data-testid="chat-content-link-detail">
+        <PageHeader
+          title="CONTENT LINK"
+          onBack={function () {
+            setLinkDetail(null);
+          }}
+        />
+        <div className="mb-2 font-display text-lg font-semibold text-coach-t1">{linkDetail.title}</div>
+        <p className="mb-1 font-body text-sm capitalize text-coach-t2">{linkDetail.kind}</p>
+        <p className="font-body text-[13px] uppercase text-coach-t3">{linkDetail.source}</p>
+        <p className="mt-4 font-body text-[13px] text-coach-t3">
+          Full content playback opens from Schedule / library when available.
+        </p>
       </ScreenContainer>
     );
   }
@@ -475,21 +572,14 @@ export function ChatScreen({
             ? messages.map(function (entry) {
                 const isMe = entry.senderId === userId;
                 return (
-                  <div
+                  <ChatMessageBubble
                     key={entry.id}
-                    className={`mb-3 flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 ${isMe ? 'rounded-br rounded-bl-2xl bg-coach-orange' : 'rounded-bl rounded-br-2xl bg-coach-card'}`}
-                    >
-                      <div className={`font-body text-sm leading-snug ${isMe ? 'text-white' : 'text-coach-t1'}`}>
-                        {entry.body}
-                      </div>
-                      <div className={`mt-1 text-right font-body text-[10px] ${isMe ? 'text-white/60' : 'text-coach-t3'}`}>
-                        {formatMessageTime(entry.createdAt)}
-                      </div>
-                    </div>
-                  </div>
+                    message={entry}
+                    isMe={isMe}
+                    onContentLinkClick={function (attachment) {
+                      setLinkDetail(attachment);
+                    }}
+                  />
                 );
               })
             : null}
@@ -501,6 +591,19 @@ export function ChatScreen({
           <p className="px-6 font-body text-xs text-coach-red">{error}</p>
         ) : null}
         <div className="flex gap-2.5 border-t border-coach-border px-6 pb-5 pt-3">
+          <button
+            type="button"
+            disabled={sending}
+            onClick={function () {
+              setAttaching(true);
+              setError(null);
+            }}
+            data-testid="chat-attach-open"
+            aria-label="Attach"
+            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-[14px] border border-coach-border bg-coach-card text-coach-orange disabled:opacity-50"
+          >
+            <IconPlus />
+          </button>
           <input
             value={msg}
             onChange={function (event) {
@@ -570,7 +673,7 @@ export function ChatScreen({
         const unread = computeUnreadCount(c.unreadCount);
         const isTeam = c.type === 'team';
         const label = c.peerId
-          ? playerDisplayLabel(playerNames, c.peerId) || c.title
+          ? chatPeerDisplayLabel(playerNames, c.peerId, c.title)
           : c.title;
         return (
           <div

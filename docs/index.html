@@ -2431,35 +2431,50 @@
         {
           "id": "AC-1",
           "statement": "User can send text messages in all channel types at Advanced+",
-          "test": null
+          "test": "tests/chat/story-8.2.test.js::test_STORY_8_2_AC1_text_messages_all_channel_types_advanced_plus"
         },
         {
           "id": "AC-2",
           "statement": "Drill and content links render as tappable cards in thread",
-          "test": null
+          "test": "tests/chat/story-8.2.test.js::test_STORY_8_2_AC2_drill_content_links_tappable_cards"
         },
         {
           "id": "AC-3",
           "statement": "Video attachment upload and playback works in chat if in scope",
-          "test": null
+          "test": "tests/chat/story-8.2.test.js::test_STORY_8_2_AC3_video_attachment_upload_and_playback"
         },
         {
           "id": "AC-4",
           "statement": "Message types not in MVP scope explicitly disabled with tooltip",
-          "test": null
+          "test": "tests/chat/story-8.2.test.js::test_STORY_8_2_AC4_out_of_scope_types_disabled_with_tooltip"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "lib/chat/ (inferred)"
+        "tests": [
+          "tests/chat/story-8.2.test.js::test_STORY_8_2_AC1_text_messages_all_channel_types_advanced_plus",
+          "tests/chat/story-8.2.test.js::test_STORY_8_2_AC2_drill_content_links_tappable_cards",
+          "tests/chat/story-8.2.test.js::test_STORY_8_2_AC3_video_attachment_upload_and_playback",
+          "tests/chat/story-8.2.test.js::test_STORY_8_2_AC4_out_of_scope_types_disabled_with_tooltip"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260722130000_chat_rich_messages.sql",
+          "packages/domain/src/chat/message.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/messaging-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-messaging-repository.ts",
+          "packages/api/src/adapters/rest/rest-messaging-repository.ts",
+          "packages/api/src/index.ts",
+          "apps/mobile/src/features/chat/ui/ChatScreen.jsx",
+          "apps/mobile/src/features/chat/ui/ChatMessageBubble.jsx",
+          "apps/mobile/src/features/chat/ui/ChatAttachMenu.jsx",
+          "tests/chat/story-8.2.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-8.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Rich compose: text all channel types, content-link cards, video via chat-media Storage; image/voice disabled+tooltip (Q 5.2 interim). All 4 AC tests pass."
     },
     {
       "id": "STORY-8.3",

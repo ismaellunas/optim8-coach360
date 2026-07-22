@@ -289,3 +289,23 @@ export {
   conversationTypeLabel,
   type ChatChannelType,
 } from './chat/channel.js';
+export {
+  MVP_CHAT_MESSAGE_TYPES,
+  DISABLED_CHAT_MESSAGE_TYPES,
+  DISABLED_CHAT_MESSAGE_TOOLTIPS,
+  chatContentLinkAttachmentSchema,
+  chatVideoAttachmentSchema,
+  isMvpChatMessageType,
+  isDisabledChatMessageType,
+  disabledChatMessageTooltip,
+  canSendTextOnChannelType,
+  previewBodyForMessage,
+  buildContentLinkAttachment,
+  isContentLinkAttachment,
+  isVideoAttachment,
+  type MvpChatMessageType,
+  type DisabledChatMessageType,
+  type ChatContentLinkAttachment,
+  type ChatVideoAttachment,
+  type ChatMessageAttachment,
+} from './chat/message.js';

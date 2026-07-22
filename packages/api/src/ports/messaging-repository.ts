@@ -1,4 +1,8 @@
-import type { ChatChannelType } from '@coach360/domain';
+import type { ChatChannelType, MvpChatMessageType } from '@coach360/domain';
+import type {
+  ChatContentLinkAttachment,
+  ChatVideoAttachment,
+} from '@coach360/domain';
 
 export type DirectMessage = {
   id: string;
@@ -26,12 +30,23 @@ export type ChatConversation = {
   unreadCount: number;
 };
 
+export type ChatMessageAttachment = ChatContentLinkAttachment | ChatVideoAttachment;
+
 export type ChatMessage = {
   id: string;
   channelId: string;
   senderId: string;
   body: string;
+  messageType: MvpChatMessageType;
+  attachment: ChatMessageAttachment | null;
   createdAt: string;
+};
+
+export type SendChannelMessageInput = {
+  channelId: string;
+  body?: string;
+  messageType?: MvpChatMessageType;
+  attachment?: ChatMessageAttachment | null;
 };
 
 export type MessagingRepository = {
@@ -40,10 +55,12 @@ export type MessagingRepository = {
   ensureDmChannel(userA: string, userB: string): Promise<ChatConversation>;
   ensureP2pChannel(userA: string, userB: string): Promise<ChatConversation>;
   listChannelMessages(channelId: string): Promise<ChatMessage[]>;
-  sendChannelMessage(input: {
-    channelId: string;
-    body: string;
-  }): Promise<ChatMessage>;
+  sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage>;
+  uploadChatVideo(
+    channelId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ChatVideoAttachment>;
   markChannelRead(channelId: string): Promise<void>;
   subscribeToChannel(
     channelId: string,
