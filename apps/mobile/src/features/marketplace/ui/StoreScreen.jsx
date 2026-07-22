@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { featureAccessLevel, checkFeatureAccess } from '@coach360/domain';
 import {
   Badge,
   Button as Btn,
@@ -76,7 +75,7 @@ function colorForTag(tag) {
 /**
  * Coach/manager marketplace store — published packages from Sanity CDN/API (STORY-9.5).
  */
-export function StoreScreen({ user, tryA }) {
+export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   const repos = useRepositories();
   const [fil, setFil] = useState('all');
   const [viewing, setViewing] = useState(null);
@@ -124,7 +123,7 @@ export function StoreScreen({ user, tryA }) {
   }, [loadCatalog]);
 
   const filtered = fil === 'all' ? pkgs : pkgs.filter((p) => p.tag === fil);
-  const browseLevel = featureAccessLevel(user, 'browseMarketplace');
+  const browseLevel = accessLevel(user, 'browseMarketplace');
 
   if (viewing) {
     const pk = pkgs.find((x) => x.id === viewing);
@@ -193,7 +192,7 @@ export function StoreScreen({ user, tryA }) {
           </div>
         </Card>
       ) : null}
-      {checkFeatureAccess(user, 'ai') ? (
+      {canAccess(user, 'ai') ? (
         <Card className="mb-3 flex items-center gap-3 border border-coach-orange/20 bg-gradient-to-br from-coach-orange-glow to-coach-purple/10">
           <div className="text-coach-orange">
             <IconSpark />
