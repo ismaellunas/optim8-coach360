@@ -39,12 +39,6 @@ function mapWriteError(error: { code?: string; message: string }, fallback: stri
   return `${fallback}:${error.message}`;
 }
 
-function unwrapEmbed<T>(raw: unknown): T | null {
-  if (!raw) return null;
-  if (Array.isArray(raw)) return (raw[0] as T) ?? null;
-  return raw as T;
-}
-
 function mapAssignmentRow(
   row: {
     id: string;
@@ -256,15 +250,10 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       throw new Error('unauthorized');
     }
 
+    // Flat select only — nested embeds fail when FK hints / RLS hide related rows.
     const { data, error } = await this.client
       .from('content_assignments')
-      .select(
-        `
-        ${ASSIGNMENT_SELECT},
-        coach_library_items ( ${LIBRARY_EMBED} ),
-        profiles!content_assignments_coach_id_fkey ( display_name )
-      `,
-      )
+      .select(ASSIGNMENT_SELECT)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -274,8 +263,9 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
     const rows = data ?? [];
     const results: ContentAssignment[] = [];
 
-    // Prefer a direct library fetch (assignee RLS) over embed — embeds often come back null.
     const libraryIds = [...new Set(rows.map((row) => row.library_item_id as string))];
+    const coachIds = [...new Set(rows.map((row) => row.coach_id as string))];
+
     const libraryById = new Map<string, LibraryEmbed>();
     if (libraryIds.length > 0) {
       const { data: libraryRows } = await this.client
@@ -287,14 +277,19 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       }
     }
 
+    const coachNameById = new Map<string, string | null>();
+    if (coachIds.length > 0) {
+      const { data: coaches } = await this.client
+        .from('profiles')
+        .select('id, display_name')
+        .in('id', coachIds);
+      for (const coach of coaches ?? []) {
+        coachNameById.set(coach.id as string, (coach.display_name as string | null) ?? null);
+      }
+    }
+
     for (const row of rows) {
-      const embedded = unwrapEmbed<LibraryEmbed>(
-        (row as { coach_library_items?: unknown }).coach_library_items,
-      );
-      const item = libraryById.get(row.library_item_id as string) ?? embedded;
-      const coach = unwrapEmbed<{ display_name: string | null }>(
-        (row as { profiles?: unknown }).profiles,
-      );
+      const item = libraryById.get(row.library_item_id as string) ?? null;
       const packageItems =
         (item?.kind ?? row.kind) === 'package'
           ? await this.loadPackageChildren(item?.item_ids ?? [])
@@ -312,10 +307,12 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
             title: row.title,
             kind: row.kind,
           },
-          metaFromLibrary(item, coach?.display_name ?? null, packageItems, {
-            title: row.title,
-            kind: row.kind,
-          }),
+          metaFromLibrary(
+            item,
+            coachNameById.get(row.coach_id as string) ?? null,
+            packageItems,
+            { title: row.title, kind: row.kind },
+          ),
         ),
       );
     }
