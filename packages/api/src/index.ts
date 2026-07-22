@@ -38,6 +38,8 @@ export type {
   LibraryRepository,
   CoachLibraryItem,
   PurchasedContentItem,
+  InitiateVideoUploadResult,
+  LibraryMediaFile,
 } from './ports/library-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {

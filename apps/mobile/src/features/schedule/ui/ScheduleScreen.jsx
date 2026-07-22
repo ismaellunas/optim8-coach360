@@ -645,6 +645,27 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
       if (!prefillCreate || loading) {
         return;
       }
+
+      // STORY-9.2 — attach newly created library item(s) to a new session.
+      if (Array.isArray(prefillCreate.contentRefs) && prefillCreate.contentRefs.length > 0) {
+        const scheduled = new Date();
+        scheduled.setDate(scheduled.getDate() + 1);
+        scheduled.setHours(16, 0, 0, 0);
+        setCreateDraft({
+          title: prefillCreate.title ?? 'Practice session',
+          notes: 'Content attached from coach library (STORY-9.2).',
+          scheduledAt: scheduled.toISOString(),
+          durationMinutes: 45,
+          sessionType: 'team',
+          teamId: null,
+          playerId: null,
+          contentRefs: prefillCreate.contentRefs,
+        });
+        setShowCreate(true);
+        onPrefillConsumed?.();
+        return;
+      }
+
       const input = prefillCreate.contentKey
         ? buildCorrectiveSessionInput(
             prefillCreate.playerId,

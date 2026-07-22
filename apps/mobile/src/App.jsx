@@ -14,6 +14,8 @@ import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
 import { ProgressScreen } from "./features/progress/ui/ProgressScreen.jsx";
 import { CoachProgressReviewScreen } from "./features/progress/ui/CoachProgressReviewScreen.jsx";
 import { ChatScreen } from "./features/chat/ui/ChatScreen.jsx";
+import { CreateContentScreen } from "./features/content/ui/CreateContentScreen.jsx";
+import { CoachLibraryScreen } from "./features/content/ui/CoachLibraryScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
@@ -37,7 +39,6 @@ import {
   Button as Btn,
   Card,
   DashedBtn,
-  Field,
   PageHeader,
   ScreenContainer,
   TabBar,
@@ -115,7 +116,6 @@ function IconTarget() { return <svg width="18" height="18" viewBox="0 0 24 24" f
 function IconChart() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>; }
 function IconTrophy() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9H4a2 2 0 01-2-2V5a2 2 0 012-2h2M18 9h2a2 2 0 002-2V5a2 2 0 00-2-2h-2M4 22h16M18 2H6v7a6 6 0 0012 0V2z"/></svg>; }
 function IconSettings() { return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>; }
-function IconPlus() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>; }
 
 /* ── Onboarding ── */
 function OnboardingScreen({ user, onComplete }) {
@@ -551,44 +551,6 @@ function StoreScreen({ user, tryA }) {
   );
 }
 
-/* ── Content Creation ── */
-function CreateContentScreen({ onBack }) {
-  var _t = useState(null), ty = _t[0], setTy = _t[1];
-  if (!ty) {
-    return (
-      <ScreenContainer>
-        <PageHeader title="CREATE CONTENT" onBack={onBack} />
-        {[{ id: "drill", l: "Training Drill", d: "Instructions and reps", e: "\uD83C\uDFC0" }, { id: "video", l: "Video Upload", d: "Film and demos", e: "\uD83C\uDFAC" }, { id: "strategy", l: "Game Strategy", d: "Plays and formations", e: "\uD83D\uDCCB" }].map(function(t) {
-          return (
-            <Card key={t.id} onClick={function() { setTy(t.id); }} className="flex items-center gap-3.5">
-              <div className="text-[28px]">{t.e}</div>
-              <div className="flex-1">
-                <div className="font-display text-base font-semibold text-coach-t1">{t.l}</div>
-                <div className="font-body text-xs text-coach-t3">{t.d}</div>
-              </div>
-              <IconChev />
-            </Card>
-          );
-        })}
-      </ScreenContainer>
-    );
-  }
-  return (
-    <ScreenContainer>
-      <PageHeader title={"NEW " + ty.toUpperCase()} onBack={function() { setTy(null); }} />
-      <Field label="Title" placeholder="e.g. Crossover Drill" /><Field label="Description" placeholder="Instructions" />
-      {ty === "video" && (
-        <Card className="border-2 border-dashed border-coach-border p-8 text-center">
-          <div className="mb-2 text-coach-t3"><IconPlus /></div>
-          <div className="font-body text-[13px] text-coach-t3">Tap to upload</div>
-        </Card>
-      )}
-      <div className="my-3 mb-5 flex gap-2">{["U14 Eagles", "U16 Hawks"].map(function(t) { return <Btn key={t} small>{t}</Btn>; })}</div>
-      <Btn primary full onClick={function() { setTy(null); }}>Create and Share</Btn>
-    </ScreenContainer>
-  );
-}
-
 /* ── Objectives ── */
 function ObjectivesScreen({ user, onBack }) {
   var objs = [{ n: "Improve 3PT to 40%", p: 72, pl: "Jaylen Carter" }, { n: "Defensive rotations", p: 45, pl: "Team U14" }, { n: "Free throw 85%+", p: 88, pl: "Deon Williams" }];
@@ -695,6 +657,8 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _ff = useState([]), featureFlagOverrides = _ff[0], setFeatureFlagOverrides = _ff[1];
   var _pendingDm = useState(null), pendingChatDm = _pendingDm[0], setPendingChatDm = _pendingDm[1];
   var _schedulePrefill = useState(null), schedulePrefill = _schedulePrefill[0], setSchedulePrefill = _schedulePrefill[1];
+  var _libraryHighlightId = useState(null), libraryHighlightId = _libraryHighlightId[0], setLibraryHighlightId = _libraryHighlightId[1];
+  var _packageSeedId = useState(null), packageSeedId = _packageSeedId[0], setPackageSeedId = _packageSeedId[1];
   var _fr = useState(null), featureRequirements = _fr[0], setFeatureRequirements = _fr[1];
 
   var refreshFeatureFlags = useCallback(function () {
@@ -992,7 +956,40 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       );
     }
     if (screen === "objectives") return <ObjectivesScreen user={user} onBack={function() { go("home"); }} />;
-    if (screen === "create-content") return <CreateContentScreen onBack={function() { go("home"); }} />;
+    if (screen === "create-content") {
+      return (
+        <CreateContentScreen
+          onBack={function () { go("home"); }}
+          onViewLibrary={function (item) {
+            setLibraryHighlightId(item?.id ?? null);
+            setPackageSeedId(null);
+            go("coach-library");
+          }}
+          onAttachToSession={function (prefill) {
+            setSchedulePrefill(prefill);
+            go("schedule");
+          }}
+          onBuildPackage={function (item) {
+            setPackageSeedId(item?.id ?? null);
+            setLibraryHighlightId(item?.id ?? null);
+            go("coach-library");
+          }}
+        />
+      );
+    }
+    if (screen === "coach-library") {
+      return (
+        <CoachLibraryScreen
+          onBack={function () { go("create-content"); }}
+          highlightId={libraryHighlightId}
+          seedPackageItemId={packageSeedId}
+          onAttachToSession={function (prefill) {
+            setSchedulePrefill(prefill);
+            go("schedule");
+          }}
+        />
+      );
+    }
     if (screen.indexOf("admin-") === 0) return <AdminDetailScreen screen={screen} onBack={function() { go("home"); }} />;
     return <HomeScreen user={user} go={go} tryA={tryA} />;
   }

@@ -2640,35 +2640,50 @@
         {
           "id": "AC-1",
           "statement": "Coach at Advanced+ creates drill with title, instructions, optional media",
-          "test": null
+          "test": "tests/cms/story-9.2.test.js::test_STORY_9_2_AC1_create_drill_with_title_instructions_media"
         },
         {
           "id": "AC-2",
           "statement": "Video upload initiates transcoding pipeline (Mux or equivalent)",
-          "test": null
+          "test": "tests/cms/story-9.2.test.js::test_STORY_9_2_AC2_video_upload_initiates_mux"
         },
         {
           "id": "AC-3",
           "statement": "Coach bundles items into package or attaches to session",
-          "test": null
+          "test": "tests/cms/story-9.2.test.js::test_STORY_9_2_AC3_bundle_package_or_attach_session"
         },
         {
           "id": "AC-4",
           "statement": "Created content appears in coach library immediately",
-          "test": null
+          "test": "tests/cms/story-9.2.test.js::test_STORY_9_2_AC4_created_content_in_library"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "sanity/ (inferred)"
+        "tests": [
+          "tests/cms/story-9.2.test.js::test_STORY_9_2_AC1_create_drill_with_title_instructions_media",
+          "tests/cms/story-9.2.test.js::test_STORY_9_2_AC2_video_upload_initiates_mux",
+          "tests/cms/story-9.2.test.js::test_STORY_9_2_AC3_bundle_package_or_attach_session",
+          "tests/cms/story-9.2.test.js::test_STORY_9_2_AC4_created_content_in_library"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/content/ui/CreateContentScreen.jsx",
+          "apps/mobile/src/features/content/ui/CoachLibraryScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
+          "packages/domain/src/content/schema.ts",
+          "packages/domain/src/content/messages.ts",
+          "packages/api/src/ports/library-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-library-repository.ts",
+          "supabase/migrations/20260722150000_coach_library_create_content.sql",
+          "supabase/functions/create-mux-upload/handler.ts",
+          "supabase/functions/create-mux-upload/index.ts",
+          "tests/cms/story-9.2.test.js"
+        ],
+        "command": "npm run test:story-9.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Mobile create drill/video/strategy → coach_library_items; Mux Direct Upload initiate; package bundle + session attach; AC1–AC4 tests pass."
     },
     {
       "id": "STORY-9.3",
