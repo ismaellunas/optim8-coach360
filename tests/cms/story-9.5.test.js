@@ -194,6 +194,13 @@ describe('STORY_9_5 AC4 — Mobile app reads published content via Sanity CDN/AP
     expect(providers).toMatch(/sanity:/);
     expect(providers).toMatch(/VITE_SANITY|sanityProjectId|projectId/);
 
+    // Trial coaches must get readonly browse via accessLevel(role, tier), not a
+    // mistaken featureAccessLevel(user, feature) call (would lock Store).
+    expect(store).toMatch(/accessLevel\(user,\s*['"]browseMarketplace['"]\)/);
+    expect(store).not.toMatch(/featureAccessLevel\(user,/);
+    expect(store).toMatch(/canAccess\(user,\s*['"]ai['"]\)/);
+    expect(store).not.toMatch(/checkFeatureAccess\(user,/);
+
     const mapped = mapSanityPackageToCatalog({
       _id: 'pkg-1',
       title: 'Elite Shooting System',
