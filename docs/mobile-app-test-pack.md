@@ -148,7 +148,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
-10. **Epic 9 Mobile** — Coach create content + Mux video pipeline (8 tests) — needs Coach Advanced+
+10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 
 **Estimated time:** 3.5–5.5 hours for a full first pass, longer if you hit payment sync delays.
@@ -1094,7 +1094,7 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 9 — Content Authoring (STORY-9.1 Studio + STORY-9.2 / STORY-9.3 Mobile)
+## Epic 9 — Content Authoring (STORY-9.1 Studio + STORY-9.2 / STORY-9.3 / STORY-9.4 Mobile)
 
 ### Mobile — Coach content creation (STORY-9.2)
 
@@ -1166,6 +1166,46 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 | 1 | Start **Video Upload** with a short file. Tap **Save to library** and watch the form while it uploads. | Progress bar and percent (e.g. **Uploading 40%…**), then **CONTENT SAVED**. |
 | 2 | Start another upload, then turn on airplane mode mid-upload (or disconnect Wi‑Fi). | Red error about upload failure (not a blank screen). Turn network back on afterward. |
 
+### Mobile — Private content distribution (STORY-9.4)
+
+*Needs a **Coach on Advanced+** with a team that has at least one **active player** on the roster (Epic 3). Apply the latest database migrations so **Distribute** can save assignments. Individual clients must be on a team roster first (even a one-player team) — there is no share-outside-roster path.*
+
+**Accounts needed:** Coach Advanced+ with roster player(s); that Player on Basic+.
+
+### E9-T13: Distribute to full team or one roster player (STORY-9.4 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach**, open **+ Create Content** → **Open my library** (or finish creating an item and **View library**). | **MY LIBRARY** with at least one item. |
+| 2 | On a library item, tap **Distribute**. | **DISTRIBUTE** screen with the item title and **Share with** options. |
+| 3 | Tap **Team (full roster)**, pick your team, tap **Share content**. | Returns to **MY LIBRARY** (no error). |
+| 4 | Distribute again: tap **Individual player**, pick a roster player, tap **Share content**. | Returns to **MY LIBRARY** again. |
+
+### E9-T14: Player sees assigned content on Content tab (STORY-9.4 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the **Player** who was on the team / individual recipient from E9-T13. | Home screen. |
+| 2 | Tap the **Content** tab (was labeled Store for players). | **CONTENT** screen with **Assigned to you** near the top. |
+| 3 | Find the item the coach just shared. | Card shows the title and coach name under **Assigned to you** (marketplace section may still appear below). |
+
+### E9-T15: Solo clients need a team first (STORY-9.4 AC-4 / Q 12.6)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach**, if you have **no roster players**, open **Distribute** on a library item and choose **Individual player**. | Empty player list and a note to add the client to a team on **Roster** first. |
+| 2 | On **Roster**, create a team if needed and add the player (invite or manual add). Return to **Distribute**. | That player appears in the **Individual player** dropdown. |
+| 3 | Confirm you cannot share to someone who is not on any of your team rosters. | Only roster players are listed — no email field for non-roster share. |
+
+### E9-T16: Assignment notifies recipients (STORY-9.4 AC-2)
+
+*Push delivery to the device is still backend/ops (DEP-07). This check confirms the app enqueues the assignment notification when you share.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach**, complete **E9-T13** (share to team or player). | Share succeeds and returns to library. |
+| 2 | As the **Player**, open **Content**. | The assigned item is listed under **Assigned to you** (in-app delivery of the assignment). |
+
 ### Admin — Sanity Studio (STORY-9.1)
 
 *Admin website only. Skip if you were not given an Admin account.*
@@ -1206,7 +1246,7 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 ### Not testable by clicking (for awareness only)
 
 - **Mux webhook configuration** (dashboard URL + signing secret) is ops setup, not an in-app screen — required for E9-T10.
-- **Private distribution / notifications to players** is **STORY-9.4**.
+- **Native push delivery** (FCM/APNs) for content assignment remains DEP-07 / STORY-14.x — E9-T16 covers in-app assigned list after share.
 - **Sanity → Supabase webhook sync** is **STORY-9.5**.
 
 ---
@@ -1312,6 +1352,10 @@ Print this page and check off results as you go.
 | E9-T10 Mux ready + library playback | | |
 | E9-T11 Adaptive playback in session | | |
 | E9-T12 Upload progress and errors | | |
+| E9-T13 Distribute to team or player | | |
+| E9-T14 Player Content tab shows assigned | | |
+| E9-T15 Solo clients need team roster first | | |
+| E9-T16 Assignment shows for player after share | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

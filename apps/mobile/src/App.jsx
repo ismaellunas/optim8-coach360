@@ -16,6 +16,8 @@ import { CoachProgressReviewScreen } from "./features/progress/ui/CoachProgressR
 import { ChatScreen } from "./features/chat/ui/ChatScreen.jsx";
 import { CreateContentScreen } from "./features/content/ui/CreateContentScreen.jsx";
 import { CoachLibraryScreen } from "./features/content/ui/CoachLibraryScreen.jsx";
+import { DistributeContentScreen } from "./features/content/ui/DistributeContentScreen.jsx";
+import { PlayerContentScreen } from "./features/content/ui/PlayerContentScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
@@ -659,6 +661,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _schedulePrefill = useState(null), schedulePrefill = _schedulePrefill[0], setSchedulePrefill = _schedulePrefill[1];
   var _libraryHighlightId = useState(null), libraryHighlightId = _libraryHighlightId[0], setLibraryHighlightId = _libraryHighlightId[1];
   var _packageSeedId = useState(null), packageSeedId = _packageSeedId[0], setPackageSeedId = _packageSeedId[1];
+  var _distributeItem = useState(null), distributeItem = _distributeItem[0], setDistributeItem = _distributeItem[1];
   var _fr = useState(null), featureRequirements = _fr[0], setFeatureRequirements = _fr[1];
 
   var refreshFeatureFlags = useCallback(function () {
@@ -868,7 +871,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   if (user && user.role === "admin") {
     tabs = [{ id: "home", icon: <IconHome />, label: "Dashboard" }, { id: "admin-users", icon: <IconUsers />, label: "Users" }, { id: "admin-content", icon: <IconStore />, label: "Content" }, { id: "admin-analytics", icon: <IconChart />, label: "Analytics" }];
   } else if (user && user.role === "player") {
-    tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "progress", icon: <IconTrophy />, label: "Progress" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Store" }];
+    tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "progress", icon: <IconTrophy />, label: "Progress" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Content" }];
   } else if (user && user.role === "team") {
     tabs = [{ id: "home", icon: <IconHome />, label: "Home" }, { id: "teams", icon: <IconUsers />, label: "Roster" }, { id: "schedule", icon: <IconCal />, label: "Schedule" }, { id: "chat", icon: <IconChat />, label: "Chat" }, { id: "marketplace", icon: <IconStore />, label: "Store" }];
   } else {
@@ -900,7 +903,19 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
         />
       );
     }
-    if (screen === "marketplace") return <StoreScreen user={user} tryA={tryA} />;
+    if (screen === "marketplace") {
+      if (user.role === "player") {
+        return (
+          <PlayerContentScreen
+            user={user}
+            tryA={tryA}
+            canAccess={canAccess}
+            accessLevel={accessLevel}
+          />
+        );
+      }
+      return <StoreScreen user={user} tryA={tryA} />;
+    }
     if (screen === "progress" && user.role === "coach") {
       return (
         <CoachProgressReviewScreen
@@ -986,6 +1001,26 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
           onAttachToSession={function (prefill) {
             setSchedulePrefill(prefill);
             go("schedule");
+          }}
+          onDistribute={function (item) {
+            tryA("distribute", function () {
+              setDistributeItem(item);
+              go("distribute-content");
+            });
+          }}
+        />
+      );
+    }
+    if (screen === "distribute-content" && distributeItem) {
+      return (
+        <DistributeContentScreen
+          item={distributeItem}
+          onBack={function () {
+            go("coach-library");
+          }}
+          onDistributed={function () {
+            setDistributeItem(null);
+            go("coach-library");
           }}
         />
       );

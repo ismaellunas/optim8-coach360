@@ -13,6 +13,11 @@ const CONTENT_ERROR_COPY: Record<string, string> = {
   mux_transcode_failed: 'Video processing failed. Try uploading again.',
   media_upload_failed: 'Could not upload media. Try again.',
   unauthorized: 'Sign in again to create content.',
+  content_recipient_required: 'Choose a full team or an individual roster player.',
+  non_roster_distribution_forbidden:
+    'Add this player to a team roster first, then distribute.',
+  content_assign_failed: 'Could not distribute content. Try again.',
+  content_assign_load_failed: 'Could not load assigned content.',
 };
 
 export function mapContentError(codeOrMessage: string): string {

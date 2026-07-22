@@ -2763,35 +2763,56 @@
         {
           "id": "AC-1",
           "statement": "Coach selects recipients: full team or individual player",
-          "test": null
+          "test": "tests/cms/story-9.4.test.js::test_STORY_9_4_AC1_select_team_or_individual_recipient"
         },
         {
           "id": "AC-2",
           "statement": "Recipients receive notification when content assigned",
-          "test": null
+          "test": "tests/cms/story-9.4.test.js::test_STORY_9_4_AC2_notification_enqueued_on_assign"
         },
         {
           "id": "AC-3",
           "statement": "Assigned content appears in player content tab",
-          "test": null
+          "test": "tests/cms/story-9.4.test.js::test_STORY_9_4_AC3_assigned_appears_in_player_content_tab"
         },
         {
           "id": "AC-4",
           "statement": "Independent coach can distribute to non-roster player if allowed",
-          "test": null
+          "test": "tests/cms/story-9.4.test.js::test_STORY_9_4_AC4_non_roster_distribution_forbidden"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/cms/story-9.4.test.js::test_STORY_9_4_AC1_select_team_or_individual_recipient",
+          "tests/cms/story-9.4.test.js::test_STORY_9_4_AC2_notification_enqueued_on_assign",
+          "tests/cms/story-9.4.test.js::test_STORY_9_4_AC3_assigned_appears_in_player_content_tab",
+          "tests/cms/story-9.4.test.js::test_STORY_9_4_AC4_non_roster_distribution_forbidden"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/content/ui/DistributeContentScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "apps/mobile/src/features/content/ui/CoachLibraryScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "packages/domain/src/content/distribution.ts",
+          "packages/domain/src/content/messages.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/content-assignment-repository.ts",
+          "packages/api/src/ports/notification-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-content-assignment-repository.ts",
+          "packages/api/src/adapters/rest/rest-content-assignment-repository.ts",
+          "packages/api/src/adapters/console/console-notification-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "supabase/migrations/20260722200000_content_assignments_path_a.sql",
+          "tests/cms/story-9.4.test.js",
+          "package.json",
+          "docs/product/stakeholder-questions.md"
+        ],
+        "command": "npm run test:story-9.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Path A roster-only distribute (Q 12.6); content_assignments + notify; player Content tab assigned list; AC1–AC4 tests pass."
     },
     {
       "id": "STORY-9.5",
@@ -3742,8 +3763,7 @@
       "audit_notes": ""
     }
   ]
-}
-</script>
+}</script>
 
   <script>
     (function () {

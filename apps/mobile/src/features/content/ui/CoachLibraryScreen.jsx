@@ -22,6 +22,7 @@ import {
 export function CoachLibraryScreen({
   onBack,
   onAttachToSession,
+  onDistribute,
   highlightId = null,
   seedPackageItemId = null,
 }) {
@@ -194,15 +195,26 @@ export function CoachLibraryScreen({
                     </div>
                   ) : null}
                 </div>
-                <Btn
-                  small
-                  data-testid={`coach-library-attach-${item.id}`}
-                  onClick={function () {
-                    onAttachToSession?.(buildSessionPrefillFromLibraryItem(item));
-                  }}
-                >
-                  Session
-                </Btn>
+                <div className="flex flex-col gap-2">
+                  <Btn
+                    small
+                    data-testid={`coach-library-distribute-${item.id}`}
+                    onClick={function () {
+                      onDistribute?.(item);
+                    }}
+                  >
+                    Distribute
+                  </Btn>
+                  <Btn
+                    small
+                    data-testid={`coach-library-attach-${item.id}`}
+                    onClick={function () {
+                      onAttachToSession?.(buildSessionPrefillFromLibraryItem(item));
+                    }}
+                  >
+                    Session
+                  </Btn>
+                </div>
               </div>
             </Card>
           );

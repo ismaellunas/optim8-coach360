@@ -14,6 +14,7 @@ import type { BillingRepository } from '../ports/billing-repository.js';
 import type { SessionRepository } from '../ports/session-repository.js';
 import type { SessionContentRepository } from '../ports/session-content-repository.js';
 import type { LibraryRepository } from '../ports/library-repository.js';
+import type { ContentAssignmentRepository } from '../ports/content-assignment-repository.js';
 import type { MessagingRepository } from '../ports/messaging-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
@@ -28,6 +29,7 @@ import { RestAnalyticsRepository } from '../adapters/rest/rest-analytics-reposit
 import { RestSessionRepository } from '../adapters/rest/rest-session-repository.js';
 import { RestSessionContentRepository } from '../adapters/rest/rest-session-content-repository.js';
 import { RestLibraryRepository } from '../adapters/rest/rest-library-repository.js';
+import { RestContentAssignmentRepository } from '../adapters/rest/rest-content-assignment-repository.js';
 import { RestMessagingRepository } from '../adapters/rest/rest-messaging-repository.js';
 import {
   createSupabaseClient,
@@ -46,6 +48,7 @@ import { SupabaseRosterRepository } from '../adapters/supabase/supabase-roster-r
 import { SupabaseSessionRepository } from '../adapters/supabase/supabase-session-repository.js';
 import { SupabaseSessionContentRepository } from '../adapters/supabase/supabase-session-content-repository.js';
 import { SupabaseLibraryRepository } from '../adapters/supabase/supabase-library-repository.js';
+import { SupabaseContentAssignmentRepository } from '../adapters/supabase/supabase-content-assignment-repository.js';
 import { SupabaseMessagingRepository } from '../adapters/supabase/supabase-messaging-repository.js';
 import { ConsoleAnalyticsRepository } from '../adapters/console/console-analytics-repository.js';
 import { ConsoleNotificationRepository } from '../adapters/console/console-notification-repository.js';
@@ -61,6 +64,7 @@ export type RepositoryBundle = {
   billing: BillingRepository;
   content: ContentRepository;
   library: LibraryRepository;
+  contentAssignments: ContentAssignmentRepository;
   analytics: AnalyticsRepository;
   notifications: NotificationRepository;
   sessions: SessionRepository;
@@ -94,6 +98,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       billing: new RestBillingRepository(),
       content: new RestContentRepository(),
       library: new RestLibraryRepository(),
+      contentAssignments: new RestContentAssignmentRepository(),
       analytics: new RestAnalyticsRepository(),
       notifications: new ConsoleNotificationRepository(),
       sessions: new RestSessionRepository(),
@@ -127,6 +132,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     billing: new SupabaseBillingRepository(appClient),
     content: new SupabaseContentRepository(appClient),
     library: new SupabaseLibraryRepository(appClient),
+    contentAssignments: new SupabaseContentAssignmentRepository(appClient),
     analytics: new ConsoleAnalyticsRepository(),
     notifications: new ConsoleNotificationRepository(),
     sessions: new SupabaseSessionRepository(appClient),
