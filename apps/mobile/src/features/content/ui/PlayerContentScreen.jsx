@@ -398,12 +398,12 @@ function AssignedSection({ assigned, loading, error, onOpen }) {
 }
 
 function AssignedContentDetail({ item, onBack }) {
+  const muxReady = item.kind === 'video' && item.transcodeStatus === 'ready' && item.muxPlaybackId;
   const videoSrc =
     item.kind === 'video'
-      ? item.mediaUrl ||
-        (item.muxPlaybackId && item.transcodeStatus === 'ready'
-          ? buildMuxHlsUrl(item.muxPlaybackId)
-          : null)
+      ? muxReady
+        ? buildMuxHlsUrl(item.muxPlaybackId)
+        : item.mediaUrl || null
       : null;
   const imageMedia =
     item.kind !== 'video' && item.mediaUrl ? item.mediaUrl : null;
