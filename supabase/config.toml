@@ -380,6 +380,9 @@ deno_version = 2
 [functions.stripe-webhook]
 verify_jwt = false
 
+[functions.mux-webhook]
+verify_jwt = false
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 

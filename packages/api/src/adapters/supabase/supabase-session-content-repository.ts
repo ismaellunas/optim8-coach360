@@ -1,16 +1,18 @@
-import type {
-  CoachCompletionFilters,
-  DrillLogInput,
-  SessionContentRef,
+import {
+  buildMuxHlsUrl,
+  drillLogInputSchema,
+  sessionContentKey,
+  type CoachCompletionFilters,
+  type DrillLogInput,
+  type SessionContentRef,
 } from '@coach360/domain';
-import { drillLogInputSchema, sessionContentKey } from '@coach360/domain';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   SessionContentCompletion,
   SessionContentRepository,
 } from '../../ports/session-content-repository.js';
 
-/** Public demo clip until STORY-9.3 Mux playback for purchased packages. */
+/** Public demo clip until marketplace Mux packages ship playback ids. */
 export const PURCHASED_PACKAGE_DEMO_VIDEO_URL =
   'https://www.w3schools.com/html/mov_bbb.mp4';
 
@@ -146,13 +148,17 @@ export class SupabaseSessionContentRepository implements SessionContentRepositor
     if (ref.kind === 'video' && ref.source === 'library') {
       const { data, error } = await this.client
         .from('coach_library_items')
-        .select('media_url, kind')
+        .select('media_url, kind, mux_playback_id, transcode_status')
         .eq('id', ref.id)
         .eq('owner_id', coachId)
         .maybeSingle();
 
       if (error) {
         throw new Error(`library_media_resolve_failed:${error.message}`);
+      }
+
+      if (data?.transcode_status === 'ready' && data.mux_playback_id) {
+        return buildMuxHlsUrl(data.mux_playback_id);
       }
 
       if (data?.media_url) {

@@ -287,6 +287,13 @@ export {
 } from './content/schema.js';
 export { mapContentError } from './content/messages.js';
 export {
+  COACH_VIDEO_MAX_BYTES,
+  assertCoachVideoWithinPolicy,
+  buildMuxHlsUrl,
+  isHlsUrl,
+  type CoachVideoFileLike,
+} from './content/video-policy.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
+  buildMuxHlsUrl,
   buildSessionPrefillFromLibraryItem,
   createCoachPackageInputSchema,
   mapContentError,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
+import { SessionVideoPlayer } from '@/features/session/ui/SessionVideoPlayer.jsx';
 import {
   Button as Btn,
   Card,
@@ -161,6 +163,8 @@ export function CoachLibraryScreen({
                   <div className="font-body text-[11px] uppercase text-coach-t3">
                     {item.kind}
                     {item.transcodeStatus === 'pending' ? ' · mux pending' : ''}
+                    {item.transcodeStatus === 'ready' ? ' · ready' : ''}
+                    {item.transcodeStatus === 'error' ? ' · mux error' : ''}
                     {item.kind === 'package' && item.itemIds?.length
                       ? ` · ${item.itemIds.length} items`
                       : ''}
@@ -168,6 +172,25 @@ export function CoachLibraryScreen({
                   {item.instructions ? (
                     <div className="mt-1 font-body text-[12px] text-coach-t2 line-clamp-2">
                       {item.instructions}
+                    </div>
+                  ) : null}
+                  {item.kind === 'video' && item.transcodeStatus === 'ready' ? (
+                    <div className="mt-2" data-testid={`coach-library-video-${item.id}`}>
+                      <SessionVideoPlayer
+                        src={
+                          item.mediaUrl ||
+                          (item.muxPlaybackId ? buildMuxHlsUrl(item.muxPlaybackId) : null)
+                        }
+                        title={item.title}
+                      />
+                    </div>
+                  ) : null}
+                  {item.kind === 'video' && item.transcodeStatus === 'error' ? (
+                    <div
+                      className="mt-2 font-body text-[12px] text-coach-red"
+                      data-testid={`coach-library-video-error-${item.id}`}
+                    >
+                      Video processing failed. Try uploading again.
                     </div>
                   ) : null}
                 </div>
