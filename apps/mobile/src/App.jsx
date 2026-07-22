@@ -26,7 +26,10 @@ import {
   applyFeatureFlagOverrides,
   checkFeatureAccess,
   featureAccessLevel,
+  filterUpcomingSessions,
   paywallTierOptionsForFeature,
+  playerProgressFeaturesForAccess,
+  summarizePlayerProgress,
 } from "@coach360/domain";
 import {
   AppShell,
@@ -173,6 +176,53 @@ function HomeScreen({ user, go, tryA }) {
   var isAdmin = user.role === "admin";
   var isTeam = user.role === "team";
 
+  var auth = useAuth();
+  var repos = useRepositories();
+  var playerId = auth.session?.user.id;
+  var _upcoming = useState([]), upcomingSessions = _upcoming[0], setUpcomingSessions = _upcoming[1];
+  var _completions = useState([]), completions = _completions[0], setCompletions = _completions[1];
+  var _homeLoading = useState(false), homeLoading = _homeLoading[0], setHomeLoading = _homeLoading[1];
+
+  var loadPlayerHomeData = useCallback(
+    async function () {
+      if (!isPlayer || !playerId) {
+        setUpcomingSessions([]);
+        setCompletions([]);
+        return;
+      }
+
+      setHomeLoading(true);
+      try {
+        var _rows = await Promise.all([
+          repos.sessions.listForUser(playerId),
+          repos.sessionContent.listPlayerProgress(playerId),
+        ]);
+        setUpcomingSessions(_rows[0] ?? []);
+        setCompletions(_rows[1] ?? []);
+      } catch {
+        setUpcomingSessions([]);
+        setCompletions([]);
+      } finally {
+        setHomeLoading(false);
+      }
+    },
+    [isPlayer, playerId, repos.sessionContent, repos.sessions],
+  );
+
+  useEffect(
+    function () {
+      loadPlayerHomeData();
+    },
+    [loadPlayerHomeData],
+  );
+
+  var homeAccessLevel = isPlayer
+    ? featureAccessLevel(user.role, user.tier, "viewProgress")
+    : "none";
+  var homeProgressFeatures = playerProgressFeaturesForAccess(homeAccessLevel);
+  var homeProgressSummary = summarizePlayerProgress(completions);
+  var nextSession = filterUpcomingSessions(upcomingSessions)[0] ?? null;
+
   if (isAdmin) {
     return (
       <ScreenContainer>
@@ -244,6 +294,31 @@ function HomeScreen({ user, go, tryA }) {
         </Card>
       )}
 
+      {isPlayer && homeAccessLevel !== "none" ? (
+        <Card
+          onClick={function () { go("progress"); }}
+          className="mb-3"
+          data-testid="home-progress-summary"
+        >
+          <div className="mb-1 font-body text-xs uppercase text-coach-t3">Your progress</div>
+          <div className="flex items-baseline justify-between">
+            <span className="font-display text-2xl font-bold text-coach-t1" data-testid="home-drills-completed">
+              {homeProgressSummary.drillsCompleted} drills
+            </span>
+            {homeProgressFeatures.canViewFullDashboard ? (
+              <span className="font-mono text-sm text-coach-orange">
+                {homeProgressSummary.totalDurationMinutes}m practiced
+              </span>
+            ) : null}
+          </div>
+          {homeAccessLevel === "readonly" ? (
+            <p className="mt-2 font-body text-xs text-coach-t3">
+              Basic tier — upgrade to Pro for the full dashboard.
+            </p>
+          ) : null}
+        </Card>
+      ) : null}
+
       {canAccess(user, "ai") ? (
         <div className="py-2">
           <Card>
@@ -266,22 +341,40 @@ function HomeScreen({ user, go, tryA }) {
         </div>
       )}
 
-      <div className="py-3">
+      <div className="py-3" data-testid="home-schedule-summary">
         <div className="mb-2.5 flex justify-between">
           <span className="font-display text-sm font-semibold uppercase tracking-widest text-coach-t1">Upcoming</span>
           <span onClick={function() { go("schedule"); }} className="cursor-pointer font-body text-xs text-coach-orange">View all</span>
         </div>
-        {[{ t: "Shooting Drills", tm: isTeam ? "Full roster" : "U14 Eagles", ti: "Today, 4:00 PM" }, { t: isPlayer ? "Personal Training" : "Game Film Review", tm: isPlayer ? "Individual" : "Individual session", ti: "Tomorrow, 10 AM" }].map(function(s, i) {
-          return (
-            <Card key={i} className="flex items-center gap-3.5">
+        {isPlayer ? (
+          homeLoading ? (
+            <p className="font-body text-sm text-coach-t2">Loading schedule…</p>
+          ) : nextSession ? (
+            <Card className="flex items-center gap-3.5" data-testid="home-next-session">
               <div className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-coach-orange-glow text-coach-orange"><IconTarget /></div>
               <div>
-                <div className="font-body text-sm font-semibold text-coach-t1">{s.t}</div>
-                <div className="font-body text-xs text-coach-t3">{s.tm + " - " + s.ti}</div>
+                <div className="font-body text-sm font-semibold text-coach-t1">{nextSession.title}</div>
+                <div className="font-body text-xs text-coach-t3">
+                  {(nextSession.playerId ? "Individual" : "Team") + " - " + new Date(nextSession.scheduledAt).toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" })}
+                </div>
               </div>
             </Card>
-          );
-        })}
+          ) : (
+            <p className="font-body text-sm text-coach-t2" data-testid="home-no-upcoming-sessions">No upcoming sessions yet.</p>
+          )
+        ) : (
+          [{ t: "Shooting Drills", tm: isTeam ? "Full roster" : "U14 Eagles", ti: "Today, 4:00 PM" }, { t: "Game Film Review", tm: "Individual session", ti: "Tomorrow, 10 AM" }].map(function(s, i) {
+            return (
+              <Card key={i} className="flex items-center gap-3.5">
+                <div className="flex h-[42px] w-[42px] items-center justify-center rounded-xl bg-coach-orange-glow text-coach-orange"><IconTarget /></div>
+                <div>
+                  <div className="font-body text-sm font-semibold text-coach-t1">{s.t}</div>
+                  <div className="font-body text-xs text-coach-t3">{s.tm + " - " + s.ti}</div>
+                </div>
+              </Card>
+            );
+          })
+        )}
       </div>
 
       <div className="py-1">

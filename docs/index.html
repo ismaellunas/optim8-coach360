@@ -2102,9 +2102,9 @@
         "Progress visible on player profile at each tier per matrix",
         "Coach can review progress and provide feedback loop"
       ],
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Rolled up from children: STORY-7.1, STORY-7.2, STORY-7.3, STORY-7.4 all DONE (npm run test:story-7.1/7.2/7.3/7.4 all passing)."
     },
     {
       "id": "STORY-7.1",
@@ -2301,35 +2301,42 @@
         {
           "id": "AC-1",
           "statement": "Player home shows schedule summary and progress at minimum",
-          "test": null
+          "test": "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_shows_real_schedule_summary_and_progress"
         },
         {
           "id": "AC-2",
           "statement": "Profile tabs for objectives and full dashboard gated per Pro tier",
-          "test": null
+          "test": "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC2_objectives_and_full_dashboard_gated_pro"
         },
         {
           "id": "AC-3",
           "statement": "◎ partial dashboard at Basic shows limited stats per matrix",
-          "test": null
+          "test": "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC3_basic_tier_partial_dashboard_on_home"
         },
         {
           "id": "AC-4",
           "statement": "Scope of 6-tab profile confirmed against MVP decision",
-          "test": null
+          "test": "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx"
+        "tests": [
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_shows_real_schedule_summary_and_progress",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC2_objectives_and_full_dashboard_gated_pro",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC3_basic_tier_partial_dashboard_on_home",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/App.jsx",
+          "tests/sessions/story-7.4.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-7.4"
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Audited via npm run test:story-7.4: 4/4 tests pass — AC1 test_STORY_7_4_AC1_player_home_shows_real_schedule_summary_and_progress, AC2 test_STORY_7_4_AC2_objectives_and_full_dashboard_gated_pro, AC3 test_STORY_7_4_AC3_basic_tier_partial_dashboard_on_home, AC4 test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp all passed."
     },
     {
       "id": "EPIC-8",
