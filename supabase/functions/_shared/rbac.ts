@@ -29,6 +29,8 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   viewProgress: { coach: 'basic', player: 'basic' },
   purchase: { coach: 'basic', player: 'basic', team: 'basic' },
   peerShare: { coach: 'advanced', player: 'advanced' },
+  // STORY-8.3 AC-3 / OQ-18.3 interim — aggregated peer engagement at Pro.
+  peerEngagement: { coach: 'pro' },
   feedback: { coach: 'advanced', player: 'advanced' },
   browseMarketplace: { coach: 'basic', player: 'basic', team: 'basic' },
   viewTrainingMaterials: { player: 'basic' },

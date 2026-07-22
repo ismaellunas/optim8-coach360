@@ -53,6 +53,11 @@ export class RestMessagingRepository implements MessagingRepository {
     throw new NotImplementedAdapterError('rest', 'uploadChatVideo');
   }
 
+  async listTeamPeerShares(teamId: string): Promise<ChatMessage[]> {
+    void teamId;
+    throw new NotImplementedAdapterError('rest', 'listTeamPeerShares');
+  }
+
   async markChannelRead(channelId: string): Promise<void> {
     void channelId;
     throw new NotImplementedAdapterError('rest', 'markChannelRead');

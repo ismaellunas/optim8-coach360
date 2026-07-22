@@ -1,8 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  buildAchievementAttachment,
   buildContentLinkAttachment,
+  buildInsightAttachment,
+  canSharePeerContentToChannel,
   computeUnreadCount,
+  isAchievementAttachment,
+  isInsightAttachment,
   isMvpChatMessageType,
+  isPeerShareMessageType,
   isVideoAttachment,
   previewBodyForMessage,
   sortMemberPair,
@@ -49,6 +55,16 @@ function mapAttachment(raw: ChatMessageAttachment | null): ChatMessageAttachment
   }
   if (isVideoAttachment(raw)) {
     return raw;
+  }
+  if (isAchievementAttachment(raw)) {
+    return buildAchievementAttachment({
+      title: raw.title,
+      ...(raw.metricLabel !== undefined ? { metricLabel: raw.metricLabel } : {}),
+      ...(raw.metricValue !== undefined ? { metricValue: raw.metricValue } : {}),
+    });
+  }
+  if (isInsightAttachment(raw)) {
+    return buildInsightAttachment(raw);
   }
   if ('kind' in raw && 'id' in raw && 'title' in raw && 'source' in raw) {
     return buildContentLinkAttachment({
@@ -183,6 +199,13 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       throw new Error('chat_message_type_unsupported');
     }
 
+    if (isPeerShareMessageType(messageType)) {
+      const channel = await this.getChannelRow(input.channelId);
+      if (!channel || !canSharePeerContentToChannel(channel.type)) {
+        throw new Error('peer_share_team_channel_only');
+      }
+    }
+
     let attachment: ChatMessageAttachment | null = input.attachment ?? null;
     if (messageType === 'content_link') {
       if (!attachment || !('kind' in attachment)) {
@@ -193,6 +216,27 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       if (!attachment || !isVideoAttachment(attachment)) {
         throw new Error('chat_message_attachment_required');
       }
+    } else if (messageType === 'achievement') {
+      if (!attachment || !isAchievementAttachment(attachment)) {
+        throw new Error('chat_message_attachment_required');
+      }
+      attachment = buildAchievementAttachment({
+        title: attachment.title,
+        ...(attachment.metricLabel !== undefined
+          ? { metricLabel: attachment.metricLabel }
+          : {}),
+        ...(attachment.metricValue !== undefined
+          ? { metricValue: attachment.metricValue }
+          : {}),
+      });
+    } else if (messageType === 'insight') {
+      if (!attachment || !isInsightAttachment(attachment)) {
+        throw new Error('chat_message_attachment_required');
+      }
+      attachment = buildInsightAttachment({
+        title: attachment.title,
+        tip: attachment.tip,
+      });
     } else {
       attachment = null;
     }
@@ -232,6 +276,12 @@ export class SupabaseMessagingRepository implements MessagingRepository {
     }
 
     return mapMessageRow(data as MessageRow);
+  }
+
+  async listTeamPeerShares(teamId: string): Promise<ChatMessage[]> {
+    const conversation = await this.ensureTeamChannel(teamId);
+    const messages = await this.listChannelMessages(conversation.id);
+    return messages.filter((message) => isPeerShareMessageType(message.messageType));
   }
 
   async uploadChatVideo(
@@ -420,6 +470,20 @@ export class SupabaseMessagingRepository implements MessagingRepository {
     const channel = existing ?? (await this.createPairChannel(type, memberA, memberB));
     await this.ensureMembers(channel.id, [memberA, memberB]);
     return this.toConversation(channel, user.id);
+  }
+
+  private async getChannelRow(channelId: string): Promise<ChannelRow | null> {
+    const { data, error } = await this.client
+      .from('chat_channels')
+      .select(CHANNEL_SELECT)
+      .eq('id', channelId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`chat_channel_lookup_failed:${error.message}`);
+    }
+
+    return (data as ChannelRow | null) ?? null;
   }
 
   private async findTeamChannel(teamId: string): Promise<ChannelRow | null> {

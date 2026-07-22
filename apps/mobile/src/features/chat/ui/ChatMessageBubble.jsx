@@ -1,5 +1,7 @@
 import {
+  isAchievementAttachment,
   isContentLinkAttachment,
+  isInsightAttachment,
   isVideoAttachment,
 } from '@coach360/domain';
 import { SessionVideoPlayer } from '@/features/session/ui/SessionVideoPlayer.jsx';
@@ -16,6 +18,10 @@ export function ChatMessageBubble({ message, isMe, onContentLinkClick }) {
   const attachment = message.attachment;
   const isLink = message.messageType === 'content_link' && isContentLinkAttachment(attachment);
   const isVideo = message.messageType === 'video' && isVideoAttachment(attachment);
+  const isAchievement =
+    message.messageType === 'achievement' && isAchievementAttachment(attachment);
+  const isInsight = message.messageType === 'insight' && isInsightAttachment(attachment);
+  const isCard = isLink || isVideo || isAchievement || isInsight;
   const bubbleTone = isMe
     ? 'rounded-br rounded-bl-2xl bg-coach-orange'
     : 'rounded-bl rounded-br-2xl bg-coach-card';
@@ -24,7 +30,7 @@ export function ChatMessageBubble({ message, isMe, onContentLinkClick }) {
 
   return (
     <div className={`mb-3 flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[80%] ${isLink || isVideo ? '' : `rounded-2xl px-3.5 py-2.5 ${bubbleTone}`}`}>
+      <div className={`max-w-[80%] ${isCard ? '' : `rounded-2xl px-3.5 py-2.5 ${bubbleTone}`}`}>
         {isLink ? (
           <div data-testid="chat-content-link-card">
             <Card
@@ -55,7 +61,37 @@ export function ChatMessageBubble({ message, isMe, onContentLinkClick }) {
           </div>
         ) : null}
 
-        {!isLink && !isVideo ? (
+        {isAchievement ? (
+          <div data-testid="chat-achievement-card">
+            <Card className="mb-0 border-l-[3px] border-l-coach-orange">
+              <div className="mb-1.5 flex items-center gap-2">
+                <Badge tone="orange">Achievement</Badge>
+              </div>
+              <div className="font-body text-sm font-semibold text-coach-t1">{attachment.title}</div>
+              {attachment.metricLabel ? (
+                <div className="mt-1 font-body text-xs text-coach-t2">
+                  {attachment.metricLabel}: {attachment.metricValue}
+                </div>
+              ) : null}
+            </Card>
+          </div>
+        ) : null}
+
+        {isInsight ? (
+          <div data-testid="chat-insight-card">
+            <Card className="mb-0 border-l-[3px] border-l-coach-blue">
+              <div className="mb-1.5 flex items-center gap-2">
+                <Badge tone="blue">Tip</Badge>
+              </div>
+              <div className="font-body text-sm font-semibold text-coach-t1">{attachment.title}</div>
+              <div className="mt-1 font-body text-[13px] leading-relaxed text-coach-t2">
+                {attachment.tip}
+              </div>
+            </Card>
+          </div>
+        ) : null}
+
+        {!isCard ? (
           <div className={`font-body text-sm leading-snug ${textTone}`}>{message.body}</div>
         ) : null}
 

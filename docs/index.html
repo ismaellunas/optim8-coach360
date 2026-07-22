@@ -2492,35 +2492,56 @@
         {
           "id": "AC-1",
           "statement": "Player at Advanced+ can share achievements to team chat",
-          "test": null
+          "test": "tests/chat/story-8.3.test.js::test_STORY_8_3_AC1_advanced_plus_share_achievements_team_chat"
         },
         {
           "id": "AC-2",
           "statement": "Share insight/tips flow posts formatted message to team channel",
-          "test": null
+          "test": "tests/chat/story-8.3.test.js::test_STORY_8_3_AC2_share_insight_tips_formatted_team_channel"
         },
         {
           "id": "AC-3",
           "statement": "Coach sees peer engagement metrics at Pro tier",
-          "test": null
+          "test": "tests/chat/story-8.3.test.js::test_STORY_8_3_AC3_coach_peer_engagement_metrics_pro"
         },
         {
           "id": "AC-4",
           "statement": "Sharing scope limited per OQ-18.2 (team vs DM)",
-          "test": null
+          "test": "tests/chat/story-8.3.test.js::test_STORY_8_3_AC4_sharing_scope_team_only_oq_18_2"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "lib/chat/ (inferred)"
+        "tests": [
+          "tests/chat/story-8.3.test.js::test_STORY_8_3_AC1_advanced_plus_share_achievements_team_chat",
+          "tests/chat/story-8.3.test.js::test_STORY_8_3_AC2_share_insight_tips_formatted_team_channel",
+          "tests/chat/story-8.3.test.js::test_STORY_8_3_AC3_coach_peer_engagement_metrics_pro",
+          "tests/chat/story-8.3.test.js::test_STORY_8_3_AC4_sharing_scope_team_only_oq_18_2"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/chat/peer-share.ts",
+          "packages/domain/src/chat/message.ts",
+          "packages/domain/src/subscription/paywall.ts",
+          "packages/domain/src/index.ts",
+          "supabase/migrations/20260722140000_peer_knowledge_sharing.sql",
+          "supabase/migrations/20260722140100_peer_engagement_feature_access.sql",
+          "supabase/functions/_shared/rbac.ts",
+          "packages/api/src/ports/messaging-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-messaging-repository.ts",
+          "packages/api/src/adapters/rest/rest-messaging-repository.ts",
+          "apps/mobile/src/features/chat/ui/PeerShareSheet.jsx",
+          "apps/mobile/src/features/chat/ui/ChatMessageBubble.jsx",
+          "apps/mobile/src/features/progress/ui/ProgressScreen.jsx",
+          "apps/mobile/src/features/progress/ui/CoachProgressReviewScreen.jsx",
+          "tests/chat/story-8.3.test.js",
+          "tests/rbac/story-5.1.test.js",
+          "tests/rbac/story-5.2.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-8.3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Peer shares (achievement/insight) to team chat Advanced+; coach Pro engagement metrics; OQ-18.2 team-only interim. All 4 AC tests pass."
     },
     {
       "id": "EPIC-9",

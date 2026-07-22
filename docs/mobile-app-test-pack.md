@@ -147,7 +147,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
-9. **Epic 8** — Chat channels, rich messages, unread (7 tests)
+9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -984,11 +984,11 @@ Use **Player on Basic** (not trial, not Pro).
 
 <div class="page-break"></div>
 
-## Epic 8 — Chat & Communication (STORY-8.1, STORY-8.2)
+## Epic 8 — Chat & Communication (STORY-8.1, STORY-8.2, STORY-8.3)
 
-**Accounts needed:** Coach and Player on **Advanced+** (or active trial), with the player on the coach's team roster. Chat is locked below Advanced (see **E5-T6**).
+**Accounts needed:** Coach and Player on **Advanced+** (or active trial), with the player on the coach's team roster. Chat is locked below Advanced (see **E5-T6**). For peer engagement metrics (**E8-T10**), also use a **Coach on Pro** (or trial).
 
-**Before you start:** Apply chat database migrations on the test environment if your team has not already (`chat_channels` / Realtime, plus rich-message / `chat-media` for STORY-8.2). Ask your lead if messages or video attach fail.
+**Before you start:** Apply chat database migrations on the test environment if your team has not already (`chat_channels` / Realtime, rich-message / `chat-media` for STORY-8.2, and peer-share message types for STORY-8.3). Ask your lead if messages or video attach fail.
 
 ### E8-T1: Messages list uses real conversations (STORY-8.1 AC-1, AC-2)
 
@@ -1054,9 +1054,41 @@ Needs a coach with at least one library or purchased content item (same as Sched
 | 2 | Look at **Image** and **Voice note**. | Both look disabled (“Coming later”); you cannot select them. |
 | 3 | Hover or long-press the disabled rows if your browser/device shows a tip. | Tooltip explains they are not available in MVP. |
 
+### E8-T8: Share an achievement to team chat (STORY-8.3 AC-1)
+
+Player must be on **Advanced+** (or trial) and belong to at least one team.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Player on Advanced+**. Tap **Progress**. | **MY PROGRESS** opens. A **Share with teammates** card shows **Share achievement** and **Share tip**. |
+| 2 | Tap **Share achievement**. | **SHARE ACHIEVEMENT** screen with a team chat picker and an achievement preview. |
+| 3 | Keep (or pick) a team chat, tap **Post to team chat**. | You return to Progress (or leave the share screen). |
+| 4 | Tap **Chat**, open that **team** conversation. | An **Achievement** card appears in the team thread. |
+
+### E8-T9: Share a tip to team chat (STORY-8.3 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Player on Advanced+**, go to **Progress** → **Share tip**. | **SHARE TIP** screen with Title and Tip fields and a team chat picker. |
+| 2 | Enter a short title and tip text, tap **Post to team chat**. | Share screen closes. |
+| 3 | Open the team chat in **Chat**. | A **Tip** card shows your title and tip text. |
+
+### E8-T10: Coach peer engagement at Pro (STORY-8.3 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Advanced** (not Pro). Tap **Progress**. | Progress dashboard. A **Peer sharing engagement** card asks to **Upgrade** (locked). |
+| 2 | Sign in as **Coach on Pro** (or trial). Tap **Progress**. | **Peer sharing engagement** metrics card (Shares, Sharers, Achievements, Tips). Recent titles may appear if teammates shared. |
+
+### E8-T11: Peer shares stay team-only (STORY-8.3 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Player on Advanced+**, open **Share achievement** or **Share tip**. | Team chat dropdown only — no DM / one-to-one option. |
+| 2 | If the player has no team, open the share screen. | Message that you need to join a team; peer shares go to team chat only. |
+
 ### Not testable by clicking (for awareness only)
 
-- **Peer achievement sharing** is **STORY-8.3**.
 - **Push notifications** when the app is backgrounded are **STORY-14.1** / DEP-07.
 
 ---
@@ -1146,6 +1178,10 @@ Print this page and check off results as you go.
 | E8-T5 Attach content link card | | |
 | E8-T6 Attach and play chat video | | |
 | E8-T7 Image/voice disabled with tip | | |
+| E8-T8 Share achievement to team chat | | |
+| E8-T9 Share tip to team chat | | |
+| E8-T10 Coach peer engagement at Pro | | |
+| E8-T11 Peer shares team-only | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

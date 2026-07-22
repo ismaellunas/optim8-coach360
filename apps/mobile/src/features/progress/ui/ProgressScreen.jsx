@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
+  canSharePeerKnowledge,
   featureAccessLevel,
   playerProgressFeaturesForAccess,
   summarizePlayerProgress,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
+import { PeerShareSheet } from '@/features/chat/ui/PeerShareSheet.jsx';
 import {
   Button as Btn,
   Card,
@@ -22,6 +24,36 @@ function IconLock() {
   );
 }
 
+function PeerShareActions({ tryA, onShareAchievement, onShareInsight }) {
+  return (
+    <Card className="mb-4" data-testid="peer-share-actions">
+      <div className="mb-2 font-body text-[13px] font-semibold text-coach-t1">Share with teammates</div>
+      <div className="font-body text-xs text-coach-t2">
+        Post achievements and tips to your team chat (Advanced+).
+      </div>
+      <div className="mt-3 flex flex-col gap-2">
+        <Btn
+          primary
+          full
+          onClick={function () {
+            tryA('peerShare', onShareAchievement);
+          }}
+        >
+          <span data-testid="progress-share-achievement">Share achievement</span>
+        </Btn>
+        <Btn
+          full
+          onClick={function () {
+            tryA('peerShare', onShareInsight);
+          }}
+        >
+          <span data-testid="progress-share-insight">Share tip</span>
+        </Btn>
+      </div>
+    </Card>
+  );
+}
+
 export function ProgressScreen({ user, tryA }) {
   const { session } = useAuth();
   const repos = useRepositories();
@@ -29,11 +61,15 @@ export function ProgressScreen({ user, tryA }) {
   const [completions, setCompletions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [shareMode, setShareMode] = useState(null);
 
   const accessLevel = user
     ? featureAccessLevel(user.role, user.tier, 'viewProgress')
     : 'none';
   const features = playerProgressFeaturesForAccess(accessLevel);
+  const peerShareAllowed = user
+    ? canSharePeerKnowledge(user.role, user.tier)
+    : false;
 
   const loadProgress = useCallback(
     async function () {
@@ -72,10 +108,37 @@ export function ProgressScreen({ user, tryA }) {
     [completions],
   );
 
+  if (shareMode) {
+    return (
+      <PeerShareSheet
+        mode={shareMode}
+        onBack={function () {
+          setShareMode(null);
+        }}
+        onShared={function () {
+          setShareMode(null);
+        }}
+      />
+    );
+  }
+
+  const shareActions = user?.role === 'player' ? (
+    <PeerShareActions
+      tryA={tryA}
+      onShareAchievement={function () {
+        setShareMode('achievement');
+      }}
+      onShareInsight={function () {
+        setShareMode('insight');
+      }}
+    />
+  ) : null;
+
   if (accessLevel === 'none') {
     return (
       <ScreenContainer>
         <PageHeader title="MY PROGRESS" user={user} />
+        {shareActions}
         <div
           className="rounded-xl border border-coach-border bg-coach-card px-4 py-8 text-center"
           data-testid="progress-tier-locked"
@@ -95,6 +158,11 @@ export function ProgressScreen({ user, tryA }) {
             Upgrade
           </Btn>
         </div>
+        {!peerShareAllowed ? (
+          <p className="mt-3 font-body text-xs text-coach-t3" data-testid="peer-share-tier-hint">
+            Peer sharing unlocks at Advanced.
+          </p>
+        ) : null}
       </ScreenContainer>
     );
   }
@@ -114,6 +182,8 @@ export function ProgressScreen({ user, tryA }) {
   return (
     <ScreenContainer data-testid="player-progress-screen">
       <PageHeader title="MY PROGRESS" user={user} />
+
+      {shareActions}
 
       {accessLevel === 'readonly' ? (
         <Card
