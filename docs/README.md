@@ -37,7 +37,10 @@ docs/
 ├── design/
 │   └── ui-reference.md       # UI tokens, primitives (source: packages/ui, App.jsx mock)
 ├── delivery/
-│   └── delivery-estimate.md  # 172 h plan + quick reference (Appendix C)
+│   ├── delivery-estimate.md  # 172 h plan + quick reference (Appendix C)
+│   ├── environment-promotion.md
+│   ├── handover.md           # Third-party logins + manual setup
+│   └── parallel-work-plan.md
 └── prototype/
     └── README.md             # UI mock (apps/mobile) + slice-first story workflow
 ```
@@ -62,6 +65,8 @@ docs/
 
 | Document | Description |
 | --- | --- |
+| [`delivery/handover.md`](./delivery/handover.md) | Engineering handover: third-party logins, manual dashboard setup, deploy pitfalls |
+| [`delivery/environment-promotion.md`](./delivery/environment-promotion.md) | Dev → staging → production runbook |
 | [`prototype/README.md`](./prototype/README.md) | UI mock (`src/App.jsx`) — slice-first workflow, hardens into production |
 
 **Active planning baseline:** **172 hours** (~22 working days, solo). See [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md).
@@ -80,6 +85,7 @@ docs/
 | Application stack (Vite + Capacitor) | `architecture/tech-stack.md` |
 | Backend SaaS & integrations | `architecture/tech-stack.md` + `architecture/best-practices.md` |
 | Effort & phases | `delivery/delivery-estimate.md` |
+| Handover / accounts / manual setup | `delivery/handover.md` |
 | Application UI & components | `prototype/README.md` + `design/ui-reference.md` |
 
 ---

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-22T12:05:09.271Z",
+  "generated": "2026-07-22T12:15:43.053Z",
   "root": "docs",
   "tree": [
     {
@@ -63,6 +63,11 @@
           "type": "file",
           "name": "environment-promotion.md",
           "path": "delivery/environment-promotion.md"
+        },
+        {
+          "type": "file",
+          "name": "handover.md",
+          "path": "delivery/handover.md"
         },
         {
           "type": "file",
