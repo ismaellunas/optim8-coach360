@@ -8,12 +8,15 @@ import { UsersPage } from '@/pages/users/UsersPage.js';
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage.js';
 import { ContentPage } from '@/pages/content/ContentPage.js';
 import { MonitorPage } from '@/pages/monitor/MonitorPage.js';
+import { StudioPage } from '@/pages/studio/StudioPage.js';
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path={adminPaths.login} element={<AdminLoginPage />} />
       <Route element={<AdminRouteGuard />}>
+        {/* Full-bleed Studio — outside AdminShell chrome */}
+        <Route path={`${adminPaths.studio}/*`} element={<StudioPage />} />
         <Route element={<AdminShell />}>
           <Route path={adminPaths.root} element={<DashboardStats />} />
           <Route path={adminPaths.users} element={<UsersPage />} />

@@ -46,6 +46,10 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, 'src'),
       },
+      dedupe: ['react', 'react-dom', 'styled-components', 'sanity'],
+    },
+    optimizeDeps: {
+      include: ['sanity', '@sanity/vision', 'styled-components'],
     },
     server: {
       port: 5174,

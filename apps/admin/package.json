@@ -13,12 +13,16 @@
   "dependencies": {
     "@coach360/api": "*",
     "@coach360/domain": "*",
+    "@coach360/studio": "*",
     "@coach360/ui": "*",
     "@fontsource/dm-sans": "^5.2.8",
+    "@sanity/vision": "^6.5.0",
     "@tanstack/react-query": "^5.90.21",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.1"
+    "react-router-dom": "^7.13.1",
+    "sanity": "^6.5.0",
+    "styled-components": "^6.4.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.1",

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "types": ["vite/client"]
+  },
+  "include": ["sanity.config.ts", "sanity.cli.ts", "schemaTypes/**/*.ts", "src/**/*.ts"]
+}
