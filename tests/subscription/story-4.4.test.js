@@ -228,11 +228,15 @@ describe('STORY_4_4 AC4 — upgrade launches Stripe checkout from paywall', () =
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/handlePaywallUpgrade/);
     expect(app).toMatch(/createCheckoutSession/);
+    expect(app).toMatch(/changeSubscriptionTier/);
     expect(app).toMatch(/window\.location\.assign\(result\.url\)/);
-    // No longer only navigates to in-app subscription screen for upgrade.
+    // Existing Stripe subscriptions update in place; new checkout is still used when needed.
     const upgradeSlice = app.slice(app.indexOf('async function handlePaywallUpgrade'));
     const upgradeFn = upgradeSlice.slice(0, upgradeSlice.indexOf('async function handlePaywallStartTrial'));
     expect(upgradeFn).toMatch(/createCheckoutSession/);
+    expect(upgradeFn).toMatch(/subscription && subscription\.stripeSubscriptionId/);
+    expect(upgradeFn).toMatch(/repos\.billing\.changeSubscriptionTier/);
+    expect(upgradeFn).toMatch(/subscriptionState\.refreshSubscription/);
     expect(upgradeFn).not.toMatch(/go\("subscription"\)/);
 
     expect(existsSync(PAYWALL_MODAL_PATH)).toBe(true);
