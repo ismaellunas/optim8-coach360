@@ -147,7 +147,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
-9. **Epic 8** — Chat channels, real-time messages, unread (4 tests)
+9. **Epic 8** — Chat channels, rich messages, unread (7 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -984,11 +984,11 @@ Use **Player on Basic** (not trial, not Pro).
 
 <div class="page-break"></div>
 
-## Epic 8 — Chat & Communication (STORY-8.1)
+## Epic 8 — Chat & Communication (STORY-8.1, STORY-8.2)
 
 **Accounts needed:** Coach and Player on **Advanced+** (or active trial), with the player on the coach's team roster. Chat is locked below Advanced (see **E5-T6**).
 
-**Before you start:** Apply the chat database migration on the test environment if your team has not already (`chat_channels` / Realtime). Ask your lead if messages fail to load.
+**Before you start:** Apply chat database migrations on the test environment if your team has not already (`chat_channels` / Realtime, plus rich-message / `chat-media` for STORY-8.2). Ask your lead if messages or video attach fail.
 
 ### E8-T1: Messages list uses real conversations (STORY-8.1 AC-1, AC-2)
 
@@ -1018,9 +1018,44 @@ Needs two devices/browsers (or two profiles): Coach and Player, both Advanced+.
 | 3 | Open the thread, read the message, go back to the list. | Unread badge is gone (or count drops). |
 | 4 | Close and reopen the app, tap **Chat** again. | Same conversations and last messages still appear (list persisted). |
 
+### E8-T4: Send text in a team chat (STORY-8.2 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Advanced+**. Tap **Chat**. | **MESSAGES** list (not locked). |
+| 2 | Open a **team** conversation (group/users icon). | Team thread opens. |
+| 3 | Type a short text message and tap send. | Your orange text bubble appears in the thread. |
+| 4 | Optional: open a **DM** thread and send text the same way. | Text also sends in the DM. |
+
+### E8-T5: Attach a drill/content link card (STORY-8.2 AC-2)
+
+Needs a coach with at least one library or purchased content item (same as Schedule → Add content).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open any chat thread. Tap the **+** attach button left of the message box. | **ATTACH** screen. |
+| 2 | Tap **Drill / content link**. | **ATTACH CONTENT** with Library / Purchased tabs. |
+| 3 | Tap an item from the list. | You return to the thread; a **content card** (kind badge + title + “Open content”) appears. |
+| 4 | Tap the content card. | **CONTENT LINK** detail shows the title and kind. |
+
+### E8-T6: Attach and play a video in chat (STORY-8.2 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | In a chat thread, tap **+** → **Video**. | Device file picker for videos. |
+| 2 | Choose a short video file. | After upload, a video player appears in the thread. |
+| 3 | Tap play on the in-chat video. | Video plays inline (controls visible). |
+
+### E8-T7: Image and voice stay disabled (STORY-8.2 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | In a chat thread, tap **+** to open **ATTACH**. | Menu lists Drill/content link, Video, Image, Voice note. |
+| 2 | Look at **Image** and **Voice note**. | Both look disabled (“Coming later”); you cannot select them. |
+| 3 | Hover or long-press the disabled rows if your browser/device shows a tip. | Tooltip explains they are not available in MVP. |
+
 ### Not testable by clicking (for awareness only)
 
-- **Rich attachments** (drill cards, video in chat) are **STORY-8.2**.
 - **Peer achievement sharing** is **STORY-8.3**.
 - **Push notifications** when the app is backgrounded are **STORY-14.1** / DEP-07.
 
@@ -1107,6 +1142,10 @@ Print this page and check off results as you go.
 | E8-T1 Real conversation list (team + DM) | | |
 | E8-T2 Real-time message delivery | | |
 | E8-T3 Unread badge + list persists | | |
+| E8-T4 Send text in team chat | | |
+| E8-T5 Attach content link card | | |
+| E8-T6 Attach and play chat video | | |
+| E8-T7 Image/voice disabled with tip | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

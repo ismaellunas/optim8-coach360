@@ -1,19 +1,28 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
+  buildContentLinkAttachment,
   computeUnreadCount,
+  isMvpChatMessageType,
+  isVideoAttachment,
+  previewBodyForMessage,
   sortMemberPair,
   type ChatChannelType,
+  type ChatContentLinkAttachment,
+  type ChatVideoAttachment,
+  type MvpChatMessageType,
 } from '@coach360/domain';
 import type {
   ChatConversation,
   ChatMessage,
+  ChatMessageAttachment,
   DirectMessage,
   DirectMessageThread,
   MessagingRepository,
+  SendChannelMessageInput,
 } from '../../ports/messaging-repository.js';
 
 const CHANNEL_SELECT = 'id, type, team_id, member_a, member_b, created_at';
-const MESSAGE_SELECT = 'id, channel_id, sender_id, body, created_at';
+const MESSAGE_SELECT = 'id, channel_id, sender_id, body, message_type, attachment, created_at';
 
 type ChannelRow = {
   id: string;
@@ -29,15 +38,40 @@ type MessageRow = {
   channel_id: string;
   sender_id: string;
   body: string;
+  message_type: string | null;
+  attachment: ChatMessageAttachment | null;
   created_at: string;
 };
 
+function mapAttachment(raw: ChatMessageAttachment | null): ChatMessageAttachment | null {
+  if (!raw) {
+    return null;
+  }
+  if (isVideoAttachment(raw)) {
+    return raw;
+  }
+  if ('kind' in raw && 'id' in raw && 'title' in raw && 'source' in raw) {
+    return buildContentLinkAttachment({
+      kind: raw.kind,
+      source: raw.source,
+      id: raw.id,
+      title: raw.title,
+    });
+  }
+  return null;
+}
+
 function mapMessageRow(row: MessageRow): ChatMessage {
+  const messageType: MvpChatMessageType =
+    row.message_type && isMvpChatMessageType(row.message_type) ? row.message_type : 'text';
+  const attachment = mapAttachment(row.attachment ?? null);
   return {
     id: row.id,
     channelId: row.channel_id,
     senderId: row.sender_id,
-    body: row.body,
+    body: row.body ?? '',
+    messageType,
+    attachment,
     createdAt: row.created_at,
   };
 }
@@ -143,12 +177,32 @@ export class SupabaseMessagingRepository implements MessagingRepository {
     return ((data ?? []) as MessageRow[]).map(mapMessageRow);
   }
 
-  async sendChannelMessage(input: {
-    channelId: string;
-    body: string;
-  }): Promise<ChatMessage> {
-    const trimmed = input.body.trim();
-    if (!trimmed) {
+  async sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage> {
+    const messageType: MvpChatMessageType = input.messageType ?? 'text';
+    if (!isMvpChatMessageType(messageType)) {
+      throw new Error('chat_message_type_unsupported');
+    }
+
+    let attachment: ChatMessageAttachment | null = input.attachment ?? null;
+    if (messageType === 'content_link') {
+      if (!attachment || !('kind' in attachment)) {
+        throw new Error('chat_message_attachment_required');
+      }
+      attachment = buildContentLinkAttachment(attachment as ChatContentLinkAttachment);
+    } else if (messageType === 'video') {
+      if (!attachment || !isVideoAttachment(attachment)) {
+        throw new Error('chat_message_attachment_required');
+      }
+    } else {
+      attachment = null;
+    }
+
+    const trimmed = (input.body ?? '').trim();
+    const body =
+      trimmed
+      || previewBodyForMessage(messageType, trimmed, attachment);
+
+    if (messageType === 'text' && !trimmed) {
       throw new Error('chat_message_empty');
     }
 
@@ -166,7 +220,9 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       .insert({
         channel_id: input.channelId,
         sender_id: user.id,
-        body: trimmed,
+        body,
+        message_type: messageType,
+        attachment,
       })
       .select(MESSAGE_SELECT)
       .single();
@@ -176,6 +232,43 @@ export class SupabaseMessagingRepository implements MessagingRepository {
     }
 
     return mapMessageRow(data as MessageRow);
+  }
+
+  async uploadChatVideo(
+    channelId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ChatVideoAttachment> {
+    const {
+      data: { user },
+      error: authError,
+    } = await this.client.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error('not_authenticated');
+    }
+
+    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${user.id}/${channelId}/${crypto.randomUUID()}-${safeName}`;
+
+    const { error: uploadError } = await this.client.storage
+      .from('chat-media')
+      .upload(path, file, {
+        upsert: false,
+        contentType: file.type || 'video/mp4',
+      });
+
+    if (uploadError) {
+      throw new Error(`chat_video_upload_failed:${uploadError.message}`);
+    }
+
+    const { data } = this.client.storage.from('chat-media').getPublicUrl(path);
+    return {
+      url: data.publicUrl,
+      storagePath: path,
+      mimeType: file.type || 'video/mp4',
+      fileName: safeName,
+    };
   }
 
   async markChannelRead(channelId: string): Promise<void> {
@@ -510,7 +603,15 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       teamId: channel.team_id,
       peerId: peerIdFor(channel, userId),
       title,
-      lastMessage: last?.body ?? null,
+      lastMessage: last
+        ? previewBodyForMessage(
+            last.message_type && isMvpChatMessageType(last.message_type)
+              ? last.message_type
+              : 'text',
+            last.body ?? '',
+            mapAttachment(last.attachment ?? null),
+          )
+        : null,
       lastAt: last?.created_at ?? null,
       unreadCount: computeUnreadCount(count ?? 0),
     };

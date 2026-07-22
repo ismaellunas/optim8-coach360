@@ -5,7 +5,9 @@ import type {
   DirectMessage,
   DirectMessageThread,
   MessagingRepository,
+  SendChannelMessageInput,
 } from '../../ports/messaging-repository.js';
+import type { ChatVideoAttachment } from '@coach360/domain';
 
 export class RestMessagingRepository implements MessagingRepository {
   async listConversations(userId: string): Promise<ChatConversation[]> {
@@ -35,12 +37,20 @@ export class RestMessagingRepository implements MessagingRepository {
     throw new NotImplementedAdapterError('rest', 'listChannelMessages');
   }
 
-  async sendChannelMessage(input: {
-    channelId: string;
-    body: string;
-  }): Promise<ChatMessage> {
+  async sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage> {
     void input;
     throw new NotImplementedAdapterError('rest', 'sendChannelMessage');
+  }
+
+  async uploadChatVideo(
+    channelId: string,
+    file: Blob,
+    fileName: string,
+  ): Promise<ChatVideoAttachment> {
+    void channelId;
+    void file;
+    void fileName;
+    throw new NotImplementedAdapterError('rest', 'uploadChatVideo');
   }
 
   async markChannelRead(channelId: string): Promise<void> {

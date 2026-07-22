@@ -52,6 +52,8 @@ export type {
   MessagingRepository,
   ChatConversation,
   ChatMessage,
+  ChatMessageAttachment,
+  SendChannelMessageInput,
   DirectMessage,
   DirectMessageThread,
 } from './ports/messaging-repository.js';
