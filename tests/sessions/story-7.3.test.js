@@ -148,8 +148,9 @@ describe('STORY_7_3 AC1 — coach at Advanced+ views player progress dashboard',
     expect(screen).toMatch(/playerDisplayLabel/);
 
     const resolveNames = readFileSync(RESOLVE_NAMES_PATH, 'utf8');
-    expect(resolveNames).toMatch(/rosterRole === 'player'/);
+    expect(resolveNames).toMatch(/member\.displayName/);
     expect(resolveNames).toMatch(/repos\.profiles\.getById/);
+    expect(resolveNames).toMatch(/chatPeerDisplayLabel/);
 
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/CoachProgressReviewScreen/);

@@ -7,7 +7,7 @@ import {
 import { useRepositories } from '@coach360/api';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
-  playerDisplayLabel,
+  chatPeerDisplayLabel,
   resolvePlayerDisplayNames,
 } from '@/features/progress/lib/resolve-player-display-names.js';
 import { useChatRealtime } from '@/features/chat/lib/use-chat-realtime.js';
@@ -214,7 +214,7 @@ export function ChatScreen({
         setActiveChannelId(conversation.id);
         setActiveType('dm');
         setActivePeerId(playerId);
-        setActiveTitle(displayName || conversation.title || playerDisplayLabel(playerNames, playerId));
+        setActiveTitle(displayName || conversation.title || chatPeerDisplayLabel(playerNames, playerId));
         setMessages([]);
         await loadMessages(conversation.id);
       } catch (cause) {
@@ -284,7 +284,7 @@ export function ChatScreen({
           setActivePeerId(initialDm.playerId);
           setActiveTitle(
             initialDm.displayName
-              ?? playerDisplayLabel(playerNames, initialDm.playerId)
+              ?? chatPeerDisplayLabel(playerNames, initialDm.playerId, conversation.title)
               ?? conversation.title,
           );
           if (initialDm.draftMessage) {
@@ -323,7 +323,7 @@ export function ChatScreen({
     setActivePeerId(conversation.peerId);
     setActiveTitle(
       conversation.peerId
-        ? playerDisplayLabel(playerNames, conversation.peerId) || conversation.title
+        ? chatPeerDisplayLabel(playerNames, conversation.peerId, conversation.title)
         : conversation.title,
     );
     setError(null);
@@ -673,7 +673,7 @@ export function ChatScreen({
         const unread = computeUnreadCount(c.unreadCount);
         const isTeam = c.type === 'team';
         const label = c.peerId
-          ? playerDisplayLabel(playerNames, c.peerId) || c.title
+          ? chatPeerDisplayLabel(playerNames, c.peerId, c.title)
           : c.title;
         return (
           <div
