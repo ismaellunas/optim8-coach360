@@ -77,6 +77,7 @@ These steps were performed in dashboards / CLI. Re-do them only when creating a 
   - `https://coach360-admin-blond.vercel.app` (and any custom `admin.*` domain)
   - Allow credentials if prompted for authenticated Studio
 - [x] **Project members** invited for anyone who authors content in Studio.
+- [ ] Seed marketplace packages (STORY-9.5 prerequisite): add `SANITY_API_TOKEN` (Editor) to `.env`, then `npm run seed:sanity`.
 
 ### 3. Vercel — admin app
 

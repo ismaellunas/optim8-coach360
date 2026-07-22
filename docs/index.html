@@ -2831,35 +2831,55 @@
         {
           "id": "AC-1",
           "statement": "Sanity webhook fires on document publish event",
-          "test": null
+          "test": "tests/cms/story-9.5.test.js::test_STORY_9_5_AC1_publish_payload_accepted"
         },
         {
           "id": "AC-2",
           "statement": "Edge function upserts package metadata to Supabase",
-          "test": null
+          "test": "tests/cms/story-9.5.test.js::test_STORY_9_5_AC2_upserts_package_metadata"
         },
         {
           "id": "AC-3",
           "statement": "RAG embedding job queued for published packages",
-          "test": null
+          "test": "tests/cms/story-9.5.test.js::test_STORY_9_5_AC3_queues_rag_embedding_job"
         },
         {
           "id": "AC-4",
           "statement": "Mobile app reads published content via Sanity CDN/API",
-          "test": null
+          "test": "tests/cms/story-9.5.test.js::test_STORY_9_5_AC4_mobile_reads_sanity_cdn"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "supabase/functions/sanity-webhook/ (inferred)",
-          "sanity/ (inferred)"
+        "tests": [
+          "tests/cms/story-9.5.test.js::test_STORY_9_5_AC1_publish_payload_accepted",
+          "tests/cms/story-9.5.test.js::test_STORY_9_5_AC2_upserts_package_metadata",
+          "tests/cms/story-9.5.test.js::test_STORY_9_5_AC3_queues_rag_embedding_job",
+          "tests/cms/story-9.5.test.js::test_STORY_9_5_AC4_mobile_reads_sanity_cdn"
         ],
-        "command": null
+        "files": [
+          "supabase/functions/sanity-webhook/handler.ts",
+          "supabase/functions/sanity-webhook/index.ts",
+          "supabase/functions/sanity-webhook/webhook-projection.groq",
+          "supabase/migrations/20260723000000_sanity_package_metadata_sync.sql",
+          "packages/domain/src/content/marketplace-catalog.ts",
+          "packages/api/src/ports/marketplace-catalog-repository.ts",
+          "packages/api/src/adapters/sanity/sanity-marketplace-catalog-repository.ts",
+          "packages/api/src/adapters/rest/rest-marketplace-catalog-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "apps/mobile/src/app/providers/AppProviders.jsx",
+          "apps/mobile/src/lib/env.js",
+          "apps/mobile/src/App.jsx",
+          "tests/cms/story-9.5.test.js",
+          "package.json",
+          "scripts/seed-sanity-packages.mjs"
+        ],
+        "command": "npm run test:story-9.5"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Sanity webhook upserts package_metadata + queues rag_embedding_jobs; mobile Store reads Sanity API; AC1–AC4 tests pass. Live Sanity dashboard webhook + Viewer token still ops."
     },
     {
       "id": "EPIC-10",
@@ -3766,7 +3786,7 @@
     }
   ]
 }
-</script>
+  </script>
 
   <script>
     (function () {

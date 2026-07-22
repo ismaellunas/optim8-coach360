@@ -303,6 +303,15 @@ export {
   type CoachVideoFileLike,
 } from './content/video-policy.js';
 export {
+  PUBLISHED_PACKAGES_GROQ,
+  primarySkillTag,
+  dripLabelFromSchedule,
+  priceLabelFromStripeId,
+  mapSanityPackageToCatalog,
+  type MarketplaceCatalogPackage,
+  type SanityPackageDoc,
+} from './content/marketplace-catalog.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

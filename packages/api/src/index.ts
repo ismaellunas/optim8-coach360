@@ -47,6 +47,12 @@ export type {
   ContentAssignment,
   ContentAssignmentPackageChild,
 } from './ports/content-assignment-repository.js';
+export type {
+  MarketplaceCatalogRepository,
+} from './ports/marketplace-catalog-repository.js';
+export { SanityMarketplaceCatalogRepository } from './adapters/sanity/sanity-marketplace-catalog-repository.js';
+export type { SanityCatalogEnv } from './adapters/sanity/sanity-marketplace-catalog-repository.js';
+export { RestMarketplaceCatalogRepository } from './adapters/rest/rest-marketplace-catalog-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
