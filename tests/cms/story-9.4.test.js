@@ -171,6 +171,17 @@ describe('STORY_9_4 AC3 — assigned content appears in player content tab', () 
     expect(repo).toMatch(/listAssignedForPlayer/);
     expect(repo).toMatch(/instructions/);
     expect(repo).toMatch(/mux_playback_id/);
+    expect(repo).toMatch(/title: libraryItem\.title/);
+    expect(repo).toMatch(/kind: libraryItem\.kind/);
+
+    const titleSql = path.join(
+      REPO_ROOT,
+      'supabase',
+      'migrations',
+      '20260722202000_content_assignment_title_kind.sql',
+    );
+    expect(readFileSync(titleSql, 'utf8')).toMatch(/add column if not exists title/);
+    expect(readFileSync(titleSql, 'utf8')).toMatch(/add column if not exists kind/);
 
     const di = readFileSync(CREATE_REPOS, 'utf8');
     expect(di).toMatch(/contentAssignments/);

@@ -13,12 +13,13 @@ import type {
 } from '../../ports/content-assignment-repository.js';
 
 const ASSIGNMENT_SELECT =
-  'id, library_item_id, coach_id, team_id, player_id, created_at';
+  'id, library_item_id, coach_id, team_id, player_id, created_at, title, kind';
 
 const LIBRARY_EMBED =
   'title, kind, instructions, media_url, mux_playback_id, transcode_status, item_ids';
 
 type LibraryEmbed = {
+  id?: string;
   title?: string;
   kind?: SessionContentKind;
   instructions?: string | null;
@@ -52,6 +53,8 @@ function mapAssignmentRow(
     team_id: string | null;
     player_id: string | null;
     created_at: string;
+    title?: string | null;
+    kind?: string | null;
   },
   meta: {
     title: string;
@@ -72,8 +75,8 @@ function mapAssignmentRow(
     teamId: row.team_id,
     playerId: row.player_id,
     createdAt: row.created_at,
-    title: meta.title,
-    kind: meta.kind,
+    title: meta.title || row.title || 'Assigned content',
+    kind: (meta.kind || row.kind || 'drill') as SessionContentKind,
     coachDisplayName: meta.coachDisplayName,
     instructions: meta.instructions,
     mediaUrl: meta.mediaUrl,
@@ -91,10 +94,11 @@ function metaFromLibrary(
   item: LibraryEmbed | null,
   coachDisplayName: string | null,
   packageItems?: ContentAssignmentPackageChild[],
+  snapshot?: { title?: string | null; kind?: string | null },
 ) {
   const base = {
-    title: item?.title ?? 'Assigned content',
-    kind: (item?.kind as SessionContentKind) ?? 'drill',
+    title: item?.title ?? snapshot?.title ?? 'Assigned content',
+    kind: (item?.kind ?? snapshot?.kind ?? 'drill') as SessionContentKind,
     coachDisplayName,
     instructions: item?.instructions ?? null,
     mediaUrl: item?.media_url ?? null,
@@ -105,7 +109,7 @@ function metaFromLibrary(
   if (packageItems && packageItems.length > 0) {
     return { ...base, packageItems };
   }
-  if (item?.kind === 'package') {
+  if ((item?.kind ?? snapshot?.kind) === 'package') {
     return { ...base, packageItems: packageItems ?? [] };
   }
   return base;
@@ -195,6 +199,18 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       assertPlayerOnRosterForDistribution(parsed.playerId, rosterIds);
     }
 
+    const { data: libraryItem, error: libraryError } = await this.client
+      .from('coach_library_items')
+      .select(LIBRARY_EMBED)
+      .eq('id', parsed.libraryItemId)
+      .maybeSingle();
+
+    if (libraryError || !libraryItem) {
+      throw new Error(
+        mapWriteError(libraryError ?? { message: 'library_item_missing' }, 'content_assign_failed'),
+      );
+    }
+
     const { data, error } = await this.client
       .from('content_assignments')
       .insert({
@@ -202,6 +218,8 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
         coach_id: coachId,
         team_id: parsed.teamId ?? null,
         player_id: parsed.playerId ?? null,
+        title: libraryItem.title,
+        kind: libraryItem.kind,
       })
       .select(ASSIGNMENT_SELECT)
       .single();
@@ -210,12 +228,6 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       throw new Error(mapWriteError(error ?? { message: 'insert_failed' }, 'content_assign_failed'));
     }
 
-    const { data: item } = await this.client
-      .from('coach_library_items')
-      .select(LIBRARY_EMBED)
-      .eq('id', data.library_item_id)
-      .maybeSingle();
-
     const { data: coach } = await this.client
       .from('profiles')
       .select('display_name')
@@ -223,11 +235,18 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       .maybeSingle();
 
     const packageItems =
-      item?.kind === 'package' ? await this.loadPackageChildren(item.item_ids ?? []) : undefined;
+      libraryItem.kind === 'package'
+        ? await this.loadPackageChildren(libraryItem.item_ids ?? [])
+        : undefined;
 
     return mapAssignmentRow(
       data,
-      metaFromLibrary(item as LibraryEmbed | null, coach?.display_name ?? null, packageItems),
+      metaFromLibrary(
+        libraryItem as LibraryEmbed,
+        coach?.display_name ?? null,
+        packageItems,
+        { title: data.title, kind: data.kind },
+      ),
     );
   }
 
@@ -255,14 +274,30 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
     const rows = data ?? [];
     const results: ContentAssignment[] = [];
 
+    // Prefer a direct library fetch (assignee RLS) over embed — embeds often come back null.
+    const libraryIds = [...new Set(rows.map((row) => row.library_item_id as string))];
+    const libraryById = new Map<string, LibraryEmbed>();
+    if (libraryIds.length > 0) {
+      const { data: libraryRows } = await this.client
+        .from('coach_library_items')
+        .select(`id, ${LIBRARY_EMBED}`)
+        .in('id', libraryIds);
+      for (const lib of libraryRows ?? []) {
+        libraryById.set(lib.id as string, lib as LibraryEmbed);
+      }
+    }
+
     for (const row of rows) {
-      const item = unwrapEmbed<LibraryEmbed>((row as { coach_library_items?: unknown }).coach_library_items);
+      const embedded = unwrapEmbed<LibraryEmbed>(
+        (row as { coach_library_items?: unknown }).coach_library_items,
+      );
+      const item = libraryById.get(row.library_item_id as string) ?? embedded;
       const coach = unwrapEmbed<{ display_name: string | null }>(
         (row as { profiles?: unknown }).profiles,
       );
       const packageItems =
-        item?.kind === 'package'
-          ? await this.loadPackageChildren(item.item_ids ?? [])
+        (item?.kind ?? row.kind) === 'package'
+          ? await this.loadPackageChildren(item?.item_ids ?? [])
           : undefined;
 
       results.push(
@@ -274,8 +309,13 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
             team_id: row.team_id,
             player_id: row.player_id,
             created_at: row.created_at,
+            title: row.title,
+            kind: row.kind,
           },
-          metaFromLibrary(item, coach?.display_name ?? null, packageItems),
+          metaFromLibrary(item, coach?.display_name ?? null, packageItems, {
+            title: row.title,
+            kind: row.kind,
+          }),
         ),
       );
     }
