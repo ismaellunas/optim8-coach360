@@ -11,7 +11,16 @@ export function IconBack() {
   );
 }
 
-export function Button({ children, primary, small, disabled, onClick, full, type = 'button' }) {
+export function Button({
+  children,
+  primary,
+  small,
+  disabled,
+  onClick,
+  full,
+  type = 'button',
+  ...rest
+}) {
   return (
     <button
       type={type}
@@ -28,6 +37,7 @@ export function Button({ children, primary, small, disabled, onClick, full, type
       ]
         .filter(Boolean)
         .join(' ')}
+      {...rest}
     >
       {children}
     </button>
@@ -45,12 +55,13 @@ export function Badge({ children, color, tone }) {
   );
 }
 
-export function Card({ children, onClick, className = '', style }) {
+export function Card({ children, onClick, className = '', style, ...rest }) {
   return (
     <div
       onClick={onClick}
       style={style}
       className={`mb-2.5 rounded-[14px] border border-coach-border bg-coach-card p-4 ${onClick ? 'cursor-pointer' : 'cursor-default'} ${className}`}
+      {...rest}
     >
       {children}
     </div>

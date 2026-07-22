@@ -207,23 +207,44 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          instructions: string | null
+          item_ids: string[]
           kind: string
+          media_url: string | null
+          mux_asset_id: string | null
+          mux_playback_id: string | null
+          mux_upload_id: string | null
           owner_id: string
           title: string
+          transcode_status: string
         }
         Insert: {
           created_at?: string
           id?: string
+          instructions?: string | null
+          item_ids?: string[]
           kind: string
+          media_url?: string | null
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          mux_upload_id?: string | null
           owner_id: string
           title: string
+          transcode_status?: string
         }
         Update: {
           created_at?: string
           id?: string
+          instructions?: string | null
+          item_ids?: string[]
           kind?: string
+          media_url?: string | null
+          mux_asset_id?: string | null
+          mux_playback_id?: string | null
+          mux_upload_id?: string | null
           owner_id?: string
           title?: string
+          transcode_status?: string
         }
         Relationships: [
           {

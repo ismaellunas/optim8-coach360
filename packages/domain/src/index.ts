@@ -272,6 +272,21 @@ export {
   looksLikeZodIssueDump,
 } from './session/messages.js';
 export {
+  coachCreatableKindSchema,
+  coachLibraryTranscodeStatusSchema,
+  createCoachLibraryItemInputSchema,
+  createCoachPackageInputSchema,
+  coachLibraryItemSchema,
+  normalizePackageItemIds,
+  buildSessionPrefillFromLibraryItem,
+  type CoachCreatableKind,
+  type CoachLibraryTranscodeStatus,
+  type CreateCoachLibraryItemInput,
+  type CreateCoachPackageInput,
+  type CoachLibraryItemModel,
+} from './content/schema.js';
+export { mapContentError } from './content/messages.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,
