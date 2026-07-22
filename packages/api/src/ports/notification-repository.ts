@@ -39,9 +39,20 @@ export type SessionReminderPayload = {
   event: 'session_reminder';
 };
 
+export type ContentAssignedNotificationPayload = {
+  assignmentId: string;
+  libraryItemId: string;
+  coachId: string;
+  teamId: string | null;
+  playerId: string | null;
+  triggeredBy: string;
+  event: 'content_assigned';
+};
+
 export type NotificationRepository = {
   enqueueRosterChange(payload: RosterNotificationPayload): void;
   enqueueSessionChange(payload: SessionNotificationPayload): void;
   enqueueSessionReminder(payload: SessionReminderPayload): void;
   enqueueTrialExpiryWarning(payload: TrialExpiryWarningPayload): void;
+  enqueueContentAssigned(payload: ContentAssignedNotificationPayload): void;
 };

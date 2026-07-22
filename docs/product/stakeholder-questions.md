@@ -176,7 +176,7 @@
 | 12.3 | Packaging workflow — create atomic items first then bundle, or build package in one flow? | UX and DEP-04 | | | |
 | 12.4 | Max video length/size for coach uploads? Transcoding required (Mux)? | Video pipeline | | | |
 | 12.5 | Can coaches **edit/delete** content after distribution, and what happens for players who already started it? | Content lifecycle | | | |
-| 12.6 | Can coaches distribute to **non-roster** players (e.g. individual clients without a team)? | Independent coach path | | | |
+| 12.6 | Can coaches distribute to **non-roster** players (e.g. individual clients without a team)? | Independent coach path | **No — roster only.** Path A distribution targets roster players only (full team or individual roster member). Individual / 1-on-1 clients must be added to a team first — including a dedicated team where that player is the sole member — then distributed via that roster. No assign outside roster. | product | 2026-07-22 |
 | 12.7 | Are **images/diagrams** (play diagrams) required for strategies at MVP? | Content types in Sanity | | | |
 
 ---

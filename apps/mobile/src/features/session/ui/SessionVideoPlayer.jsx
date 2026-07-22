@@ -69,7 +69,9 @@ export function SessionVideoPlayer({ src, title }) {
         className="rounded-xl border border-dashed border-coach-border px-4 py-5 text-center font-body text-sm text-coach-t3"
         data-testid="session-video-player-error"
       >
-        Video playback unavailable
+        {hlsUnsupported
+          ? 'This browser cannot play adaptive video.'
+          : 'Video stream unavailable. If upload just finished, wait for processing; otherwise re-upload the video.'}
       </div>
     );
   }

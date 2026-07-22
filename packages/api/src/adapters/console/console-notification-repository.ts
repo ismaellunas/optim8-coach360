@@ -1,4 +1,5 @@
 import type {
+  ContentAssignedNotificationPayload,
   NotificationRepository,
   RosterNotificationPayload,
   SessionNotificationPayload,
@@ -26,6 +27,12 @@ export class ConsoleNotificationRepository implements NotificationRepository {
   }
 
   enqueueTrialExpiryWarning(payload: TrialExpiryWarningPayload): void {
+    if (typeof console !== 'undefined' && typeof console.debug === 'function') {
+      console.debug('[notifications]', payload.event, payload);
+    }
+  }
+
+  enqueueContentAssigned(payload: ContentAssignedNotificationPayload): void {
     if (typeof console !== 'undefined' && typeof console.debug === 'function') {
       console.debug('[notifications]', payload.event, payload);
     }

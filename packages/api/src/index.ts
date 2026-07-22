@@ -28,6 +28,7 @@ export type {
   SessionNotificationPayload,
   SessionReminderPayload,
   TrialExpiryWarningPayload,
+  ContentAssignedNotificationPayload,
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
 export type {
@@ -41,6 +42,11 @@ export type {
   InitiateVideoUploadResult,
   LibraryMediaFile,
 } from './ports/library-repository.js';
+export type {
+  ContentAssignmentRepository,
+  ContentAssignment,
+  ContentAssignmentPackageChild,
+} from './ports/content-assignment-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
@@ -71,6 +77,8 @@ export { RestSessionRepository } from './adapters/rest/rest-session-repository.j
 export { RestSessionContentRepository } from './adapters/rest/rest-session-content-repository.js';
 export { SupabaseLibraryRepository } from './adapters/supabase/supabase-library-repository.js';
 export { RestLibraryRepository } from './adapters/rest/rest-library-repository.js';
+export { SupabaseContentAssignmentRepository } from './adapters/supabase/supabase-content-assignment-repository.js';
+export { RestContentAssignmentRepository } from './adapters/rest/rest-content-assignment-repository.js';
 export {
   createRepositories,
   resolveAdapterMode,
@@ -78,3 +86,4 @@ export {
   type CreateRepositoriesOptions,
 } from './di/create-repositories.js';
 export { RepositoryProvider, useRepositories } from './di/repository-context.js';
+export { ConsoleNotificationRepository } from './adapters/console/console-notification-repository.js';

@@ -287,6 +287,15 @@ export {
 } from './content/schema.js';
 export { mapContentError } from './content/messages.js';
 export {
+  ALLOW_NON_ROSTER_CONTENT_DISTRIBUTION,
+  contentRecipientModeSchema,
+  assignContentInputSchema,
+  canDistributeToNonRosterPlayer,
+  assertPlayerOnRosterForDistribution,
+  type ContentRecipientMode,
+  type AssignContentInput,
+} from './content/distribution.js';
+export {
   COACH_VIDEO_MAX_BYTES,
   assertCoachVideoWithinPolicy,
   buildMuxHlsUrl,
