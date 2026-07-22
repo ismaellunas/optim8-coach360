@@ -6,7 +6,7 @@ import {
   type CreateCoachPackageInput,
   type SessionContentKind,
 } from '@coach360/domain';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   CoachLibraryItem,
   InitiateVideoUploadResult,
@@ -67,14 +67,32 @@ function mapLibraryRow(row: {
   };
 }
 
+function mapLibraryWriteError(error: { code?: string; message: string }, fallback: string): string {
+  if (error.code === '42501' || /row-level security/i.test(error.message)) {
+    return 'unauthorized';
+  }
+  return `${fallback}:${error.message}`;
+}
+
 export class SupabaseLibraryRepository implements LibraryRepository {
   constructor(private readonly client: SupabaseClient) {}
 
+  private async requireUser(): Promise<User> {
+    const { data, error } = await this.client.auth.getUser();
+    if (error || !data.user) {
+      throw new Error('unauthorized');
+    }
+    return data.user;
+  }
+
   async listCoachLibrary(userId: string): Promise<CoachLibraryItem[]> {
+    void userId;
+    const user = await this.requireUser();
+
     const { data, error } = await this.client
       .from('coach_library_items')
       .select(LIBRARY_SELECT)
-      .eq('owner_id', userId)
+      .eq('owner_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -86,11 +104,11 @@ export class SupabaseLibraryRepository implements LibraryRepository {
       return rows.map(mapLibraryRow);
     }
 
+    // Seed uses DB default owner_id = auth.uid() (no client-supplied owner_id).
     const { data: seeded, error: seedError } = await this.client
       .from('coach_library_items')
       .insert(
         DEMO_LIBRARY.map((item) => ({
-          owner_id: userId,
           kind: item.kind,
           title: item.title,
           media_url: item.media_url ?? null,
@@ -100,17 +118,20 @@ export class SupabaseLibraryRepository implements LibraryRepository {
       .select(LIBRARY_SELECT);
 
     if (seedError) {
-      throw new Error(`library_seed_failed:${seedError.message}`);
+      throw new Error(mapLibraryWriteError(seedError, 'library_seed_failed'));
     }
 
     return (seeded ?? []).map(mapLibraryRow);
   }
 
   async listPurchasedContent(userId: string): Promise<PurchasedContentItem[]> {
+    void userId;
+    const user = await this.requireUser();
+
     const { data, error } = await this.client
       .from('purchases')
       .select('id, sanity_document_id')
-      .eq('buyer_id', userId)
+      .eq('buyer_id', user.id)
       .order('purchased_at', { ascending: false });
 
     if (error) {
@@ -127,42 +148,46 @@ export class SupabaseLibraryRepository implements LibraryRepository {
   }
 
   async createItem(
-    userId: string,
+    _userId: string,
     input: CreateCoachLibraryItemInput,
   ): Promise<CoachLibraryItem> {
+    await this.requireUser();
     const parsed = createCoachLibraryItemInputSchema.parse(input);
 
+    // Omit owner_id — column default auth.uid() satisfies RLS WITH CHECK.
     const { data, error } = await this.client
       .from('coach_library_items')
       .insert({
-        owner_id: userId,
         kind: parsed.kind,
         title: parsed.title,
         instructions: parsed.instructions ?? null,
         media_url: parsed.mediaUrl ?? null,
-        transcode_status: parsed.kind === 'video' ? 'none' : 'none',
+        transcode_status: 'none',
       })
       .select(LIBRARY_SELECT)
       .single();
 
     if (error || !data) {
-      throw new Error(`library_create_failed:${error?.message ?? 'unknown'}`);
+      throw new Error(
+        error ? mapLibraryWriteError(error, 'library_create_failed') : 'library_create_failed:unknown',
+      );
     }
 
     return mapLibraryRow(data);
   }
 
   async createPackage(
-    userId: string,
+    _userId: string,
     input: CreateCoachPackageInput,
   ): Promise<CoachLibraryItem> {
+    const user = await this.requireUser();
     const parsed = createCoachPackageInputSchema.parse(input);
     const itemIds = normalizePackageItemIds(parsed.itemIds);
 
     const { data: members, error: memberError } = await this.client
       .from('coach_library_items')
       .select('id')
-      .eq('owner_id', userId)
+      .eq('owner_id', user.id)
       .in('id', itemIds);
 
     if (memberError) {
@@ -176,7 +201,6 @@ export class SupabaseLibraryRepository implements LibraryRepository {
     const { data, error } = await this.client
       .from('coach_library_items')
       .insert({
-        owner_id: userId,
         kind: 'package',
         title: parsed.title,
         item_ids: itemIds,
@@ -186,15 +210,18 @@ export class SupabaseLibraryRepository implements LibraryRepository {
       .single();
 
     if (error || !data) {
-      throw new Error(`library_package_failed:${error?.message ?? 'unknown'}`);
+      throw new Error(
+        error ? mapLibraryWriteError(error, 'library_package_failed') : 'library_package_failed:unknown',
+      );
     }
 
     return mapLibraryRow(data);
   }
 
-  async uploadMedia(userId: string, file: LibraryMediaFile): Promise<string> {
+  async uploadMedia(_userId: string, file: LibraryMediaFile): Promise<string> {
+    const user = await this.requireUser();
     const safeName = file.fileName.replace(/[^\w.\-]+/g, '_');
-    const path = `${userId}/${crypto.randomUUID()}-${safeName}`;
+    const path = `${user.id}/${crypto.randomUUID()}-${safeName}`;
 
     const { error } = await this.client.storage
       .from('coach-library-media')
@@ -209,9 +236,11 @@ export class SupabaseLibraryRepository implements LibraryRepository {
   }
 
   async initiateVideoUpload(
-    userId: string,
+    _userId: string,
     libraryItemId: string,
   ): Promise<InitiateVideoUploadResult> {
+    await this.requireUser();
+
     const { data, error } = await this.client.functions.invoke('create-mux-upload', {
       body: { libraryItemId },
     });
@@ -228,7 +257,6 @@ export class SupabaseLibraryRepository implements LibraryRepository {
       throw new Error(payload?.error || 'mux_initiate_failed');
     }
 
-    void userId;
     return {
       libraryItemId: payload.libraryItemId,
       uploadId: payload.uploadId,

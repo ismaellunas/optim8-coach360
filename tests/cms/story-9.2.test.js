@@ -113,10 +113,19 @@ describe('STORY_9_2 AC1 — coach creates drill with title, instructions, option
     expect(repo).toMatch(/from\('coach_library_items'\)/);
     expect(repo).toMatch(/instructions/);
     expect(repo).toMatch(/coach-library-media/);
+    expect(repo).toMatch(/requireUser|auth\.getUser/);
+    // Inserts rely on owner_id default auth.uid() — do not client-supply a mismatched id.
+    expect(repo).toMatch(/Omit owner_id|owner_id default|auth\.uid\(\)/);
 
     const sql = readFileSync(SQL_PATH, 'utf8');
     expect(sql).toMatch(/add column if not exists instructions/);
     expect(sql).toMatch(/coach-library-media/);
+
+    const rlsFix = readFileSync(
+      path.join(REPO_ROOT, 'supabase', 'migrations', '20260722151000_coach_library_insert_rls_fix.sql'),
+      'utf8',
+    );
+    expect(rlsFix).toMatch(/alter column owner_id set default auth\.uid\(\)/);
 
     const ui = readFileSync(CREATE_UI, 'utf8');
     expect(ui).toMatch(/create-content-type-\$\{t\.id\}|create-content-type-drill/);
