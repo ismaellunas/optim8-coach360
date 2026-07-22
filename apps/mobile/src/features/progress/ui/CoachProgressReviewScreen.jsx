@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
   buildCorrectiveSessionInput,
+  canViewPeerEngagement,
   coachProgressFeaturesForAccess,
   featureAccessLevel,
   filterCoachCompletions,
   formatCompletionLabel,
+  summarizePeerEngagement,
   summarizePlayerProgress,
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
@@ -59,6 +61,9 @@ export function CoachProgressReviewScreen({
     ? featureAccessLevel(user.role, user.tier, 'viewProgress')
     : 'none';
   const features = coachProgressFeaturesForAccess(accessLevel);
+  const peerEngagementAllowed = user
+    ? canViewPeerEngagement(user.role, user.tier)
+    : false;
 
   const [completions, setCompletions] = useState([]);
   const [playerNames, setPlayerNames] = useState({});
@@ -66,6 +71,7 @@ export function CoachProgressReviewScreen({
   const [error, setError] = useState(null);
   const [assignBusy, setAssignBusy] = useState(null);
   const [assignMessage, setAssignMessage] = useState(null);
+  const [peerEngagement, setPeerEngagement] = useState(null);
 
   const [playerFilter, setPlayerFilter] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -75,6 +81,7 @@ export function CoachProgressReviewScreen({
     async function () {
       if (!coachId || accessLevel === 'none') {
         setCompletions([]);
+        setPeerEngagement(null);
         setLoading(false);
         return;
       }
@@ -94,14 +101,35 @@ export function CoachProgressReviewScreen({
         });
         const nameMap = await resolvePlayerDisplayNames(repos, teamList, playerIds);
         setPlayerNames(nameMap);
+
+        if (peerEngagementAllowed && teamList.length > 0) {
+          const shareLists = await Promise.all(
+            teamList.map(function (team) {
+              return repos.messaging.listTeamPeerShares(team.id);
+            }),
+          );
+          setPeerEngagement(summarizePeerEngagement(shareLists.flat()));
+        } else {
+          setPeerEngagement(null);
+        }
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'coach_progress_load_failed');
         setCompletions([]);
+        setPeerEngagement(null);
       } finally {
         setLoading(false);
       }
     },
-    [accessLevel, coachId, repos.profiles, repos.rosters, repos.sessionContent, repos.teams],
+    [
+      accessLevel,
+      coachId,
+      peerEngagementAllowed,
+      repos.messaging,
+      repos.profiles,
+      repos.rosters,
+      repos.sessionContent,
+      repos.teams,
+    ],
   );
 
   useEffect(
@@ -240,6 +268,74 @@ export function CoachProgressReviewScreen({
           <div className="font-body text-xs text-coach-t2">Upgrade to Pro for AI-driven player insights.</div>
         </Card>
       )}
+
+      {peerEngagementAllowed && peerEngagement ? (
+        <Card className="mb-3" data-testid="coach-peer-engagement">
+          <div className="mb-2 font-body text-[13px] font-semibold text-coach-t1">
+            Peer sharing engagement
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div data-testid="coach-peer-engagement-total">
+              <div className="font-body text-xs uppercase text-coach-t3">Shares</div>
+              <div className="mt-1 font-display text-[22px] font-bold text-coach-t1">
+                {peerEngagement.totalShares}
+              </div>
+            </div>
+            <div data-testid="coach-peer-engagement-sharers">
+              <div className="font-body text-xs uppercase text-coach-t3">Sharers</div>
+              <div className="mt-1 font-display text-[22px] font-bold text-coach-t1">
+                {peerEngagement.uniqueSharers}
+              </div>
+            </div>
+            <div>
+              <div className="font-body text-xs uppercase text-coach-t3">Achievements</div>
+              <div className="mt-1 font-display text-[22px] font-bold text-coach-t1">
+                {peerEngagement.achievementShares}
+              </div>
+            </div>
+            <div>
+              <div className="font-body text-xs uppercase text-coach-t3">Tips</div>
+              <div className="mt-1 font-display text-[22px] font-bold text-coach-t1">
+                {peerEngagement.insightShares}
+              </div>
+            </div>
+          </div>
+          {peerEngagement.recentTitles.length > 0 ? (
+            <div className="mt-3" data-testid="coach-peer-engagement-recent">
+              <div className="mb-1 font-body text-xs uppercase text-coach-t3">Recent</div>
+              {peerEngagement.recentTitles.map(function (title) {
+                return (
+                  <div key={title} className="font-body text-[13px] text-coach-t2">
+                    {title}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
+
+      {!peerEngagementAllowed ? (
+        <Card
+          className="mb-3 border border-coach-orange/20 bg-coach-orange-glow/40"
+          data-testid="coach-peer-engagement-locked"
+        >
+          <div className="font-body text-[13px] font-semibold text-coach-t1">
+            Peer sharing engagement
+          </div>
+          <div className="mb-3 font-body text-xs text-coach-t2">
+            Upgrade to Pro to see aggregated teammate sharing metrics.
+          </div>
+          <Btn
+            primary
+            onClick={function () {
+              tryA('peerEngagement', function () {});
+            }}
+          >
+            Upgrade
+          </Btn>
+        </Card>
+      ) : null}
 
       {features.canFilterByPlayer || features.canFilterByDate ? (
         <Card className="mb-3" data-testid="coach-progress-filters">

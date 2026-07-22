@@ -1,6 +1,8 @@
 import type { ChatChannelType, MvpChatMessageType } from '@coach360/domain';
 import type {
+  ChatAchievementAttachment,
   ChatContentLinkAttachment,
+  ChatInsightAttachment,
   ChatVideoAttachment,
 } from '@coach360/domain';
 
@@ -30,7 +32,11 @@ export type ChatConversation = {
   unreadCount: number;
 };
 
-export type ChatMessageAttachment = ChatContentLinkAttachment | ChatVideoAttachment;
+export type ChatMessageAttachment =
+  | ChatContentLinkAttachment
+  | ChatVideoAttachment
+  | ChatAchievementAttachment
+  | ChatInsightAttachment;
 
 export type ChatMessage = {
   id: string;
@@ -56,6 +62,8 @@ export type MessagingRepository = {
   ensureP2pChannel(userA: string, userB: string): Promise<ChatConversation>;
   listChannelMessages(channelId: string): Promise<ChatMessage[]>;
   sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage>;
+  /** STORY-8.3 — peer achievement/insight messages on a team channel. */
+  listTeamPeerShares(teamId: string): Promise<ChatMessage[]>;
   uploadChatVideo(
     channelId: string,
     file: Blob,

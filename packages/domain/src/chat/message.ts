@@ -5,10 +5,22 @@ import {
   type SessionContentKind,
   type SessionContentSource,
 } from '../session/content-refs.js';
+import {
+  isAchievementAttachment,
+  isInsightAttachment,
+  type ChatAchievementAttachment,
+  type ChatInsightAttachment,
+} from './peer-share.js';
 import { z } from 'zod';
 
-/** Message kinds that can be composed and persisted in MVP (Q 5.2 interim). */
-export const MVP_CHAT_MESSAGE_TYPES = ['text', 'content_link', 'video'] as const;
+/** Message kinds that can be composed and persisted in MVP (Q 5.2 + STORY-8.3). */
+export const MVP_CHAT_MESSAGE_TYPES = [
+  'text',
+  'content_link',
+  'video',
+  'achievement',
+  'insight',
+] as const;
 
 export type MvpChatMessageType = (typeof MVP_CHAT_MESSAGE_TYPES)[number];
 
@@ -40,7 +52,11 @@ export const chatVideoAttachmentSchema = z.object({
 
 export type ChatVideoAttachment = z.infer<typeof chatVideoAttachmentSchema>;
 
-export type ChatMessageAttachment = ChatContentLinkAttachment | ChatVideoAttachment;
+export type ChatMessageAttachment =
+  | ChatContentLinkAttachment
+  | ChatVideoAttachment
+  | ChatAchievementAttachment
+  | ChatInsightAttachment;
 
 export function isMvpChatMessageType(value: string): value is MvpChatMessageType {
   return (MVP_CHAT_MESSAGE_TYPES as readonly string[]).includes(value);
@@ -80,6 +96,12 @@ export function previewBodyForMessage(
   if (messageType === 'video') {
     return 'Video';
   }
+  if (messageType === 'achievement' && isAchievementAttachment(attachment)) {
+    return attachment.title;
+  }
+  if (messageType === 'insight' && isInsightAttachment(attachment)) {
+    return attachment.title;
+  }
   return '';
 }
 
@@ -95,7 +117,13 @@ export function buildContentLinkAttachment(input: {
 export function isContentLinkAttachment(
   attachment: ChatMessageAttachment | null | undefined,
 ): attachment is ChatContentLinkAttachment {
-  return Boolean(attachment && 'kind' in attachment && 'title' in attachment && !('url' in attachment));
+  return Boolean(
+    attachment
+    && 'kind' in attachment
+    && 'title' in attachment
+    && !('url' in attachment)
+    && !('shareType' in attachment),
+  );
 }
 
 export function isVideoAttachment(
