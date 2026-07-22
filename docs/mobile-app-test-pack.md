@@ -1181,13 +1181,14 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 | 3 | Tap **Team (full roster)**, pick your team, tap **Share content**. | Returns to **MY LIBRARY** (no error). |
 | 4 | Distribute again: tap **Individual player**, pick a roster player, tap **Share content**. | Returns to **MY LIBRARY** again. |
 
-### E9-T14: Player sees assigned content on Content tab (STORY-9.4 AC-3)
+### E9-T14: Player opens assigned content on Content tab (STORY-9.4 AC-3)
 
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | Sign in as the **Player** who was on the team / individual recipient from E9-T13. | Home screen. |
 | 2 | Tap the **Content** tab (was labeled Store for players). | **CONTENT** screen with **Assigned to you** near the top. |
-| 3 | Find the item the coach just shared. | Card shows the title and coach name under **Assigned to you** (marketplace section may still appear below). |
+| 3 | Tap the assigned card. | **ASSIGNED** detail opens (instructions for drills/strategies, playable video when ready, package item list). |
+| 4 | Tap back. | Returns to **CONTENT** list; marketplace may still appear below. |
 
 ### E9-T15: Solo clients need a team first (STORY-9.4 AC-4 / Q 12.6)
 

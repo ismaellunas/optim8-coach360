@@ -1,5 +1,11 @@
 import type { AssignContentInput } from '@coach360/domain';
-import type { SessionContentKind } from '@coach360/domain';
+import type { CoachLibraryTranscodeStatus, SessionContentKind } from '@coach360/domain';
+
+export type ContentAssignmentPackageChild = {
+  id: string;
+  title: string;
+  kind: SessionContentKind;
+};
 
 export type ContentAssignment = {
   id: string;
@@ -11,6 +17,13 @@ export type ContentAssignment = {
   title: string;
   kind: SessionContentKind;
   coachDisplayName: string | null;
+  instructions: string | null;
+  mediaUrl: string | null;
+  muxPlaybackId: string | null;
+  transcodeStatus: CoachLibraryTranscodeStatus;
+  itemIds: string[];
+  /** Populated for package assignments when children are readable. */
+  packageItems?: ContentAssignmentPackageChild[];
 };
 
 export type ContentAssignmentRepository = {

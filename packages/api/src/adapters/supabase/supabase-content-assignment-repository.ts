@@ -2,16 +2,31 @@ import {
   assertPlayerOnRosterForDistribution,
   assignContentInputSchema,
   type AssignContentInput,
+  type CoachLibraryTranscodeStatus,
   type SessionContentKind,
 } from '@coach360/domain';
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type {
   ContentAssignment,
+  ContentAssignmentPackageChild,
   ContentAssignmentRepository,
 } from '../../ports/content-assignment-repository.js';
 
 const ASSIGNMENT_SELECT =
   'id, library_item_id, coach_id, team_id, player_id, created_at';
+
+const LIBRARY_EMBED =
+  'title, kind, instructions, media_url, mux_playback_id, transcode_status, item_ids';
+
+type LibraryEmbed = {
+  title?: string;
+  kind?: SessionContentKind;
+  instructions?: string | null;
+  media_url?: string | null;
+  mux_playback_id?: string | null;
+  transcode_status?: string | null;
+  item_ids?: string[] | null;
+};
 
 function mapWriteError(error: { code?: string; message: string }, fallback: string): string {
   if (error.code === '42501' || /row-level security/i.test(error.message)) {
@@ -21,6 +36,12 @@ function mapWriteError(error: { code?: string; message: string }, fallback: stri
     return 'non_roster_distribution_forbidden';
   }
   return `${fallback}:${error.message}`;
+}
+
+function unwrapEmbed<T>(raw: unknown): T | null {
+  if (!raw) return null;
+  if (Array.isArray(raw)) return (raw[0] as T) ?? null;
+  return raw as T;
 }
 
 function mapAssignmentRow(
@@ -36,9 +57,15 @@ function mapAssignmentRow(
     title: string;
     kind: SessionContentKind;
     coachDisplayName: string | null;
+    instructions: string | null;
+    mediaUrl: string | null;
+    muxPlaybackId: string | null;
+    transcodeStatus: CoachLibraryTranscodeStatus;
+    itemIds: string[];
+    packageItems?: ContentAssignmentPackageChild[];
   },
 ): ContentAssignment {
-  return {
+  const base: ContentAssignment = {
     id: row.id,
     libraryItemId: row.library_item_id,
     coachId: row.coach_id,
@@ -48,7 +75,40 @@ function mapAssignmentRow(
     title: meta.title,
     kind: meta.kind,
     coachDisplayName: meta.coachDisplayName,
+    instructions: meta.instructions,
+    mediaUrl: meta.mediaUrl,
+    muxPlaybackId: meta.muxPlaybackId,
+    transcodeStatus: meta.transcodeStatus,
+    itemIds: meta.itemIds,
   };
+  if (meta.packageItems) {
+    base.packageItems = meta.packageItems;
+  }
+  return base;
+}
+
+function metaFromLibrary(
+  item: LibraryEmbed | null,
+  coachDisplayName: string | null,
+  packageItems?: ContentAssignmentPackageChild[],
+) {
+  const base = {
+    title: item?.title ?? 'Assigned content',
+    kind: (item?.kind as SessionContentKind) ?? 'drill',
+    coachDisplayName,
+    instructions: item?.instructions ?? null,
+    mediaUrl: item?.media_url ?? null,
+    muxPlaybackId: item?.mux_playback_id ?? null,
+    transcodeStatus: (item?.transcode_status as CoachLibraryTranscodeStatus) ?? 'none',
+    itemIds: item?.item_ids ?? [],
+  };
+  if (packageItems && packageItems.length > 0) {
+    return { ...base, packageItems };
+  }
+  if (item?.kind === 'package') {
+    return { ...base, packageItems: packageItems ?? [] };
+  }
+  return base;
 }
 
 export class SupabaseContentAssignmentRepository implements ContentAssignmentRepository {
@@ -104,6 +164,24 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
     return [...new Set((members ?? []).map((row) => row.profile_id as string))];
   }
 
+  private async loadPackageChildren(itemIds: string[]): Promise<ContentAssignmentPackageChild[]> {
+    if (itemIds.length === 0) {
+      return [];
+    }
+    const { data, error } = await this.client
+      .from('coach_library_items')
+      .select('id, title, kind')
+      .in('id', itemIds);
+    if (error || !data) {
+      return [];
+    }
+    return data.map((row) => ({
+      id: row.id as string,
+      title: row.title as string,
+      kind: row.kind as SessionContentKind,
+    }));
+  }
+
   async assign(coachId: string, input: AssignContentInput): Promise<ContentAssignment> {
     const user = await this.requireUser();
     if (user.id !== coachId) {
@@ -134,7 +212,7 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
 
     const { data: item } = await this.client
       .from('coach_library_items')
-      .select('title, kind')
+      .select(LIBRARY_EMBED)
       .eq('id', data.library_item_id)
       .maybeSingle();
 
@@ -144,11 +222,13 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       .eq('id', coachId)
       .maybeSingle();
 
-    return mapAssignmentRow(data, {
-      title: item?.title ?? 'Assigned content',
-      kind: (item?.kind as SessionContentKind) ?? 'drill',
-      coachDisplayName: coach?.display_name ?? null,
-    });
+    const packageItems =
+      item?.kind === 'package' ? await this.loadPackageChildren(item.item_ids ?? []) : undefined;
+
+    return mapAssignmentRow(
+      data,
+      metaFromLibrary(item as LibraryEmbed | null, coach?.display_name ?? null, packageItems),
+    );
   }
 
   async listAssignedForPlayer(playerId: string): Promise<ContentAssignment[]> {
@@ -162,7 +242,7 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       .select(
         `
         ${ASSIGNMENT_SELECT},
-        coach_library_items ( title, kind ),
+        coach_library_items ( ${LIBRARY_EMBED} ),
         profiles!content_assignments_coach_id_fkey ( display_name )
       `,
       )
@@ -172,35 +252,34 @@ export class SupabaseContentAssignmentRepository implements ContentAssignmentRep
       throw new Error(`content_assign_load_failed:${error.message}`);
     }
 
-    return (data ?? []).map((row) => {
-      const itemRaw = (row as { coach_library_items?: unknown }).coach_library_items;
-      const item = Array.isArray(itemRaw) ? itemRaw[0] : itemRaw;
-      const coachRaw = (row as { profiles?: unknown }).profiles;
-      const coach = Array.isArray(coachRaw) ? coachRaw[0] : coachRaw;
-      return mapAssignmentRow(
-        {
-          id: row.id,
-          library_item_id: row.library_item_id,
-          coach_id: row.coach_id,
-          team_id: row.team_id,
-          player_id: row.player_id,
-          created_at: row.created_at,
-        },
-        {
-          title:
-            item && typeof item === 'object' && 'title' in item
-              ? String((item as { title: string }).title)
-              : 'Assigned content',
-          kind:
-            item && typeof item === 'object' && 'kind' in item
-              ? ((item as { kind: SessionContentKind }).kind)
-              : 'drill',
-          coachDisplayName:
-            coach && typeof coach === 'object' && 'display_name' in coach
-              ? ((coach as { display_name: string | null }).display_name)
-              : null,
-        },
+    const rows = data ?? [];
+    const results: ContentAssignment[] = [];
+
+    for (const row of rows) {
+      const item = unwrapEmbed<LibraryEmbed>((row as { coach_library_items?: unknown }).coach_library_items);
+      const coach = unwrapEmbed<{ display_name: string | null }>(
+        (row as { profiles?: unknown }).profiles,
       );
-    });
+      const packageItems =
+        item?.kind === 'package'
+          ? await this.loadPackageChildren(item.item_ids ?? [])
+          : undefined;
+
+      results.push(
+        mapAssignmentRow(
+          {
+            id: row.id,
+            library_item_id: row.library_item_id,
+            coach_id: row.coach_id,
+            team_id: row.team_id,
+            player_id: row.player_id,
+            created_at: row.created_at,
+          },
+          metaFromLibrary(item, coach?.display_name ?? null, packageItems),
+        ),
+      );
+    }
+
+    return results;
   }
 }

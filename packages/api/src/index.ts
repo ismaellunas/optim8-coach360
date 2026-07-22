@@ -45,6 +45,7 @@ export type {
 export type {
   ContentAssignmentRepository,
   ContentAssignment,
+  ContentAssignmentPackageChild,
 } from './ports/content-assignment-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {

@@ -169,6 +169,8 @@ describe('STORY_9_4 AC3 — assigned content appears in player content tab', () 
     const repo = readFileSync(ASSIGNMENT_REPO, 'utf8');
     expect(repo).toMatch(/content_assignments/);
     expect(repo).toMatch(/listAssignedForPlayer/);
+    expect(repo).toMatch(/instructions/);
+    expect(repo).toMatch(/mux_playback_id/);
 
     const di = readFileSync(CREATE_REPOS, 'utf8');
     expect(di).toMatch(/contentAssignments/);
@@ -181,6 +183,19 @@ describe('STORY_9_4 AC3 — assigned content appears in player content tab', () 
     expect(playerUi).toMatch(/data-testid="player-content-assigned"/);
     expect(playerUi).toMatch(/Assigned to you/);
     expect(playerUi).toMatch(/listAssignedForPlayer/);
+    expect(playerUi).toMatch(/player-content-assigned-detail/);
+    expect(playerUi).toMatch(/SessionVideoPlayer/);
+    expect(playerUi).toMatch(/onOpen/);
+    expect(playerUi).toMatch(/tap to open/);
+
+    const assigneeSql = path.join(
+      REPO_ROOT,
+      'supabase',
+      'migrations',
+      '20260722201000_coach_library_assignee_select.sql',
+    );
+    expect(readFileSync(assigneeSql, 'utf8')).toMatch(/can_read_assigned_library_item/);
+    expect(readFileSync(assigneeSql, 'utf8')).toMatch(/coach_library_items_assignee_select/);
 
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/PlayerContentScreen/);

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { mapContentError } from '@coach360/domain';
+import { buildMuxHlsUrl, mapContentError } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
+import { SessionVideoPlayer } from '@/features/session/ui/SessionVideoPlayer.jsx';
 import {
   Badge,
   Button as Btn,
@@ -77,6 +78,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
 
   const [fil, setFil] = useState('all');
   const [viewing, setViewing] = useState(null);
+  const [viewingAssigned, setViewingAssigned] = useState(null);
 
   const filters = ['all', 'shooting', 'defense', 'conditioning'];
   const pkgs = [
@@ -156,6 +158,17 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
     [loadAssigned],
   );
 
+  if (viewingAssigned) {
+    return (
+      <AssignedContentDetail
+        item={viewingAssigned}
+        onBack={function () {
+          setViewingAssigned(null);
+        }}
+      />
+    );
+  }
+
   if (viewing) {
     const pk = pkgs.find((x) => x.id === viewing);
     return (
@@ -220,6 +233,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
           assigned={assigned}
           loading={assignedLoading}
           error={assignedError}
+          onOpen={setViewingAssigned}
         />
         <div className="py-[60px] text-center">
           <div className="mb-3 text-coach-t3">
@@ -246,7 +260,12 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
     <ScreenContainer data-testid="player-content-tab">
       <PageHeader title="CONTENT" user={user} />
 
-      <AssignedSection assigned={assigned} loading={assignedLoading} error={assignedError} />
+      <AssignedSection
+        assigned={assigned}
+        loading={assignedLoading}
+        error={assignedError}
+        onOpen={setViewingAssigned}
+      />
 
       <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wider text-coach-t3">
         Marketplace
@@ -339,7 +358,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
   );
 }
 
-function AssignedSection({ assigned, loading, error }) {
+function AssignedSection({ assigned, loading, error, onOpen }) {
   return (
     <div className="mb-5" data-testid="player-content-assigned">
       <p className="mb-2 font-display text-xs font-semibold uppercase tracking-wider text-coach-t3">
@@ -360,14 +379,100 @@ function AssignedSection({ assigned, loading, error }) {
       ) : null}
       {assigned.map(function (item) {
         return (
-          <Card key={item.id} data-testid={`player-content-assigned-item-${item.id}`}>
+          <Card
+            key={item.id}
+            data-testid={`player-content-assigned-item-${item.id}`}
+            onClick={function () {
+              onOpen?.(item);
+            }}
+          >
             <div className="font-display text-base font-semibold text-coach-green">{item.title}</div>
             <div className="mt-1 font-body text-xs text-coach-t3">
-              From {item.coachDisplayName || 'Coach'} · {item.kind} · assigned
+              From {item.coachDisplayName || 'Coach'} · {item.kind} · assigned · tap to open
             </div>
           </Card>
         );
       })}
     </div>
+  );
+}
+
+function AssignedContentDetail({ item, onBack }) {
+  const videoSrc =
+    item.kind === 'video'
+      ? item.mediaUrl ||
+        (item.muxPlaybackId && item.transcodeStatus === 'ready'
+          ? buildMuxHlsUrl(item.muxPlaybackId)
+          : null)
+      : null;
+  const imageMedia =
+    item.kind !== 'video' && item.mediaUrl ? item.mediaUrl : null;
+
+  return (
+    <ScreenContainer data-testid="player-content-assigned-detail">
+      <PageHeader title="ASSIGNED" onBack={onBack} />
+      <div className="mb-1 font-body text-[11px] uppercase text-coach-t3">{item.kind}</div>
+      <div className="mb-2 font-display text-2xl font-bold text-coach-t1">{item.title}</div>
+      <div className="mb-4 font-body text-xs text-coach-t3">
+        From {item.coachDisplayName || 'Coach'}
+      </div>
+
+      {item.instructions ? (
+        <Card className="mb-3" data-testid="player-content-assigned-instructions">
+          <div className="mb-1.5 font-display text-xs font-semibold uppercase tracking-wider text-coach-t3">
+            Instructions
+          </div>
+          <p className="whitespace-pre-wrap font-body text-sm text-coach-t1">{item.instructions}</p>
+        </Card>
+      ) : null}
+
+      {item.kind === 'video' ? (
+        <div className="mb-3" data-testid="player-content-assigned-video">
+          {videoSrc ? (
+            <SessionVideoPlayer src={videoSrc} title={item.title} />
+          ) : item.transcodeStatus === 'pending' ? (
+            <Card>
+              <p className="font-body text-sm text-coach-t2">Video is still processing. Check back soon.</p>
+            </Card>
+          ) : (
+            <Card>
+              <p className="font-body text-sm text-coach-t2">Video is not available to play yet.</p>
+            </Card>
+          )}
+        </div>
+      ) : null}
+
+      {imageMedia ? (
+        <div className="mb-3 overflow-hidden rounded-[14px]" data-testid="player-content-assigned-media">
+          <img src={imageMedia} alt="" className="max-h-64 w-full object-contain" />
+        </div>
+      ) : null}
+
+      {item.kind === 'package' ? (
+        <div data-testid="player-content-assigned-package">
+          <div className="mb-2 font-display text-xs font-semibold uppercase tracking-wider text-coach-t3">
+            Package items
+          </div>
+          {(item.packageItems || []).length === 0 ? (
+            <p className="font-body text-sm text-coach-t3">No items listed in this package.</p>
+          ) : (
+            (item.packageItems || []).map(function (child) {
+              return (
+                <Card key={child.id}>
+                  <div className="font-display text-base font-semibold text-coach-t1">{child.title}</div>
+                  <div className="mt-1 font-body text-[11px] uppercase text-coach-t3">{child.kind}</div>
+                </Card>
+              );
+            })
+          )}
+        </div>
+      ) : null}
+
+      {!item.instructions && item.kind !== 'video' && item.kind !== 'package' && !imageMedia ? (
+        <Card>
+          <p className="font-body text-sm text-coach-t2">No additional details were saved for this item.</p>
+        </Card>
+      ) : null}
+    </ScreenContainer>
   );
 }
