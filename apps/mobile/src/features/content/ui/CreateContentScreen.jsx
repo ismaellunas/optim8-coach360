@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
+  assertCoachVideoWithinPolicy,
   buildSessionPrefillFromLibraryItem,
   createCoachLibraryItemInputSchema,
   mapContentError,
@@ -13,6 +14,7 @@ import {
   PageHeader,
   ScreenContainer,
 } from '@/shared/ui/primitives.jsx';
+import { putVideoToMux } from '../lib/putVideoToMux.js';
 
 const CONTENT_TYPES = [
   { id: 'drill', l: 'Training Drill', d: 'Instructions and reps' },
@@ -37,21 +39,8 @@ function IconPlus() {
   );
 }
 
-async function putVideoToMux(uploadUrl, file) {
-  const response = await fetch(uploadUrl, {
-    method: 'PUT',
-    body: file,
-    headers: {
-      'Content-Type': file.type || 'application/octet-stream',
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`mux_upload_put_failed:http_${response.status}`);
-  }
-}
-
 /**
- * Coach content authoring (STORY-9.2). Advanced+ gated by Home `createContent`.
+ * Coach content authoring (STORY-9.2 / STORY-9.3). Advanced+ gated by Home `createContent`.
  */
 export function CreateContentScreen({
   onBack,
@@ -71,6 +60,7 @@ export function CreateContentScreen({
   const [error, setError] = useState(null);
   const [created, setCreated] = useState(null);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [uploadPercent, setUploadPercent] = useState(null);
 
   function resetForm() {
     setTy(null);
@@ -80,6 +70,7 @@ export function CreateContentScreen({
     setError(null);
     setCreated(null);
     setUploadStatus(null);
+    setUploadPercent(null);
   }
 
   async function handleCreate() {
@@ -89,6 +80,7 @@ export function CreateContentScreen({
     setSaving(true);
     setError(null);
     setUploadStatus(null);
+    setUploadPercent(null);
     try {
       let mediaUrl = null;
       if (ty !== 'video' && mediaFile) {
@@ -105,17 +97,24 @@ export function CreateContentScreen({
         mediaUrl,
       });
 
+      if (ty === 'video') {
+        assertCoachVideoWithinPolicy(mediaFile);
+      }
+
       const item = await repos.library.createItem(userId, input);
 
       if (ty === 'video') {
-        if (!mediaFile) {
-          throw new Error('Select a video file to upload.');
-        }
         setUploadStatus('Starting Mux upload…');
         const initiated = await repos.library.initiateVideoUpload(userId, item.id);
         setUploadStatus('Uploading video to Mux…');
-        await putVideoToMux(initiated.uploadUrl, mediaFile);
-        setUploadStatus('Upload started — transcoding pending');
+        setUploadPercent(0);
+        await putVideoToMux(initiated.uploadUrl, mediaFile, {
+          onProgress: function (progress) {
+            setUploadPercent(progress.percent);
+          },
+        });
+        setUploadPercent(100);
+        setUploadStatus('Upload complete — Mux transcoding pending');
         setCreated({
           ...item,
           muxUploadId: initiated.uploadId,
@@ -127,6 +126,8 @@ export function CreateContentScreen({
     } catch (cause) {
       const raw = cause instanceof Error ? cause.message : 'library_create_failed';
       setError(mapContentError(raw));
+      setUploadStatus(null);
+      setUploadPercent(null);
     } finally {
       setSaving(false);
     }
@@ -265,7 +266,7 @@ export function CreateContentScreen({
               <IconPlus />
             </div>
             <div className="font-body text-[13px] text-coach-t3" data-testid="create-content-video-picker">
-              {mediaFile ? mediaFile.name : 'Tap to upload video'}
+              {mediaFile ? mediaFile.name : 'Tap to upload video (max 500 MB)'}
             </div>
           </Card>
           <input
@@ -273,7 +274,18 @@ export function CreateContentScreen({
             accept="video/*"
             className="hidden"
             onChange={function (e) {
-              setMediaFile(e.target.files?.[0] ?? null);
+              const next = e.target.files?.[0] ?? null;
+              setMediaFile(next);
+              setError(null);
+              if (next) {
+                try {
+                  assertCoachVideoWithinPolicy(next);
+                } catch (cause) {
+                  const raw = cause instanceof Error ? cause.message : 'video_too_large';
+                  setError(mapContentError(raw));
+                  setMediaFile(null);
+                }
+              }
             }}
           />
         </label>
@@ -295,6 +307,22 @@ export function CreateContentScreen({
         </label>
       )}
 
+      {saving && ty === 'video' && uploadPercent != null ? (
+        <div className="mb-3" data-testid="create-content-upload-progress">
+          <div className="mb-1 flex justify-between font-body text-[12px] text-coach-t3">
+            <span>{uploadStatus || 'Uploading…'}</span>
+            <span data-testid="create-content-upload-percent">{uploadPercent}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-coach-border">
+            <div
+              className="h-full rounded-full bg-coach-blue transition-[width] duration-150"
+              style={{ width: `${uploadPercent}%` }}
+              data-testid="create-content-upload-bar"
+            />
+          </div>
+        </div>
+      ) : null}
+
       {error ? (
         <p className="mb-3 font-body text-sm text-coach-red" data-testid="create-content-error">
           {error}
@@ -308,7 +336,7 @@ export function CreateContentScreen({
         data-testid="create-content-submit"
         onClick={handleCreate}
       >
-        {saving ? 'Saving…' : 'Save to library'}
+        {saving ? (uploadPercent != null ? `Uploading ${uploadPercent}%…` : 'Saving…') : 'Save to library'}
       </Btn>
     </ScreenContainer>
   );

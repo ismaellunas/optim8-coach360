@@ -148,7 +148,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
-10. **Epic 9 Mobile** — Coach create content + library (4 tests) — needs Coach Advanced+
+10. **Epic 9 Mobile** — Coach create content + Mux video pipeline (8 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 
 **Estimated time:** 3.5–5.5 hours for a full first pass, longer if you hit payment sync delays.
@@ -842,7 +842,7 @@ The coach must attach a **Video** item from **Library** when building the sessio
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | On **SESSION DETAILS**, find a **Video** row (**Video · Library** label). | A video player with play controls below the title. |
-| 2 | Tap **Play** on the video. | Video starts playing (short demo clip until coach Mux uploads ship in STORY-9.3). |
+| 2 | Tap **Play** on the video. | Video starts playing (demo clip for seeded library videos, or Mux HLS for coach uploads after **E9-T10**). |
 | 3 | If the session has a **Package** row (**Purchased** or **Library**), check that row. | A video player for the package unit; tap **Play** and confirm playback works. |
 
 Fail if you see **No video with supported format and MIME type found** — refresh the app and confirm the session includes a **Video** row (not only drills).
@@ -977,7 +977,6 @@ Use **Player on Basic** (not trial, not Pro).
 
 ### Not testable by clicking (for awareness only)
 
-- **Mux CDN / coach-uploaded video URLs** — full streamable playback ships in **STORY-9.3**; coaches can already initiate Mux upload in **STORY-9.2** (E9-T6).
 - **STORY-7.4 AC-4** (6-tab profile scope confirmed against MVP) is a product-scope decision, not a
   clickable behavior — the shipped app intentionally has Profile + Progress + Objectives, not a
   6-tab deep-dive profile.
@@ -1095,11 +1094,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 9 — Content Authoring (STORY-9.1 Studio + STORY-9.2 Mobile)
+## Epic 9 — Content Authoring (STORY-9.1 Studio + STORY-9.2 / STORY-9.3 Mobile)
 
 ### Mobile — Coach content creation (STORY-9.2)
 
-*Needs a **Coach on Advanced or Pro** (or active trial). Local testing also needs Edge Functions running (`npm run functions:serve`) for video → Mux.*
+*Needs a **Coach on Advanced or Pro** (or active trial). Local testing also needs Edge Functions running (`npm run functions:serve`) for video → Mux. For full playback after upload (**E9-T10**), the cloud `mux-webhook` function must be deployed and a Mux webhook must point at it.*
 
 **Accounts needed:** Coach Advanced+ from Epic 4/5.
 
@@ -1115,8 +1114,8 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 | Step | Do this | You should see |
 |---|---|---|
-| 1 | From **CREATE CONTENT**, tap **Video Upload**. Enter a title and short description. Tap the upload area and pick a short video file. Tap **Save to library**. | Saving / Mux upload progress, then **CONTENT SAVED** with **Mux transcoding initiated** (or similar pending status). |
-| 2 | Tap **View library**. | The video appears in **MY LIBRARY** (may show **mux pending**). Full playback after transcoding is STORY-9.3. |
+| 1 | From **CREATE CONTENT**, tap **Video Upload**. Enter a title and short description. Tap the upload area and pick a short video file. Tap **Save to library**. | Upload progress (%), then **CONTENT SAVED** with **Mux transcoding initiated**. |
+| 2 | Tap **View library**. | The video appears in **MY LIBRARY** (may show **mux pending** until processing finishes — see E9-T10). |
 
 ### E9-T7: Bundle into a package or attach to a session (STORY-9.2 AC-3)
 
@@ -1131,6 +1130,41 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 |---|---|---|
 | 1 | Create another drill (E9-T5). On **CONTENT SAVED**, note the title. Tap **View library**. | That exact title is in **MY LIBRARY** without leaving the app or waiting for a refresh cycle. |
 | 2 | From **CREATE CONTENT**, tap **Open my library**. | Same library list loads with your created items. |
+
+### Mobile — Video upload & playback pipeline (STORY-9.3)
+
+*Same Coach Advanced+ account. For E9-T10, Mux webhook + `mux-webhook` Edge Function must be live (or wait a few minutes after upload if already configured).*
+
+### E9-T9: Reject oversized video files (STORY-9.3 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | From **CREATE CONTENT**, tap **Video Upload**. Note the upload area says **max 500 MB**. | Hint text about the size limit. |
+| 2 | If you have a video **over 500 MB**, try selecting it. Otherwise skip this step and mark N/A. | Red error: video is too large / under 500 MB. File is not kept selected. |
+| 3 | Select a normal short video (well under 500 MB). | File name shows under the upload area; no size error. |
+
+### E9-T10: Mux finishes and library shows playable video (STORY-9.3 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Complete **E9-T6** with a short clip. Stay on **MY LIBRARY** (or reopen it after a minute or two). | Status moves from **mux pending** to **ready** (refresh library if needed). |
+| 2 | On the ready video row, find the player. | An in-library video player appears (not just the pending label). |
+| 3 | Tap **Play**. | Video plays from Mux (streamable), not a broken / unavailable message. |
+
+### E9-T11: Adaptive playback in a player session (STORY-9.3 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | From a **ready** Mux video in **MY LIBRARY**, tap **Session** and schedule it for today (or attach via **CONTENT SAVED**). Share the session with a player as in Epic 6. | Session saved with the video attached. |
+| 2 | Sign in as that **Player**. Open the session on **Schedule** → **SESSION DETAILS**. | Video row shows a player. |
+| 3 | Tap **Play**. | Video plays smoothly on the device (phone browser or Capacitor app). |
+
+### E9-T12: Upload progress and clear errors (STORY-9.3 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Start **Video Upload** with a short file. Tap **Save to library** and watch the form while it uploads. | Progress bar and percent (e.g. **Uploading 40%…**), then **CONTENT SAVED**. |
+| 2 | Start another upload, then turn on airplane mode mid-upload (or disconnect Wi‑Fi). | Red error about upload failure (not a blank screen). Turn network back on afterward. |
 
 ### Admin — Sanity Studio (STORY-9.1)
 
@@ -1171,7 +1205,7 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ### Not testable by clicking (for awareness only)
 
-- **Full Mux transcoding → streamable playback on device** is **STORY-9.3** (upload initiate is covered in E9-T6).
+- **Mux webhook configuration** (dashboard URL + signing secret) is ops setup, not an in-app screen — required for E9-T10.
 - **Private distribution / notifications to players** is **STORY-9.4**.
 - **Sanity → Supabase webhook sync** is **STORY-9.5**.
 
@@ -1274,6 +1308,10 @@ Print this page and check off results as you go.
 | E9-T6 Video upload initiates Mux | | |
 | E9-T7 Bundle package or attach session | | |
 | E9-T8 Library shows new content | | |
+| E9-T9 Reject oversized video | | |
+| E9-T10 Mux ready + library playback | | |
+| E9-T11 Adaptive playback in session | | |
+| E9-T12 Upload progress and errors | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

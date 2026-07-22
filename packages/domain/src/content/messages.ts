@@ -7,6 +7,10 @@ const CONTENT_ERROR_COPY: Record<string, string> = {
   mux_initiate_failed: 'Could not start video upload. Try again.',
   mux_credentials_missing: 'Video upload is not configured. Contact support.',
   mux_upload_put_failed: 'Video file upload failed. Try again.',
+  video_too_large: 'Video is too large. Use a file under 500 MB.',
+  video_file_required: 'Select a video file to upload.',
+  video_type_invalid: 'Choose a video file (MP4, MOV, or similar).',
+  mux_transcode_failed: 'Video processing failed. Try uploading again.',
   media_upload_failed: 'Could not upload media. Try again.',
   unauthorized: 'Sign in again to create content.',
 };
