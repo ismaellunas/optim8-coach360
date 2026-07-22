@@ -1,3 +1,5 @@
+import type { ChatChannelType } from '@coach360/domain';
+
 export type DirectMessage = {
   id: string;
   coachId: string;
@@ -13,7 +15,41 @@ export type DirectMessageThread = {
   lastAt: string;
 };
 
+export type ChatConversation = {
+  id: string;
+  type: ChatChannelType;
+  teamId: string | null;
+  peerId: string | null;
+  title: string;
+  lastMessage: string | null;
+  lastAt: string | null;
+  unreadCount: number;
+};
+
+export type ChatMessage = {
+  id: string;
+  channelId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+};
+
 export type MessagingRepository = {
+  listConversations(userId: string): Promise<ChatConversation[]>;
+  ensureTeamChannel(teamId: string): Promise<ChatConversation>;
+  ensureDmChannel(userA: string, userB: string): Promise<ChatConversation>;
+  ensureP2pChannel(userA: string, userB: string): Promise<ChatConversation>;
+  listChannelMessages(channelId: string): Promise<ChatMessage[]>;
+  sendChannelMessage(input: {
+    channelId: string;
+    body: string;
+  }): Promise<ChatMessage>;
+  markChannelRead(channelId: string): Promise<void>;
+  subscribeToChannel(
+    channelId: string,
+    onMessage: (message: ChatMessage) => void,
+  ): () => void;
+
   listDirectMessages(coachId: string, playerId: string): Promise<DirectMessage[]>;
   sendDirectMessage(input: {
     coachId: string;

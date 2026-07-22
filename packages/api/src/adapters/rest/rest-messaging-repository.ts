@@ -1,11 +1,62 @@
 import { NotImplementedAdapterError } from '../../client/types.js';
 import type {
+  ChatConversation,
+  ChatMessage,
   DirectMessage,
   DirectMessageThread,
   MessagingRepository,
 } from '../../ports/messaging-repository.js';
 
 export class RestMessagingRepository implements MessagingRepository {
+  async listConversations(userId: string): Promise<ChatConversation[]> {
+    void userId;
+    throw new NotImplementedAdapterError('rest', 'listConversations');
+  }
+
+  async ensureTeamChannel(teamId: string): Promise<ChatConversation> {
+    void teamId;
+    throw new NotImplementedAdapterError('rest', 'ensureTeamChannel');
+  }
+
+  async ensureDmChannel(userA: string, userB: string): Promise<ChatConversation> {
+    void userA;
+    void userB;
+    throw new NotImplementedAdapterError('rest', 'ensureDmChannel');
+  }
+
+  async ensureP2pChannel(userA: string, userB: string): Promise<ChatConversation> {
+    void userA;
+    void userB;
+    throw new NotImplementedAdapterError('rest', 'ensureP2pChannel');
+  }
+
+  async listChannelMessages(channelId: string): Promise<ChatMessage[]> {
+    void channelId;
+    throw new NotImplementedAdapterError('rest', 'listChannelMessages');
+  }
+
+  async sendChannelMessage(input: {
+    channelId: string;
+    body: string;
+  }): Promise<ChatMessage> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'sendChannelMessage');
+  }
+
+  async markChannelRead(channelId: string): Promise<void> {
+    void channelId;
+    throw new NotImplementedAdapterError('rest', 'markChannelRead');
+  }
+
+  subscribeToChannel(
+    channelId: string,
+    onMessage: (message: ChatMessage) => void,
+  ): () => void {
+    void channelId;
+    void onMessage;
+    return () => {};
+  }
+
   async listDirectMessages(coachId: string, playerId: string): Promise<DirectMessage[]> {
     void coachId;
     void playerId;

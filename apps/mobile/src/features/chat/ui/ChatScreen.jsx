@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { computeUnreadCount } from '@coach360/domain';
 import { useRepositories } from '@coach360/api';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
   playerDisplayLabel,
   resolvePlayerDisplayNames,
 } from '@/features/progress/lib/resolve-player-display-names.js';
+import { useChatRealtime } from '@/features/chat/lib/use-chat-realtime.js';
 import {
   Button as Btn,
   IconBack,
@@ -27,6 +29,7 @@ function IconUsers() {
       <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
       <circle cx="9" cy="7" r="4" />
       <path d="M23 21v-2a4 4 0 00-3-3.87" />
+      <path d="M16 3.13a4 4 0 010 7.75" />
     </svg>
   );
 }
@@ -41,6 +44,9 @@ function IconSend() {
 }
 
 function formatMessageTime(iso) {
+  if (!iso) {
+    return '';
+  }
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 }
 
@@ -56,9 +62,11 @@ export function ChatScreen({
   const userId = session?.user.id;
   const isCoach = user?.role === 'coach';
 
-  const [activePlayer, setActivePlayer] = useState(null);
-  const [activePlayerName, setActivePlayerName] = useState('');
-  const [threads, setThreads] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [activeChannelId, setActiveChannelId] = useState(null);
+  const [activeTitle, setActiveTitle] = useState('');
+  const [activePeerId, setActivePeerId] = useState(null);
+  const [activeType, setActiveType] = useState(null);
   const [messages, setMessages] = useState([]);
   const [playerNames, setPlayerNames] = useState({});
   const [msg, setMsg] = useState('');
@@ -68,53 +76,79 @@ export function ChatScreen({
 
   const chatAllowed = canAccess(user, 'chat');
 
-  const loadThreads = useCallback(
+  const loadConversations = useCallback(
     async function () {
-      if (!userId || !isCoach || !chatAllowed) {
-        setThreads([]);
+      if (!userId || !chatAllowed) {
+        setConversations([]);
         return;
       }
       try {
-        const rows = await repos.messaging.listDirectThreads(userId);
-        setThreads(rows);
-        const teamList = await repos.teams.listForUser(userId);
-        const nameMap = await resolvePlayerDisplayNames(
-          repos,
-          teamList,
-          rows.map(function (row) {
-            return row.playerId;
-          }),
-        );
-        setPlayerNames(nameMap);
+        const rows = await repos.messaging.listConversations(userId);
+        setConversations(rows);
+
+        const peerIds = rows
+          .filter(function (row) {
+            return row.peerId;
+          })
+          .map(function (row) {
+            return row.peerId;
+          });
+        if (peerIds.length > 0) {
+          const teamList = await repos.teams.listForUser(userId);
+          const nameMap = await resolvePlayerDisplayNames(repos, teamList, peerIds);
+          setPlayerNames(nameMap);
+        }
       } catch {
-        setThreads([]);
+        setConversations([]);
       }
     },
-    [chatAllowed, isCoach, repos.messaging, repos.profiles, repos.rosters, repos.teams, userId],
+    [chatAllowed, repos, userId],
   );
 
   const loadMessages = useCallback(
-    async function (coachId, playerId) {
+    async function (channelId) {
       setLoading(true);
       setError(null);
       try {
-        const rows = await repos.messaging.listDirectMessages(coachId, playerId);
+        const rows = await repos.messaging.listChannelMessages(channelId);
         setMessages(rows);
+        await repos.messaging.markChannelRead(channelId);
+        await loadConversations();
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'direct_messages_load_failed');
+        setError(cause instanceof Error ? cause.message : 'chat_messages_load_failed');
         setMessages([]);
       } finally {
         setLoading(false);
       }
     },
-    [repos.messaging],
+    [loadConversations, repos.messaging],
+  );
+
+  const handleRealtimeMessage = useCallback(
+    function (message) {
+      setMessages(function (prev) {
+        if (prev.some(function (row) {
+          return row.id === message.id;
+        })) {
+          return prev;
+        }
+        return prev.concat([message]);
+      });
+    },
+    [],
+  );
+
+  useChatRealtime(
+    chatAllowed ? repos.messaging : null,
+    activeChannelId,
+    handleRealtimeMessage,
   );
 
   useEffect(
     function () {
-      loadThreads();
+      loadConversations();
     },
-    [loadThreads],
+    [loadConversations],
   );
 
   useEffect(
@@ -122,73 +156,95 @@ export function ChatScreen({
       if (!initialDm || !userId || !chatAllowed) {
         return;
       }
-      setActivePlayer(initialDm.playerId);
-      setActivePlayerName(
-        initialDm.displayName ?? playerDisplayLabel(playerNames, initialDm.playerId),
-      );
-      if (initialDm.draftMessage) {
-        setMsg(initialDm.draftMessage);
-      }
-      loadMessages(userId, initialDm.playerId);
-      onInitialDmConsumed?.();
+
+      let cancelled = false;
+
+      (async function () {
+        try {
+          const coachId = isCoach ? userId : initialDm.playerId;
+          const playerId = isCoach ? initialDm.playerId : userId;
+          const conversation = await repos.messaging.ensureDmChannel(coachId, playerId);
+          if (cancelled) {
+            return;
+          }
+          setActiveChannelId(conversation.id);
+          setActiveType('dm');
+          setActivePeerId(initialDm.playerId);
+          setActiveTitle(
+            initialDm.displayName
+              ?? playerDisplayLabel(playerNames, initialDm.playerId)
+              ?? conversation.title,
+          );
+          if (initialDm.draftMessage) {
+            setMsg(initialDm.draftMessage);
+          }
+          await loadMessages(conversation.id);
+        } catch (cause) {
+          if (!cancelled) {
+            setError(cause instanceof Error ? cause.message : 'direct_messages_load_failed');
+          }
+        } finally {
+          onInitialDmConsumed?.();
+        }
+      })();
+
+      return function () {
+        cancelled = true;
+      };
     },
-    [chatAllowed, initialDm, loadMessages, onInitialDmConsumed, userId],
+    [
+      chatAllowed,
+      initialDm,
+      isCoach,
+      loadMessages,
+      onInitialDmConsumed,
+      playerNames,
+      repos.messaging,
+      userId,
+    ],
   );
 
-  useEffect(
-    function () {
-      if (!activePlayer || !userId || initialDm) {
-        return;
-      }
-      loadMessages(userId, activePlayer);
-    },
-    [activePlayer, initialDm, loadMessages, userId],
-  );
-
-  const mockChats = useMemo(
-    function () {
-      if (isCoach && threads.length > 0) {
-        return threads.map(function (thread) {
-          return {
-            id: thread.playerId,
-            n: playerDisplayLabel(playerNames, thread.playerId),
-            ty: 'p',
-            m: thread.lastMessage,
-            ti: formatMessageTime(thread.lastAt),
-            u: 0,
-          };
-        });
-      }
-      return [
-        { id: 1, n: 'U14 Eagles', ty: 'team', m: 'Practice at 4pm', ti: '2m', u: 3 },
-        { id: 2, n: 'Jaylen Carter', ty: 'p', m: 'Thanks coach!', ti: '15m', u: 0 },
-        { id: 3, n: 'U16 Hawks', ty: 'team', m: 'Film uploaded', ti: '1h', u: 1 },
-      ];
-    },
-    [isCoach, playerNames, threads],
-  );
+  async function openConversation(conversation) {
+    setActiveChannelId(conversation.id);
+    setActiveType(conversation.type);
+    setActivePeerId(conversation.peerId);
+    setActiveTitle(
+      conversation.peerId
+        ? playerDisplayLabel(playerNames, conversation.peerId) || conversation.title
+        : conversation.title,
+    );
+    setError(null);
+    await loadMessages(conversation.id);
+  }
 
   async function handleSend() {
     const trimmed = msg.trim();
-    if (!trimmed || !userId || !activePlayer || !chatAllowed) {
+    if (!trimmed || !userId || !activeChannelId || !chatAllowed) {
       return;
     }
 
     setSending(true);
     setError(null);
     try {
-      const coachId = isCoach ? userId : activePlayer;
-      const playerId = isCoach ? activePlayer : userId;
-      await repos.messaging.sendDirectMessage({
-        coachId,
-        playerId,
-        body: trimmed,
-      });
+      if (activeType === 'dm' && activePeerId) {
+        const coachId = isCoach ? userId : activePeerId;
+        const playerId = isCoach ? activePeerId : userId;
+        await repos.messaging.sendDirectMessage({
+          coachId,
+          playerId,
+          body: trimmed,
+        });
+      } else {
+        await repos.messaging.sendChannelMessage({
+          channelId: activeChannelId,
+          body: trimmed,
+        });
+      }
       setMsg('');
-      await loadMessages(coachId, playerId);
-      await loadThreads();
+      await loadMessages(activeChannelId);
+      await loadConversations();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'direct_message_send_failed');
+      setError(cause instanceof Error ? cause.message : 'chat_message_send_failed');
     } finally {
       setSending(false);
     }
@@ -208,30 +264,35 @@ export function ChatScreen({
     );
   }
 
-  if (activePlayer) {
-    const title =
-      activePlayerName || playerDisplayLabel(playerNames, activePlayer);
+  if (activeChannelId) {
     return (
       <div
         className="flex min-h-[calc(100svh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5rem)] flex-col"
         data-testid="direct-message-thread"
+        data-channel-type={activeType || 'dm'}
       >
         <div className="flex items-center gap-3 border-b border-coach-border px-6 py-4">
           <button
             type="button"
             onClick={function () {
-              setActivePlayer(null);
-              setActivePlayerName('');
+              setActiveChannelId(null);
+              setActiveTitle('');
+              setActivePeerId(null);
+              setActiveType(null);
               setMessages([]);
               setError(null);
+              loadConversations();
             }}
             className="cursor-pointer border-none bg-transparent p-0 text-coach-orange"
           >
             <IconBack />
           </button>
-          <div className="font-body text-[15px] font-semibold text-coach-t1">{title}</div>
+          <div className="font-body text-[15px] font-semibold text-coach-t1">{activeTitle}</div>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 py-4" data-testid="direct-message-list">
+        <div
+          className="flex-1 overflow-y-auto px-6 py-4"
+          data-testid="direct-message-list"
+        >
           {loading ? (
             <p className="font-body text-sm text-coach-t3">Loading messages…</p>
           ) : null}
@@ -258,7 +319,7 @@ export function ChatScreen({
               })
             : null}
           {!loading && messages.length === 0 ? (
-            <p className="font-body text-sm text-coach-t3">No messages yet. Send feedback below.</p>
+            <p className="font-body text-sm text-coach-t3">No messages yet. Send one below.</p>
           ) : null}
         </div>
         {error ? (
@@ -291,31 +352,42 @@ export function ChatScreen({
   return (
     <ScreenContainer data-testid="chat-screen">
       <PageHeader title="MESSAGES" user={user} />
-      {mockChats.map(function (c) {
+      {conversations.length === 0 ? (
+        <p className="font-body text-sm text-coach-t3">No conversations yet.</p>
+      ) : null}
+      {conversations.map(function (c) {
+        const unread = computeUnreadCount(c.unreadCount);
+        const isTeam = c.type === 'team';
+        const label = c.peerId
+          ? playerDisplayLabel(playerNames, c.peerId) || c.title
+          : c.title;
         return (
           <div
             key={c.id}
+            data-testid={`chat-conversation-${c.type}`}
             onClick={function () {
-              if (c.ty === 'p') {
-                setActivePlayer(String(c.id));
-                setActivePlayerName(c.n);
-              }
+              openConversation(c);
             }}
             className="flex cursor-pointer items-center gap-3.5 border-b border-coach-border py-3.5"
           >
-            <div className={`flex h-[46px] w-[46px] items-center justify-center rounded-full ${c.ty === 'team' ? 'bg-coach-orange-glow text-coach-orange' : 'bg-coach-blue/20 text-coach-blue'}`}>
-              {c.ty === 'team' ? <IconUsers /> : <span className="font-display text-lg font-bold">{c.n[0]}</span>}
+            <div className={`flex h-[46px] w-[46px] items-center justify-center rounded-full ${isTeam ? 'bg-coach-orange-glow text-coach-orange' : 'bg-coach-blue/20 text-coach-blue'}`}>
+              {isTeam ? <IconUsers /> : <span className="font-display text-lg font-bold">{label[0] || '?'}</span>}
             </div>
             <div className="flex-1">
               <div className="flex justify-between">
-                <span className="font-body text-sm font-semibold text-coach-t1">{c.n}</span>
-                <span className="font-body text-[11px] text-coach-t3">{c.ti}</span>
+                <span className="font-body text-sm font-semibold text-coach-t1">{label}</span>
+                <span className="font-body text-[11px] text-coach-t3">{formatMessageTime(c.lastAt)}</span>
               </div>
-              <div className="mt-0.5 truncate font-body text-[13px] text-coach-t3">{c.m}</div>
+              <div className="mt-0.5 truncate font-body text-[13px] text-coach-t3">
+                {c.lastMessage || 'No messages yet'}
+              </div>
             </div>
-            {c.u > 0 ? (
-              <div className="flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-coach-orange font-body text-[11px] font-bold text-white">
-                {c.u}
+            {unread > 0 ? (
+              <div
+                data-testid="chat-unread-badge"
+                className="flex h-[22px] min-w-[22px] items-center justify-center rounded-[11px] bg-coach-orange font-body text-[11px] font-bold text-white"
+              >
+                {unread}
               </div>
             ) : null}
           </div>

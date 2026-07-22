@@ -2375,35 +2375,46 @@
         {
           "id": "AC-1",
           "statement": "Chat provider selected and integrated per tech-stack.md (Stream/Sendbird or Supabase Realtime)",
-          "test": null
+          "test": "tests/chat/story-8.1.test.js::test_STORY_8_1_AC1_supabase_realtime_chat_provider"
         },
         {
           "id": "AC-2",
           "statement": "Channels created for team, DM, and P2P conversation types",
-          "test": null
+          "test": "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_channel_types_team_dm_p2p"
         },
         {
           "id": "AC-3",
           "statement": "Messages deliver in real time with <2s latency on good network",
-          "test": null
+          "test": "tests/chat/story-8.1.test.js::test_STORY_8_1_AC3_realtime_message_delivery"
         },
         {
           "id": "AC-4",
           "statement": "Unread counts and conversation list persist across sessions",
-          "test": null
+          "test": "tests/chat/story-8.1.test.js::test_STORY_8_1_AC4_unread_and_conversation_list_persist"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "lib/chat/ (inferred)"
+        "tests": [
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC1_supabase_realtime_chat_provider",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_channel_types_team_dm_p2p",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC3_realtime_message_delivery",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC4_unread_and_conversation_list_persist"
         ],
-        "command": null
+        "files": [
+          "supabase/migrations/20260722120000_chat_channels.sql",
+          "packages/domain/src/chat/channel.ts",
+          "packages/api/src/ports/messaging-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-messaging-repository.ts",
+          "packages/api/src/adapters/rest/rest-messaging-repository.ts",
+          "apps/mobile/src/features/chat/lib/use-chat-realtime.js",
+          "apps/mobile/src/features/chat/ui/ChatScreen.jsx",
+          "tests/chat/story-8.1.test.js"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_8_1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-22T00:00:00Z",
+      "audit_notes": "Supabase Realtime MVP channel model (team/dm/p2p); ChatScreen wired; all 4 AC tests pass."
     },
     {
       "id": "STORY-8.2",

@@ -4,7 +4,7 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–7, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–8, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
 
@@ -147,6 +147,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 6. **Epic 5 Admin** — Optional, needs admin login (4 tests)
 7. **Epic 6** — Schedule sessions + attach content + share/notify (16 tests)
 8. **Epic 7** — Player session content + drill progress + coach review + Home dashboard (15 tests)
+9. **Epic 8** — Chat channels, real-time messages, unread (4 tests)
 
 **Estimated time:** 3–5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -983,6 +984,50 @@ Use **Player on Basic** (not trial, not Pro).
 
 <div class="page-break"></div>
 
+## Epic 8 — Chat & Communication (STORY-8.1)
+
+**Accounts needed:** Coach and Player on **Advanced+** (or active trial), with the player on the coach's team roster. Chat is locked below Advanced (see **E5-T6**).
+
+**Before you start:** Apply the chat database migration on the test environment if your team has not already (`chat_channels` / Realtime). Ask your lead if messages fail to load.
+
+### E8-T1: Messages list uses real conversations (STORY-8.1 AC-1, AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Advanced+**. Tap **Chat**. | **MESSAGES** list opens (not **Chat Locked**). |
+| 2 | Check the conversation rows. | At least one **team** chat for your team (group icon), and any existing player DMs — **not** fake names like a hardcoded demo-only list when you have real teams. |
+| 3 | Tap a **team** conversation. | Thread opens for that team. |
+| 4 | Go back, then open a **player** DM (or create one via **Send feedback** from **PLAYER PROGRESS** as in **E7-T11**). | Direct message thread with that player. |
+
+### E8-T2: Send and receive in real time (STORY-8.1 AC-3)
+
+Needs two devices/browsers (or two profiles): Coach and Player, both Advanced+.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Coach opens a DM thread with the player. Player opens the same thread on another session. | Both see the thread. |
+| 2 | Coach types a short message and taps send. | Orange bubble appears on coach side within about **2 seconds**. |
+| 3 | Watch the player session **without** pulling to refresh. | Same message appears on the player side within about **2 seconds**. |
+
+### E8-T3: Unread badge and list persist (STORY-8.1 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Player**, stay on **Home** (not inside the thread). As **Coach**, send a new DM to that player. | — |
+| 2 | As **Player**, tap **Chat**. | Conversation list shows the thread; an orange **unread** count badge appears on that row. |
+| 3 | Open the thread, read the message, go back to the list. | Unread badge is gone (or count drops). |
+| 4 | Close and reopen the app, tap **Chat** again. | Same conversations and last messages still appear (list persisted). |
+
+### Not testable by clicking (for awareness only)
+
+- **Rich attachments** (drill cards, video in chat) are **STORY-8.2**.
+- **Peer achievement sharing** is **STORY-8.3**.
+- **Push notifications** when the app is backgrounded are **STORY-14.1** / DEP-07.
+
+---
+
+<div class="page-break"></div>
+
 ## Part 3 — Quick Results Sheet
 
 Print this page and check off results as you go.
@@ -1059,6 +1104,9 @@ Print this page and check off results as you go.
 | E7-T13 Home real schedule + progress | | |
 | E7-T14 Home progress + Objectives gated Pro | | |
 | E7-T15 Basic partial dashboard on Home | | |
+| E8-T1 Real conversation list (team + DM) | | |
+| E8-T2 Real-time message delivery | | |
+| E8-T3 Unread badge + list persists | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 
