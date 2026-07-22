@@ -11,6 +11,8 @@ import { SubscriptionChoiceScreen } from './SubscriptionChoiceScreen.jsx';
 import { TrialExpiredUpgradePrompt } from './TrialExpiredUpgradePrompt.jsx';
 
 export function SubscriptionGate({ children }) {
+  const CHECKOUT_SYNC_ATTEMPTS = 5;
+  const CHECKOUT_SYNC_DELAY_MS = 1500;
   const { session } = useAuth();
   const repos = useRepositories();
   const [subscription, setSubscription] = useState(null);
@@ -52,6 +54,54 @@ export function SubscriptionGate({ children }) {
   useEffect(function () {
     loadSubscription();
   }, [loadSubscription]);
+
+  useEffect(
+    function () {
+      if (!userId || typeof window === 'undefined') {
+        return undefined;
+      }
+
+      const url = new URL(window.location.href);
+      const checkoutStatus = url.searchParams.get('checkout');
+      if (checkoutStatus !== 'success' && checkoutStatus !== 'cancel') {
+        return undefined;
+      }
+
+      url.searchParams.delete('checkout');
+      window.history.replaceState({}, '', url.toString());
+
+      if (checkoutStatus !== 'success') {
+        return undefined;
+      }
+
+      let cancelled = false;
+
+      async function reconcileCheckoutSuccess() {
+        for (let attempt = 0; attempt < CHECKOUT_SYNC_ATTEMPTS; attempt += 1) {
+          if (cancelled) {
+            return;
+          }
+
+          await loadSubscription();
+
+          if (attempt === CHECKOUT_SYNC_ATTEMPTS - 1) {
+            return;
+          }
+
+          await new Promise(function (resolve) {
+            window.setTimeout(resolve, CHECKOUT_SYNC_DELAY_MS);
+          });
+        }
+      }
+
+      reconcileCheckoutSuccess();
+
+      return function () {
+        cancelled = true;
+      };
+    },
+    [loadSubscription, userId],
+  );
 
   const contextValue = useMemo(
     function () {

@@ -100,6 +100,17 @@ const CHOICE_SCREEN_PATH = path.join(
   'ui',
   'SubscriptionChoiceScreen.jsx',
 );
+const SUBSCRIPTION_GATE_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'subscription',
+  'ui',
+  'SubscriptionGate.jsx',
+);
+const SUPABASE_CONFIG_PATH = path.join(REPO_ROOT, 'supabase', 'config.toml');
 
 describe('STORY_4_1 AC1 — Stripe products Basic/Advanced/Pro monthly', () => {
   it('test_STORY_4_1_AC1_stripe_products_basic_advanced_pro_monthly: catalog defines three monthly paid tiers', () => {
@@ -140,6 +151,22 @@ describe('STORY_4_1 AC1 — Stripe products Basic/Advanced/Pro monthly', () => {
     expect(existsSync(CHOICE_SCREEN_PATH)).toBe(true);
     const choice = readFileSync(CHOICE_SCREEN_PATH, 'utf8');
     expect(choice).toMatch(/STRIPE_PRODUCT_CATALOG/);
+  });
+});
+
+describe('STORY_4_1 AC1.5 — checkout success and webhook delivery reconcile billing', () => {
+  it('test_STORY_4_1_AC1_5_checkout_success_retries_subscription_and_webhook_is_public: client polls after redirect and webhook skips JWT', () => {
+    expect(existsSync(SUBSCRIPTION_GATE_PATH)).toBe(true);
+    const gate = readFileSync(SUBSCRIPTION_GATE_PATH, 'utf8');
+    expect(gate).toMatch(/checkoutStatus !== 'success' && checkoutStatus !== 'cancel'/);
+    expect(gate).toMatch(/window\.history\.replaceState/);
+    expect(gate).toMatch(/CHECKOUT_SYNC_ATTEMPTS = 5/);
+    expect(gate).toMatch(/await loadSubscription\(\)/);
+
+    expect(existsSync(SUPABASE_CONFIG_PATH)).toBe(true);
+    const config = readFileSync(SUPABASE_CONFIG_PATH, 'utf8');
+    expect(config).toMatch(/\[functions\.stripe-webhook\]/);
+    expect(config).toMatch(/verify_jwt = false/);
   });
 });
 

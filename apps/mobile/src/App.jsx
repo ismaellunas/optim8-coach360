@@ -817,15 +817,22 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     setPaywallBusy(true);
     setPaywallError(null);
     try {
-      var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
-      var result = await repos.billing.createCheckoutSession({
-        tier: selected.tier,
-        successUrl: origin + "/?checkout=success",
-        cancelUrl: origin + "/?checkout=cancel",
-      });
-      setPaywall(null);
-      if (typeof window !== "undefined" && result.url) {
-        window.location.assign(result.url);
+      var subscription = subscriptionState.subscription;
+      if (subscription && subscription.stripeSubscriptionId) {
+        await repos.billing.changeSubscriptionTier({ tier: selected.tier });
+        await subscriptionState.refreshSubscription();
+        setPaywall(null);
+      } else {
+        var origin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5173";
+        var result = await repos.billing.createCheckoutSession({
+          tier: selected.tier,
+          successUrl: origin + "/?checkout=success",
+          cancelUrl: origin + "/?checkout=cancel",
+        });
+        setPaywall(null);
+        if (typeof window !== "undefined" && result.url) {
+          window.location.assign(result.url);
+        }
       }
     } catch (cause) {
       setPaywallError(cause instanceof Error ? cause.message : "checkout_failed");
