@@ -94,6 +94,17 @@ describe('STORY_8_1 AC1 — Supabase Realtime chat provider', () => {
     expect(sql).toMatch(/chat_messages/);
     expect(sql).toMatch(/alter publication supabase_realtime add table public\.chat_messages/);
 
+    const fixSqlPath = path.join(
+      REPO_ROOT,
+      'supabase',
+      'migrations',
+      '20260722123000_fix_chat_channel_rls.sql',
+    );
+    expect(existsSync(fixSqlPath)).toBe(true);
+    const fixSql = readFileSync(fixSqlPath, 'utf8');
+    expect(fixSql).toMatch(/member_a or auth\.uid\(\) = member_b/);
+    expect(fixSql).toMatch(/is_team_coach/);
+
     const repo = readFileSync(MESSAGING_REPO_PATH, 'utf8');
     expect(repo).toMatch(/subscribeToChannel/);
     expect(repo).toMatch(/postgres_changes/);

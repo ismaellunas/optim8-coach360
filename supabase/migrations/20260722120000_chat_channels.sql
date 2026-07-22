@@ -79,13 +79,20 @@ drop policy if exists chat_channels_member_select on public.chat_channels;
 create policy chat_channels_member_select
   on public.chat_channels for select
   using (
-    public.is_chat_channel_member(id, auth.uid())
+    public.is_admin(auth.uid())
+    or public.is_chat_channel_member(id, auth.uid())
     or (
       type = 'team'
       and team_id is not null
-      and public.is_team_member(team_id, auth.uid())
+      and (
+        public.is_team_member(team_id, auth.uid())
+        or public.is_team_coach(team_id, auth.uid())
+      )
     )
-    or public.is_admin(auth.uid())
+    or (
+      type in ('dm', 'p2p')
+      and (auth.uid() = member_a or auth.uid() = member_b)
+    )
   );
 
 drop policy if exists chat_channels_participant_insert on public.chat_channels;
