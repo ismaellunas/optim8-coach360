@@ -281,3 +281,11 @@ export {
   mapInviteErrorMessage,
   type InviteValidationError,
 } from './team/invite-rules.js';
+export {
+  CHAT_CHANNEL_TYPES,
+  isChatChannelType,
+  sortMemberPair,
+  computeUnreadCount,
+  conversationTypeLabel,
+  type ChatChannelType,
+} from './chat/channel.js';

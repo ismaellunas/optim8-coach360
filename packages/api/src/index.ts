@@ -48,6 +48,13 @@ export type {
   CreateCheckoutSessionResult,
 } from './ports/billing-repository.js';
 export type { ContentRepository, ContentItem } from './ports/content-repository.js';
+export type {
+  MessagingRepository,
+  ChatConversation,
+  ChatMessage,
+  DirectMessage,
+  DirectMessageThread,
+} from './ports/messaging-repository.js';
 export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-repository.js';
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';
 export { SupabaseSessionRepository } from './adapters/supabase/supabase-session-repository.js';
