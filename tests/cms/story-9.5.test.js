@@ -104,14 +104,21 @@ describe('STORY_9_5 AC1 — Sanity webhook fires on document publish event', () 
         signatureHeader: signature,
         secret,
       }),
-    ).toBe(true);
+    ).toBe('ok');
     expect(
       await verifySanityWebhookSignature({
         rawBody: raw,
         signatureHeader: signature,
         secret: 'wrong',
       }),
-    ).toBe(false);
+    ).toBe('mismatch');
+    expect(
+      await verifySanityWebhookSignature({
+        rawBody: raw,
+        signatureHeader: null,
+        secret,
+      }),
+    ).toBe('missing');
 
     const mapped = mapSanityWebhookPayload(publishedDoc, {
       idempotencyKey: 'evt-publish-1',

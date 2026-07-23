@@ -16,6 +16,7 @@
     "dev:studio": "npm run dev -w @coach360/studio",
     "seed:admin": "node scripts/seed-admin-user.mjs",
     "seed:sanity": "node scripts/seed-sanity-packages.mjs",
+    "probe:sanity-webhook": "node scripts/probe-sanity-webhook.mjs",
     "expire:trials": "node scripts/expire-all-trials.mjs",
     "build": "npm run build:mobile",
     "build:mobile": "npm run build -w @coach360/mobile",

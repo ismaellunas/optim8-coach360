@@ -160,22 +160,24 @@ export async function verifySanityWebhookSignature(options: {
   rawBody: string;
   signatureHeader: string | null;
   secret: string;
-}): Promise<boolean> {
+}): Promise<'ok' | 'missing' | 'malformed' | 'mismatch'> {
   const header = options.signatureHeader?.trim() || '';
-  if (!header || !options.secret) return false;
+  const secret = options.secret.trim();
+  if (!secret) return 'missing';
+  if (!header) return 'missing';
 
   const match = header.match(/^t=(\d+)[, ]+v1=([^, ]+)$/);
-  if (!match) return false;
+  if (!match) return 'malformed';
 
   const timestamp = Number(match[1]);
-  if (!Number.isFinite(timestamp) || timestamp < 1_609_459_200_000) return false;
+  const provided = match[2];
+  if (!Number.isFinite(timestamp) || timestamp < 1_609_459_200_000 || !provided) {
+    return 'malformed';
+  }
 
-  const expected = await encodeSanityWebhookSignature(
-    options.rawBody,
-    options.secret,
-    timestamp,
-  );
-  return timingSafeEqualString(expected, header);
+  // Compare digest only — header may use `t=…,v1=…` or `t=…, v1=…`.
+  const expectedDigest = await createHs256Base64Url(options.rawBody, timestamp, secret);
+  return timingSafeEqualString(expectedDigest, provided) ? 'ok' : 'mismatch';
 }
 
 async function createHs256Base64Url(
