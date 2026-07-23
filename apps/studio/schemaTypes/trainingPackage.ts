@@ -57,6 +57,20 @@ export const trainingPackage = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'priceCents',
+      title: 'Display price (cents)',
+      type: 'number',
+      description: 'Catalog display amount in USD cents (e.g. 2900 = $29).',
+      validation: (Rule) => Rule.min(0).integer(),
+    }),
+    defineField({
+      name: 'rating',
+      title: 'Rating',
+      type: 'number',
+      description: 'Catalog rating 0–5 (optional).',
+      validation: (Rule) => Rule.min(0).max(5),
+    }),
+    defineField({
       name: 'dripSchedule',
       title: 'Drip schedule',
       type: 'object',

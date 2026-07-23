@@ -131,6 +131,32 @@ Deno.serve(async (request) => {
     });
   }
 
+  if (result.kind === 'purchase_upsert') {
+    const { error } = await supabase.rpc('sync_purchase_from_stripe', {
+      p_buyer_id: result.purchase.buyer_id,
+      p_sanity_document_id: result.purchase.sanity_document_id,
+      p_stripe_payment_intent_id: result.purchase.stripe_payment_intent_id,
+      p_amount_cents: result.purchase.amount_cents,
+      p_currency: result.purchase.currency,
+      p_scope: result.purchase.scope,
+      p_team_id: result.purchase.team_id,
+      p_event_id: result.idempotencyKey,
+      p_event_type: result.eventType,
+    });
+
+    if (error) {
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ received: true, synced: true, kind: result.kind }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   return new Response(JSON.stringify({ received: true, skipped: 'unhandled_kind' }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },

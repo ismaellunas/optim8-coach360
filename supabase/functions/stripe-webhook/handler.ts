@@ -66,6 +66,22 @@ export type StripeInvoicePayload = {
   };
 };
 
+export type StripeCheckoutSessionPayload = {
+  id: string;
+  mode?: string | null;
+  payment_status?: string | null;
+  amount_total?: number | null;
+  currency?: string | null;
+  payment_intent?: string | { id: string } | null;
+  metadata?: {
+    kind?: string;
+    profile_id?: string;
+    sanity_document_id?: string;
+    scope?: string;
+    team_id?: string;
+  };
+};
+
 export type StripeWebhookEvent =
   | {
       id: string;
@@ -79,8 +95,18 @@ export type StripeWebhookEvent =
     }
   | {
       id: string;
+      type: 'checkout.session.completed';
+      data: { object: StripeCheckoutSessionPayload };
+    }
+  | {
+      id: string;
       type: string;
-      data: { object: StripeSubscriptionPayload | StripeInvoicePayload };
+      data: {
+        object:
+          | StripeSubscriptionPayload
+          | StripeInvoicePayload
+          | StripeCheckoutSessionPayload;
+      };
     };
 
 export const STRIPE_STATUS_MAP: Record<string, string> = {
@@ -208,6 +234,28 @@ export function buildBillingInvoiceUpsert(invoice: StripeInvoicePayload, profile
   };
 }
 
+export function resolvePaymentIntentId(
+  paymentIntent: string | { id: string } | null | undefined,
+): string | null {
+  if (!paymentIntent) return null;
+  if (typeof paymentIntent === 'string') return paymentIntent;
+  return paymentIntent.id ?? null;
+}
+
+export function buildPurchaseUpsert(session: StripeCheckoutSessionPayload) {
+  const meta = session.metadata ?? {};
+  const scope = meta.scope === 'team' ? 'team' : 'personal';
+  return {
+    buyer_id: meta.profile_id ?? '',
+    sanity_document_id: meta.sanity_document_id ?? '',
+    stripe_payment_intent_id: resolvePaymentIntentId(session.payment_intent),
+    amount_cents: typeof session.amount_total === 'number' ? session.amount_total : 0,
+    currency: session.currency ?? 'usd',
+    scope,
+    team_id: scope === 'team' ? meta.team_id ?? null : null,
+  };
+}
+
 export type StripeWebhookHandleResult =
   | { handled: false; reason: string }
   | {
@@ -232,9 +280,37 @@ export type StripeWebhookHandleResult =
       stripeCustomerId: string | null;
       profileId: string | null;
       lockedStatus: 'past_due';
+    }
+  | {
+      handled: true;
+      kind: 'purchase_upsert';
+      idempotencyKey: string;
+      eventType: string;
+      purchase: ReturnType<typeof buildPurchaseUpsert>;
     };
 
 export function handleStripeWebhookEvent(event: StripeWebhookEvent): StripeWebhookHandleResult {
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as StripeCheckoutSessionPayload;
+    if (session.metadata?.kind !== 'marketplace_purchase') {
+      return { handled: false, reason: 'ignored_checkout_kind' };
+    }
+    if (!session.metadata.profile_id || !session.metadata.sanity_document_id) {
+      return { handled: false, reason: 'missing_purchase_metadata' };
+    }
+    if (session.payment_status && session.payment_status !== 'paid') {
+      return { handled: false, reason: 'checkout_not_paid' };
+    }
+
+    return {
+      handled: true,
+      kind: 'purchase_upsert',
+      idempotencyKey: event.id,
+      eventType: event.type,
+      purchase: buildPurchaseUpsert(session),
+    };
+  }
+
   if (event.type.startsWith('customer.subscription.')) {
     const sub = event.data.object as StripeSubscriptionPayload;
     const profileId = sub.metadata?.profile_id;

@@ -4,7 +4,7 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–9, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–10, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
 
@@ -150,8 +150,9 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
+12. **Epic 10** — Marketplace browse + purchase (4 tests) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+
 
-**Estimated time:** 3.5–5.5 hours for a full first pass, longer if you hit payment sync delays.
+**Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
 ---
 
@@ -1265,6 +1266,54 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 <div class="page-break"></div>
 
+## Epic 10 — Marketplace Browse & Purchase (STORY-10.1)
+
+*Needs published Sanity packages (see **E9-T17** / `npm run seed:sanity`) with **Display price**, **Rating**, and a **Stripe price ID** on each package, plus `package_metadata` synced so checkout can resolve the price. Edge Functions must be running for package checkout (`create-package-checkout-session`) and Stripe webhooks (`stripe-webhook`). Use the Stripe test card from Part 1.*
+
+**Accounts needed:** Coach or Player on **Basic+** for personal purchase; **Coach on Advanced or Pro** with a team for team purchase.
+
+### E10-T1: Store lists title, price, rating, and skills (STORY-10.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as a **Coach** (or Player) who can browse the marketplace. | Home screen. |
+| 2 | Open **Store** (Coach/Team Manager) or **Content** (Player). | Catalog cards load. |
+| 3 | Scan a package card (e.g. **Elite Shooting System**). | Card shows **title**, **price** (e.g. `$29`), **rating** (★), and **skills** tags (not only a single filter badge). |
+| 4 | Tap the card. | Package detail repeats title, rating, skills, and price on the purchase button. |
+
+### E10-T2: No outline or drip preview before purchase (STORY-10.1 AC-2 / OQ-4.6)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open an **unowned** package detail from **Store** / **Content**. | Title, description, skills, rating, module/lesson count. |
+| 2 | Look for outline, module list, trailer, sample lesson, or drip schedule preview. | Those are **not** shown before purchase. |
+
+### E10-T3: Purchase with Stripe records ownership (STORY-10.1 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On an unowned package, keep **Personal** selected (Coach) or use the default purchase button (Player). Tap **Purchase $…**. | Stripe Checkout opens (or paywall first if plan is too low). |
+| 2 | Pay with the test card `4242 4242 4242 4242`. | Checkout succeeds and returns to the app. |
+| 3 | Wait ~30 seconds, reopen **Store** / package detail. | Package shows **Owned** (or ownership after refresh). |
+
+### E10-T4: Coach Advanced+ can purchase for a team (STORY-10.1 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as a **Coach on Advanced or Pro** with at least one team. Open an unowned package. | **Personal** / **For team** options appear. |
+| 2 | Tap **For team**, pick a team, tap **Purchase for team $…**. | Stripe Checkout opens. |
+| 3 | Complete payment with the test card. | Checkout succeeds. |
+| 4 | (Optional) Sign in as a **Coach on Basic** and open the same package. | No **For team** option — personal purchase only (or paywall if locked). |
+
+### Not testable by clicking (for awareness only)
+
+- **Stripe webhook → `purchases` row** is verified in automated tests; if ownership never appears after a successful Checkout, check `stripe-webhook` logs and that `sync_purchase_from_stripe` migration is applied.
+- **Drip unlock / redistribute to roster** after a team purchase is STORY-10.2+ — this epic only covers buying for team scope.
+
+---
+
+<div class="page-break"></div>
+
 ## Part 3 — Quick Results Sheet
 
 Print this page and check off results as you go.
@@ -1369,6 +1418,10 @@ Print this page and check off results as you go.
 | E9-T15 Solo clients need team roster first | | |
 | E9-T16 Assignment shows for player after share | | |
 | E9-T17 Store shows published Sanity packages | | |
+| E10-T1 Store lists title, price, rating, skills | | |
+| E10-T2 No outline/drip preview before purchase | | |
+| E10-T3 Stripe package purchase records ownership | | |
+| E10-T4 Coach Advanced+ team purchase | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

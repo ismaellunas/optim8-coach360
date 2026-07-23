@@ -76,7 +76,7 @@
 | 4.3 | What is the approval workflow before a package goes live (draft → review → publish)? | Flow 7 admin + DEP-05 | | | |
 | 4.4 | Who sets **pricing** — admin only, coaches with admin approval, or fixed catalog? | Admin matrix “configure pricing” | | | |
 | 4.5 | Does **team age range** (Flow 11) hard-filter marketplace listings, or only affect AI recommendations? | Filtering rules | | | |
-| 4.6 | Can users **preview** package contents before purchase (trailer, sample lesson, outline)? | Marketplace UX | | | |
+| 4.6 | Can users **preview** package contents before purchase (trailer, sample lesson, outline)? | Marketplace UX | **No.** Pre-purchase catalog shows marketing metadata only (title, description, price, rating, skills, module count). No trailer, sample lesson, outline, or drip schedule preview before purchase (STORY-10.1 / OQ-4.6). | product | 2026-07-23 |
 | 4.7 | After purchase, can content be **re-downloaded offline**, or streaming only? | Mobile storage scope | | | |
 | 4.8 | What currencies and regions are supported at launch? | Stripe + localization | | | |
 
