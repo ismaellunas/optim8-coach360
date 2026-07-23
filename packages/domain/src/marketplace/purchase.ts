@@ -1,4 +1,5 @@
-import { meetsTierMinimum, type SubscriptionTier } from '../subscription/expiry.js';
+import { meetsTierMinimum } from '../subscription/expiry.js';
+import type { SubscriptionTier } from '../subscription/schema.js';
 
 /** Marketplace purchase scope (STORY-10.1). */
 export type MarketplacePurchaseScope = 'personal' | 'team';
