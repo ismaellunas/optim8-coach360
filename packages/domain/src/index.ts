@@ -306,11 +306,20 @@ export {
   PUBLISHED_PACKAGES_GROQ,
   primarySkillTag,
   dripLabelFromSchedule,
+  formatPackagePriceLabel,
   priceLabelFromStripeId,
+  normalizePackageRating,
   mapSanityPackageToCatalog,
   type MarketplaceCatalogPackage,
   type SanityPackageDoc,
 } from './content/marketplace-catalog.js';
+export {
+  isMarketplacePurchaseScope,
+  canPurchaseForTeamDistribution,
+  assertPackageCheckoutRequest,
+  type MarketplacePurchaseScope,
+  type CreatePackageCheckoutRequest,
+} from './marketplace/purchase.js';
 export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,

@@ -14,7 +14,9 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve shooting percentage', 'Build consistent free-throw routine'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2900,
+    priceLabel: '$29',
+    rating: 4.8,
   },
   {
     id: 'seed.coach360.lockdown-defense.package',
@@ -27,7 +29,9 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve on-ball pressure', 'Reduce blow-by drives'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2500,
+    priceLabel: '$25',
+    rating: 4.6,
   },
   {
     id: 'seed.coach360.court-vision.package',
@@ -40,7 +44,9 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve decision speed', 'Reduce turnovers under pressure'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2700,
+    priceLabel: '$27',
+    rating: 4.7,
   },
 ];
 

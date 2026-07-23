@@ -2918,35 +2918,54 @@
         {
           "id": "AC-1",
           "statement": "Marketplace lists published packages with title, price, rating, skills tags",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC1_catalog_lists_title_price_rating_skills"
         },
         {
           "id": "AC-2",
           "statement": "Package detail shows outline and drip schedule preview if OQ-4.6 resolved",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC2_no_outline_or_drip_preview_before_purchase"
         },
         {
           "id": "AC-3",
           "statement": "Stripe checkout completes purchase and records in Supabase",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC3_stripe_checkout_records_purchase"
         },
         {
           "id": "AC-4",
           "statement": "Coach at Advanced+ can purchase for team distribution",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC4_coach_advanced_team_purchase"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC1_catalog_lists_title_price_rating_skills",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC2_no_outline_or_drip_preview_before_purchase",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC3_stripe_checkout_records_purchase",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC4_coach_advanced_team_purchase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/content/marketplace-catalog.ts",
+          "packages/domain/src/marketplace/purchase.ts",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "packages/api/src/ports/marketplace-purchase-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-marketplace-purchase-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "supabase/functions/create-package-checkout-session/handler.ts",
+          "supabase/functions/create-package-checkout-session/index.ts",
+          "supabase/functions/stripe-webhook/handler.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "supabase/migrations/20260723120000_marketplace_purchases.sql",
+          "tests/marketplace/story-10.1.test.js",
+          "docs/product/stakeholder-questions.md",
+          "package.json"
+        ],
+        "command": "npm run test:story-10.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Catalog shows title/price/rating/skills; OQ-4.6=no preview; Stripe payment checkout + webhook writes purchases; coach Advanced+ team scope. npm run test:story-10.1 — AC1–AC4 pass."
     },
     {
       "id": "STORY-10.2",
