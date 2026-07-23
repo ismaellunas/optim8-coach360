@@ -11,6 +11,8 @@ export type MarketplaceCatalogPackage = {
   moduleCount: number;
   dripLabel: string;
   priceCents: number | null;
+  /** ISO 4217 code (lowercase) matching the Stripe Price this package charges. */
+  currency: string;
   priceLabel: string;
   rating: number | null;
 };
@@ -25,9 +27,20 @@ export const PUBLISHED_PACKAGES_GROQ = `*[_type == "trainingPackage" && publishe
   dripSchedule,
   stripePriceId,
   priceCents,
+  currency,
   rating,
   "moduleCount": count(modules)
 }`;
+
+/** Default ISO 4217 code used when a package omits currency (back-compat with pre-currency seeds). */
+export const DEFAULT_PACKAGE_CURRENCY = 'usd';
+
+export function normalizePackageCurrency(currency: string | null | undefined): string {
+  if (typeof currency !== 'string') return DEFAULT_PACKAGE_CURRENCY;
+  const trimmed = currency.trim().toLowerCase();
+  if (!/^[a-z]{3}$/.test(trimmed)) return DEFAULT_PACKAGE_CURRENCY;
+  return trimmed;
+}
 
 export function primarySkillTag(skills: string[] | null | undefined): string {
   const first = skills?.find((s) => typeof s === 'string' && s.trim());
@@ -48,14 +61,31 @@ export function dripLabelFromSchedule(
   return dripSchedule?.notes?.trim() || 'Scheduled drip';
 }
 
-/** Format catalog price from cents; fall back when only a Stripe price id exists. */
+/**
+ * Format catalog price from minor units in the given ISO 4217 currency; fall back
+ * when only a Stripe price id exists. Uses a fixed `en-US` locale so tests and
+ * server rendering stay deterministic across environments.
+ */
 export function formatPackagePriceLabel(
   priceCents: number | null | undefined,
   stripePriceId?: string | null,
+  currency?: string | null,
 ): string {
   if (typeof priceCents === 'number' && priceCents >= 0) {
     if (priceCents === 0) return 'FREE';
-    return `$${(priceCents / 100).toFixed(priceCents % 100 === 0 ? 0 : 2)}`;
+    const iso = normalizePackageCurrency(currency);
+    const amount = priceCents / 100;
+    const digits = priceCents % 100 === 0 ? 0 : 2;
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: iso.toUpperCase(),
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      }).format(amount);
+    } catch {
+      return `${iso.toUpperCase()} ${amount.toFixed(digits)}`;
+    }
   }
   return priceLabelFromStripeId(stripePriceId);
 }
@@ -81,6 +111,7 @@ export type SanityPackageDoc = {
   dripSchedule?: { intervalDays?: number | null; notes?: string | null } | null;
   stripePriceId?: string | null;
   priceCents?: number | null;
+  currency?: string | null;
   rating?: number | null;
   moduleCount?: number | null;
 };
@@ -92,6 +123,7 @@ export function mapSanityPackageToCatalog(doc: SanityPackageDoc): MarketplaceCat
     ? doc.skills.filter((s): s is string => typeof s === 'string')
     : [];
   const priceCents = typeof doc.priceCents === 'number' ? doc.priceCents : null;
+  const currency = normalizePackageCurrency(doc.currency);
   return {
     id,
     title: (doc.title || '').trim() || 'Untitled package',
@@ -106,7 +138,8 @@ export function mapSanityPackageToCatalog(doc: SanityPackageDoc): MarketplaceCat
     moduleCount: typeof doc.moduleCount === 'number' ? doc.moduleCount : 0,
     dripLabel: dripLabelFromSchedule(doc.dripSchedule),
     priceCents,
-    priceLabel: formatPackagePriceLabel(priceCents, doc.stripePriceId),
+    currency,
+    priceLabel: formatPackagePriceLabel(priceCents, doc.stripePriceId, currency),
     rating: normalizePackageRating(doc.rating),
   };
 }

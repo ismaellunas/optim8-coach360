@@ -1,4 +1,7 @@
-import type { MarketplaceCatalogPackage } from '@coach360/domain';
+import {
+  formatPackagePriceLabel,
+  type MarketplaceCatalogPackage,
+} from '@coach360/domain';
 import type { MarketplaceCatalogRepository } from '../../ports/marketplace-catalog-repository.js';
 
 /** Offline / rest-mode fallback catalog (mirrors seed titles). */
@@ -15,7 +18,8 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     moduleCount: 1,
     dripLabel: '1 week',
     priceCents: 2900,
-    priceLabel: '$29',
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2900, null, 'usd'),
     rating: 4.8,
   },
   {
@@ -30,7 +34,8 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     moduleCount: 1,
     dripLabel: '1 week',
     priceCents: 2500,
-    priceLabel: '$25',
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2500, null, 'usd'),
     rating: 4.6,
   },
   {
@@ -45,7 +50,8 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     moduleCount: 1,
     dripLabel: '1 week',
     priceCents: 2700,
-    priceLabel: '$27',
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2700, null, 'usd'),
     rating: 4.7,
   },
 ];

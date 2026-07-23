@@ -86,6 +86,7 @@ function read(filePath) {
 describe('STORY_10_1 AC1 — Marketplace lists published packages with title, price, rating, skills tags', () => {
   it('test_STORY_10_1_AC1_catalog_lists_title_price_rating_skills', () => {
     expect(PUBLISHED_PACKAGES_GROQ).toMatch(/priceCents/);
+    expect(PUBLISHED_PACKAGES_GROQ).toMatch(/currency/);
     expect(PUBLISHED_PACKAGES_GROQ).toMatch(/rating/);
     expect(PUBLISHED_PACKAGES_GROQ).toMatch(/skills/);
 
@@ -100,10 +101,29 @@ describe('STORY_10_1 AC1 — Marketplace lists published packages with title, pr
     expect(mapped).not.toBeNull();
     expect(mapped.title).toBe('Elite Shooting System');
     expect(mapped.priceLabel).toBe('$29');
+    expect(mapped.currency).toBe('usd');
     expect(mapped.rating).toBe(4.8);
     expect(mapped.skills).toEqual(['shooting', 'form']);
     expect(formatPackagePriceLabel(2500)).toBe('$25');
+    expect(formatPackagePriceLabel(2950)).toBe('$29.50');
     expect(normalizePackageRating(4.75)).toBe(4.8);
+
+    // Currency is dynamic — SEK Stripe prices render with the SEK marker instead of "$".
+    const sek = mapSanityPackageToCatalog({
+      _id: 'seed.coach360.court-vision.package',
+      title: 'Court Vision Mastery',
+      skills: ['vision'],
+      priceCents: 29000,
+      currency: 'sek',
+      moduleCount: 1,
+    });
+    expect(sek).not.toBeNull();
+    expect(sek.currency).toBe('sek');
+    // Intl for en-US emits "SEK\u00A0290" (narrow no-break space between code and amount).
+    expect(sek.priceLabel).toMatch(/^SEK\s?290$/);
+    expect(sek.priceLabel).not.toMatch(/\$/);
+    expect(formatPackagePriceLabel(29000, null, 'sek')).toMatch(/SEK/);
+    expect(formatPackagePriceLabel(2900, null, 'eur')).toMatch(/€/);
 
     const store = read(STORE_UI);
     expect(store).toMatch(/package-price|priceLabel|p\.p/);
