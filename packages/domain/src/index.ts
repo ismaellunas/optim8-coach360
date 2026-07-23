@@ -304,10 +304,12 @@ export {
 } from './content/video-policy.js';
 export {
   PUBLISHED_PACKAGES_GROQ,
+  DEFAULT_PACKAGE_CURRENCY,
   primarySkillTag,
   dripLabelFromSchedule,
   formatPackagePriceLabel,
   priceLabelFromStripeId,
+  normalizePackageCurrency,
   normalizePackageRating,
   mapSanityPackageToCatalog,
   type MarketplaceCatalogPackage,

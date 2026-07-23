@@ -35,6 +35,7 @@ const PACKAGES = [
     objectives: ['Improve shooting percentage', 'Build consistent free-throw routine'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
     priceCents: 2900,
+    currency: 'usd',
     rating: 4.8,
     drill: {
       title: 'Form shooting ladder',
@@ -53,6 +54,7 @@ const PACKAGES = [
     objectives: ['Improve on-ball pressure', 'Reduce blow-by drives'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
     priceCents: 2500,
+    currency: 'usd',
     rating: 4.6,
     drill: {
       title: 'Closeout + slide',
@@ -71,6 +73,7 @@ const PACKAGES = [
     objectives: ['Improve decision speed', 'Reduce turnovers under pressure'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
     priceCents: 2700,
+    currency: 'usd',
     rating: 4.7,
     drill: {
       title: '3-man weave read',
@@ -190,6 +193,7 @@ function buildMutationsForPackage(pkg) {
         published: true,
         dripSchedule: pkg.dripSchedule,
         priceCents: pkg.priceCents,
+        currency: pkg.currency,
         rating: pkg.rating,
       },
     },

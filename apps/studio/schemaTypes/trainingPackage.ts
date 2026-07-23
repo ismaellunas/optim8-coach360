@@ -58,10 +58,26 @@ export const trainingPackage = defineType({
     }),
     defineField({
       name: 'priceCents',
-      title: 'Display price (cents)',
+      title: 'Display price (minor units)',
       type: 'number',
-      description: 'Catalog display amount in USD cents (e.g. 2900 = $29).',
+      description:
+        'Catalog display amount in the currency below, expressed in minor units (e.g. 2900 = $29.00 for USD or 29.00 kr for SEK).',
       validation: (Rule) => Rule.min(0).integer(),
+    }),
+    defineField({
+      name: 'currency',
+      title: 'Currency',
+      type: 'string',
+      description:
+        'ISO 4217 code matching the Stripe Price this package charges (usd, sek, eur, …). Defaults to usd when empty.',
+      validation: (Rule) =>
+        Rule.custom((value) => {
+          if (value === undefined || value === null || value === '') return true;
+          if (typeof value !== 'string') return 'Must be a string';
+          return /^[A-Za-z]{3}$/.test(value.trim())
+            ? true
+            : 'Must be a 3-letter ISO 4217 code (e.g. usd, sek, eur)';
+        }),
     }),
     defineField({
       name: 'rating',
