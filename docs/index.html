@@ -354,24 +354,16 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-06-26",
+  "last_generated": "2026-07-23",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
     "Single-stack decision 2026-06-27: Vite + React + Capacitor (src/App.jsx) for prototype and production; Expo/Next.js client stack abandoned.",
-    "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.)."
+    "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.).",
+    "OQ-2.1 / OQ-2.3 resolved 2026-07-23: Basic progress = log + completion count; Advanced = full coaching tools without AI; Pro = +AI/objectives/full analytics; ○ = higher tier.",
+    "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+)."
   ],
   "open_questions": [
-    {
-      "id": "OQ-2.1",
-      "question": "What does 'track own progress' mean at Basic tier — drill logs, completion %, stats, or full profile dashboard? Flow 2 tier summary grants Basic ✓ but the player access matrix gates it to Advanced+.",
-      "source": "docs/product/stakeholder-questions.md#flow-2",
-      "status": "sent",
-      "blocks": [
-        "STORY-4.3",
-        "STORY-7.2"
-      ]
-    },
     {
       "id": "OQ-2.2",
       "question": "What exactly is included in 'Full MVP access' at Pro tier beyond what Advanced already gets?",
@@ -379,18 +371,6 @@
       "status": "sent",
       "blocks": [
         "STORY-11.3"
-      ]
-    },
-    {
-      "id": "OQ-2.3",
-      "question": "At Advanced, what are the precise boundaries for coach & communicate, distribute content, and plan & schedule vs Pro — including what ○ partial means for each feature?",
-      "source": "docs/product/stakeholder-questions.md#flow-2",
-      "status": "sent",
-      "blocks": [
-        "STORY-5.2",
-        "STORY-6.1",
-        "STORY-8.1",
-        "STORY-9.2"
       ]
     }
   ],
