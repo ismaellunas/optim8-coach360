@@ -15,7 +15,7 @@ export type { PaginatedResult, ApiAdapterMode } from './client/types.js';
 export { HttpClient } from './client/http-client.js';
 export type { AuthRepository, SignInInput } from './ports/auth-repository.js';
 export type { AppAuthRepository } from './ports/app-auth-repository.js';
-export type { UserRepository } from './ports/user-repository.js';
+export type { UserRepository, UpdateUserInput, UserListParams } from './ports/user-repository.js';
 export type { ProfileRepository } from './ports/profile-repository.js';
 export type { TeamRepository, TeamLogoFile } from './ports/team-repository.js';
 export type { RosterRepository, CreateInviteOptions } from './ports/roster-repository.js';

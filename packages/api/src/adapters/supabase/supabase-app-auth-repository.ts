@@ -57,6 +57,11 @@ export class SupabaseAppAuthRepository implements AppAuthRepository {
     }
 
     const user = await loadProfileUser(this.client, data.user.id, data.user.email);
+    if (user.isSuspended) {
+      await this.client.auth.signOut();
+      throw new Error('Your account has been suspended. Contact support for assistance.');
+    }
+
     return appSessionSchema.parse({
       user,
       accessToken: data.session.access_token,
@@ -82,6 +87,11 @@ export class SupabaseAppAuthRepository implements AppAuthRepository {
     }
 
     const user = await loadProfileUser(this.client, session.user.id, session.user.email);
+    if (user.isSuspended) {
+      await this.client.auth.signOut();
+      return null;
+    }
+
     return appSessionSchema.parse({
       user,
       accessToken: session.access_token,

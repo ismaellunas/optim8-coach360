@@ -3389,35 +3389,46 @@
         {
           "id": "AC-1",
           "statement": "Admin views searchable list of all user profiles",
-          "test": null
+          "test": "tests/admin/story-12.1.test.js::test_STORY_12_1_AC1_admin_can_search_user_list"
         },
         {
           "id": "AC-2",
           "statement": "Admin edits profile fields and changes user role",
-          "test": null
+          "test": "tests/admin/story-12.1.test.js::test_STORY_12_1_AC2_admin_edits_profile_and_role"
         },
         {
           "id": "AC-3",
           "statement": "Suspend/deactivate prevents login and shows account-held message",
-          "test": null
+          "test": "tests/admin/story-12.1.test.js::test_STORY_12_1_AC3_suspended_user_blocked_from_login"
         },
         {
           "id": "AC-4",
           "statement": "Admin views all team rosters from user detail",
-          "test": null
+          "test": "tests/admin/story-12.1.test.js::test_STORY_12_1_AC4_admin_views_user_team_rosters"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "test_STORY_12_1_AC1_admin_can_search_user_list",
+          "test_STORY_12_1_AC2_admin_edits_profile_and_role",
+          "test_STORY_12_1_AC3_suspended_user_blocked_from_login",
+          "test_STORY_12_1_AC4_admin_views_user_team_rosters",
+          "test_STORY_12_1_structure_users_page_has_no_direct_supabase"
         ],
-        "command": null
+        "files": [
+          "packages/api/src/ports/user-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-user-repository.ts",
+          "packages/api/src/adapters/rest/rest-user-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-app-auth-repository.ts",
+          "apps/admin/src/entities/user/api/user-queries.ts",
+          "apps/admin/src/pages/users/UsersPage.tsx"
+        ],
+        "command": "npx vitest run tests/admin/story-12.1.test.js"
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Implemented searchable user list, profile/role editing, suspend blocking mobile sign-in with account-held message, and team-roster viewing on user detail; 5/5 tests passing."
     },
     {
       "id": "STORY-12.2",
