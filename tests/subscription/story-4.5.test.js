@@ -21,6 +21,7 @@ import {
   buildStripeSubscriptionUpgradeBody,
   changeSubscriptionTier,
   classifyPaidTierChange,
+  ensureSubscriptionSchedule,
   resolveSubscriptionBillingPeriod,
 } from '../../supabase/functions/change-subscription-tier/handler.ts';
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
@@ -194,6 +195,7 @@ describe('STORY_4_5 AC2 — upgrade processes payment and unlocks tier immediate
         updateSubscription,
         createSchedule: vi.fn(),
         updateSchedule: vi.fn(),
+        releaseSchedule: vi.fn(),
       },
       persist: { applyUpgrade, schedulePendingDowngrade },
     });
@@ -287,6 +289,7 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
 
     const createSchedule = vi.fn(async () => ({ id: 'sub_sched_1' }));
     const updateSchedule = vi.fn(async () => ({ id: 'sub_sched_1' }));
+    const releaseSchedule = vi.fn(async () => {});
     const applyUpgrade = vi.fn(async () => {});
     const schedulePendingDowngrade = vi.fn(async () => {});
 
@@ -302,7 +305,7 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
       },
-      stripe: { updateSubscription: vi.fn(), createSchedule, updateSchedule },
+      stripe: { updateSubscription: vi.fn(), createSchedule, updateSchedule, releaseSchedule },
       persist: { applyUpgrade, schedulePendingDowngrade },
     });
 
@@ -320,6 +323,42 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
     expect(result.pendingTier).toBe('basic');
     expect(result.pendingTierEffectiveAt).toBe(new Date(periodEnd * 1000).toISOString());
 
+    // Retry when Stripe already attached a schedule (prior create succeeded).
+    createSchedule.mockClear();
+    updateSchedule.mockClear();
+    schedulePendingDowngrade.mockClear();
+    const reused = await changeSubscriptionTier({
+      input: {
+        profileId: '00000000-0000-4000-8000-000000000451',
+        currentTier: 'pro',
+        targetTier: 'advanced',
+        stripeSubscriptionId: 'sub_test_45',
+        subscriptionItemId: 'si_test_1',
+        currentPriceId: 'price_test_pro',
+        targetPriceId: 'price_test_advanced',
+        currentPeriodStart: periodStart,
+        currentPeriodEnd: periodEnd,
+        existingScheduleId: 'sub_sched_1TwCwRLJG6shnnWphHuZa8vG',
+      },
+      stripe: { updateSubscription: vi.fn(), createSchedule, updateSchedule, releaseSchedule },
+      persist: { applyUpgrade, schedulePendingDowngrade },
+    });
+    expect(createSchedule).not.toHaveBeenCalled();
+    expect(updateSchedule).toHaveBeenCalledWith(
+      'sub_sched_1TwCwRLJG6shnnWphHuZa8vG',
+      expect.objectContaining({
+        'phases[1][metadata][tier]': 'advanced',
+      }),
+    );
+    expect(reused.pendingTier).toBe('advanced');
+    expect(
+      await ensureSubscriptionSchedule(
+        { createSchedule },
+        'sub_test_45',
+        'sub_sched_existing',
+      ),
+    ).toBe('sub_sched_existing');
+
     // Migration: pending columns + trigger clearing them once the tier lands.
     expect(existsSync(MIGRATION_PATH)).toBe(true);
     const sql = readFileSync(MIGRATION_PATH, 'utf8');
@@ -334,6 +373,8 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
     expect(indexSrc).toMatch(/subscription_schedules/);
     expect(indexSrc).toMatch(/schedulePendingDowngrade/);
     expect(indexSrc).toMatch(/resolveSubscriptionBillingPeriod/);
+    expect(indexSrc).toMatch(/existingScheduleId/);
+    expect(indexSrc).toMatch(/releaseSchedule/);
 
     // UI: scheduled downgrade banner + confirm step before scheduling.
     const screen = readFileSync(SUBSCRIPTION_SCREEN_PATH, 'utf8');

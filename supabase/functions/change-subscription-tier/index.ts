@@ -166,6 +166,7 @@ Deno.serve(async (request) => {
     priceId: string;
     periodStart: number;
     periodEnd: number;
+    scheduleId: string | null;
   };
   try {
     const raw = await stripeRequest(stripeSecret, `/v1/subscriptions/${stripeSubscriptionId}`);
@@ -185,11 +186,20 @@ Deno.serve(async (request) => {
         typeof raw.current_period_end === 'number' ? raw.current_period_end : null,
       items,
     });
+    const scheduleField = raw.schedule;
     stripeSub = {
       itemId: firstItem?.id ?? '',
       priceId: firstItem?.price?.id ?? '',
       periodStart,
       periodEnd,
+      scheduleId:
+        typeof scheduleField === 'string'
+          ? scheduleField
+          : scheduleField &&
+              typeof scheduleField === 'object' &&
+              typeof (scheduleField as { id?: unknown }).id === 'string'
+            ? String((scheduleField as { id: string }).id)
+            : null,
     };
   } catch (cause) {
     return jsonResponse(
@@ -210,6 +220,7 @@ Deno.serve(async (request) => {
         targetPriceId,
         currentPeriodStart: stripeSub.periodStart,
         currentPeriodEnd: stripeSub.periodEnd,
+        existingScheduleId: stripeSub.scheduleId,
       },
       stripe: {
         updateSubscription: async (
@@ -239,6 +250,9 @@ Deno.serve(async (request) => {
             phasesBody as unknown as Record<string, string>,
           );
           return { id: String(raw.id ?? '') };
+        },
+        releaseSchedule: async (scheduleId: string) => {
+          await stripeRequest(stripeSecret, `/v1/subscription_schedules/${scheduleId}/release`);
         },
       },
       persist: {
