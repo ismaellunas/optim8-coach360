@@ -88,6 +88,7 @@ export type Database = {
           module_id: string
           profile_id: string
           purchase_id: string
+          scheduled_unlock_at: string | null
           unlocked_at: string | null
         }
         Insert: {
@@ -97,6 +98,7 @@ export type Database = {
           module_id: string
           profile_id: string
           purchase_id: string
+          scheduled_unlock_at?: string | null
           unlocked_at?: string | null
         }
         Update: {
@@ -106,6 +108,7 @@ export type Database = {
           module_id?: string
           profile_id?: string
           purchase_id?: string
+          scheduled_unlock_at?: string | null
           unlocked_at?: string | null
         }
         Relationships: [

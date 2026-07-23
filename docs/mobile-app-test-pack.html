@@ -262,7 +262,7 @@ ul, ol {
 
 <p>Run tests <strong>in epic order</strong>. Later epics reuse accounts from earlier ones.</p>
 
-<p>1. <strong>Epic 1</strong> — Smoke (2 tests) 2. <strong>Epic 2</strong> — Create all three accounts (6 tests) 3. <strong>Epic 3</strong> — Teams and rosters (7 tests) 4. <strong>Epic 4</strong> — Plans and payments (10 tests) — <strong>do before Epic 5</strong> 5. <strong>Epic 5</strong> — Feature gating on mobile (10 tests) 6. <strong>Epic 5 Admin</strong> — Optional, needs admin login (4 tests) 7. <strong>Epic 6</strong> — Schedule sessions + attach content + share/notify (16 tests) 8. <strong>Epic 7</strong> — Player session content + drill progress + coach review + Home dashboard (15 tests) 9. <strong>Epic 8</strong> — Chat channels, rich messages, peer sharing (11 tests) 10. <strong>Epic 9 Mobile</strong> — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+ 11. <strong>Epic 9 Admin</strong> — Sanity Studio content schemas (optional, needs admin login) (4 tests) 12. <strong>Epic 10</strong> — Marketplace browse + purchase (4 tests) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+</p>
+<p>1. <strong>Epic 1</strong> — Smoke (2 tests) 2. <strong>Epic 2</strong> — Create all three accounts (6 tests) 3. <strong>Epic 3</strong> — Teams and rosters (7 tests) 4. <strong>Epic 4</strong> — Plans and payments (10 tests) — <strong>do before Epic 5</strong> 5. <strong>Epic 5</strong> — Feature gating on mobile (10 tests) 6. <strong>Epic 5 Admin</strong> — Optional, needs admin login (4 tests) 7. <strong>Epic 6</strong> — Schedule sessions + attach content + share/notify (16 tests) 8. <strong>Epic 7</strong> — Player session content + drill progress + coach review + Home dashboard (15 tests) 9. <strong>Epic 8</strong> — Chat channels, rich messages, peer sharing (11 tests) 10. <strong>Epic 9 Mobile</strong> — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+ 11. <strong>Epic 9 Admin</strong> — Sanity Studio content schemas (optional, needs admin login) (4 tests) 12. <strong>Epic 10</strong> — Marketplace browse + purchase + drip engine (4 click tests; drip unlock is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+</p>
 
 <p><strong>Estimated time:</strong> 4–6 hours for a full first pass, longer if you hit payment sync delays.</p>
 
@@ -1216,7 +1216,7 @@ ul, ol {
 
 <div class="page-break"></div>
 
-<h2>Epic 10 — Marketplace Browse &amp; Purchase (STORY-10.1)</h2>
+<h2>Epic 10 — Marketplace Browse, Purchase &amp; Drip Engine (STORY-10.1, STORY-10.2)</h2>
 
 <p>*Needs published Sanity packages (see <strong>E9-T17</strong> / <code>npm run seed:sanity</code>) with <strong>Display price</strong>, <strong>Rating</strong>, and a <strong>Stripe price ID</strong> on each package, plus <code>package_metadata</code> synced so checkout can resolve the price. Edge Functions must be running for package checkout (<code>create-package-checkout-session</code>) and Stripe webhooks (<code>stripe-webhook</code>). Use the Stripe test card from Part 1.*</p>
 
@@ -1252,7 +1252,7 @@ ul, ol {
 
 <h3>Not testable by clicking (for awareness only)</h3>
 
-<ul><li><strong>Stripe webhook → <code>purchases</code> row</strong> is verified in automated tests; if ownership never appears after a successful Checkout, check <code>stripe-webhook</code> logs and that <code>sync_purchase_from_stripe</code> migration is applied.</li><li><strong>Drip unlock / redistribute to roster</strong> after a team purchase is STORY-10.2+ — this epic only covers buying for team scope.</li></ul>
+<ul><li><strong>Stripe webhook → <code>purchases</code> row</strong> is verified in automated tests; if ownership never appears after a successful Checkout, check <code>stripe-webhook</code> logs and that <code>sync_purchase_from_stripe</code> migration is applied.</li><li><strong>STORY-10.2 drip engine (AC-1–AC-5)</strong> — no drip timeline UI yet (that is STORY-10.3). After purchase, the webhook seeds <code>drip_progress</code> (first module unlocked immediately; later modules on the package cadence). Due unlocks run via <code>process-drip-unlocks</code> and enqueue <code>drip_module_unlocked</code> (native push is still DEP-07 / STORY-14.1). Confirmed product rules: same cadence for all tiers (OQ-14.3); upgrading mid-drip does not unlock remaining modules early (OQ-14.5).</li><li><strong>Redistribute purchased content to roster</strong> remains a later marketplace story — this epic covers buying + drip schedule seeding, not team redistribution UX.</li></ul>
 
 <hr />
 

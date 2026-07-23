@@ -323,6 +323,19 @@ export {
   type CreatePackageCheckoutRequest,
 } from './marketplace/purchase.js';
 export {
+  DEFAULT_DRIP_INTERVAL_DAYS,
+  INITIAL_UNLOCK_MODULE_COUNT,
+  canConfigureDripSchedule,
+  normalizeDripIntervalDays,
+  effectiveDripIntervalDays,
+  buildDripUnlockSchedule,
+  rebuildDripScheduleAfterUpgrade,
+  selectDueDripUnlocks,
+  type DripModuleUnlockPlan,
+  type DripUnlockCandidate,
+  type DripModuleUnlockedPayload,
+} from './marketplace/drip.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

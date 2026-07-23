@@ -67,6 +67,7 @@
     "test:story-9.4": "vitest run --reporter=json -t STORY_9_4",
     "test:story-9.5": "vitest run --reporter=json -t STORY_9_5",
     "test:story-10.1": "vitest run --reporter=json -t STORY_10_1",
+    "test:story-10.2": "vitest run --reporter=json -t STORY_10_2",
     "typecheck": "npm run typecheck -w @coach360/admin && npm run typecheck -w @coach360/api && npm run typecheck -w @coach360/domain && npm run typecheck -w @coach360/ui",
     "db:types": "mkdir -p apps/mobile/src/types && supabase gen types typescript --local --schema public > apps/mobile/src/types/database.ts",
     "db:verify": "supabase db reset --no-seed && vitest run -t STORY_1_1",
