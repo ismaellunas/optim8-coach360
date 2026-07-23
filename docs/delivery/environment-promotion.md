@@ -108,9 +108,18 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
 | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | PR + push to `main` | Lint, typecheck, story tests 1.2–1.4, Android `assembleRelease` |
+| [`.github/workflows/supabase-deploy.yml`](../../.github/workflows/supabase-deploy.yml) | Push to `main` (paths under `supabase/**`) + manual dispatch | Incremental `db push` + `functions deploy`. No `db reset`. |
 | Vercel Git integration (`apps/admin`) | Push to `main` | `build:admin` on Vercel → production deploy |
 | Vercel Git integration (`apps/mobile`) | Push to `main` | `build:mobile` on Vercel → production deploy (browser) |
 | GitHub Pages (`docs/`) | Push to `main` | Tracker + markdown docs (branch deploy, no Actions workflow) |
+
+**Supabase deploy secrets** (repo → Settings → Secrets and variables → Actions):
+
+| Secret | Source |
+|--------|--------|
+| `SUPABASE_ACCESS_TOKEN` | Dashboard → Account → Access Tokens |
+| `SUPABASE_PROJECT_ID` | Project Settings → General → Reference ID |
+| `SUPABASE_DB_PASSWORD` | Project Settings → Database → database password |
 
 **Note:** STORY-1.1 database tests (`db:verify`) require local Supabase Docker and are not run in default CI. Run manually before schema promotions.
 
