@@ -49,10 +49,20 @@ export type ContentAssignedNotificationPayload = {
   event: 'content_assigned';
 };
 
+/** STORY-10.2 / DEP-07 — new drip module available (FCM/APNs via STORY-14.1). */
+export type DripModuleUnlockedNotificationPayload = {
+  purchaseId: string;
+  profileId: string;
+  moduleId: string;
+  sanityDocumentId: string | null;
+  event: 'drip_module_unlocked';
+};
+
 export type NotificationRepository = {
   enqueueRosterChange(payload: RosterNotificationPayload): void;
   enqueueSessionChange(payload: SessionNotificationPayload): void;
   enqueueSessionReminder(payload: SessionReminderPayload): void;
   enqueueTrialExpiryWarning(payload: TrialExpiryWarningPayload): void;
   enqueueContentAssigned(payload: ContentAssignedNotificationPayload): void;
+  enqueueDripModuleUnlocked(payload: DripModuleUnlockedNotificationPayload): void;
 };

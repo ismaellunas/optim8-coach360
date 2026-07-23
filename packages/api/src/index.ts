@@ -29,6 +29,7 @@ export type {
   SessionReminderPayload,
   TrialExpiryWarningPayload,
   ContentAssignedNotificationPayload,
+  DripModuleUnlockedNotificationPayload,
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
 export type {

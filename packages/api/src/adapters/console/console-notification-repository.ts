@@ -1,5 +1,6 @@
 import type {
   ContentAssignedNotificationPayload,
+  DripModuleUnlockedNotificationPayload,
   NotificationRepository,
   RosterNotificationPayload,
   SessionNotificationPayload,
@@ -33,6 +34,12 @@ export class ConsoleNotificationRepository implements NotificationRepository {
   }
 
   enqueueContentAssigned(payload: ContentAssignedNotificationPayload): void {
+    if (typeof console !== 'undefined' && typeof console.debug === 'function') {
+      console.debug('[notifications]', payload.event, payload);
+    }
+  }
+
+  enqueueDripModuleUnlocked(payload: DripModuleUnlockedNotificationPayload): void {
     if (typeof console !== 'undefined' && typeof console.debug === 'function') {
       console.debug('[notifications]', payload.event, payload);
     }

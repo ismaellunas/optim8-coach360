@@ -196,11 +196,11 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 14.1 | Who configures drip schedules — **admin globally**, **coach per package** (Pro), or both? | Matrix: coach ○ at Pro, admin always | | | |
-| 14.2 | Default drip cadence options — weekly, biweekly, custom per module? | Flow 14 italic rule | | | |
-| 14.3 | Does **higher subscription tier** unlock drip **faster** for the same package? Confirm rules. | Tier-dependent drip speed | | | |
+| 14.1 | Who configures drip schedules — **admin globally**, **coach per package** (Pro), or both? | Matrix: coach ○ at Pro, admin always | **Coach per package (Pro).** Package `dripSchedule` in Sanity; admin global rules deferred (STORY-12.x). | product | 2026-07-23 |
+| 14.2 | Default drip cadence options — weekly, biweekly, custom per module? | Flow 14 italic rule | **Weekly / biweekly / custom** via positive `intervalDays` (7, 14, or any custom day count). Not per-module offsets in MVP. | product | 2026-07-23 |
+| 14.3 | Does **higher subscription tier** unlock drip **faster** for the same package? Confirm rules. | Tier-dependent drip speed | **No.** Same package cadence for all paid tiers (STORY-10.2). | product | 2026-07-23 |
 | 14.4 | Package structure — **program → modules → lessons → items**? How many levels? | Content model + dripping | | | |
-| 14.5 | If a user upgrades mid-drip, do previously locked modules unlock immediately? | Flow 17 interaction | | | |
+| 14.5 | If a user upgrades mid-drip, do previously locked modules unlock immediately? | Flow 17 interaction | **No.** Upgrade does not change remaining unlock dates (STORY-10.2). | product | 2026-07-23 |
 
 ---
 

@@ -90,12 +90,15 @@ export const trainingPackage = defineType({
       name: 'dripSchedule',
       title: 'Drip schedule',
       type: 'object',
+      description:
+        'OQ-14.1 — Coach Pro configures per package. OQ-14.2 — weekly (7), biweekly (14), or any custom positive day count.',
       fields: [
         defineField({
           name: 'intervalDays',
           title: 'Days between modules',
           type: 'number',
-          validation: (Rule) => Rule.min(0).integer(),
+          description: 'Positive days between module unlocks (7 = weekly, 14 = biweekly, or custom).',
+          validation: (Rule) => Rule.min(1).integer(),
         }),
         defineField({
           name: 'notes',

@@ -150,7 +150,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
-12. **Epic 10** — Marketplace browse + purchase (4 tests) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+
+12. **Epic 10** — Marketplace browse + purchase + drip engine (4 click tests; drip unlock is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1266,7 +1266,7 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 <div class="page-break"></div>
 
-## Epic 10 — Marketplace Browse & Purchase (STORY-10.1)
+## Epic 10 — Marketplace Browse, Purchase & Drip Engine (STORY-10.1, STORY-10.2)
 
 *Needs published Sanity packages (see **E9-T17** / `npm run seed:sanity`) with **Display price**, **Rating**, and a **Stripe price ID** on each package, plus `package_metadata` synced so checkout can resolve the price. Edge Functions must be running for package checkout (`create-package-checkout-session`) and Stripe webhooks (`stripe-webhook`). Use the Stripe test card from Part 1.*
 
@@ -1308,7 +1308,8 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 ### Not testable by clicking (for awareness only)
 
 - **Stripe webhook → `purchases` row** is verified in automated tests; if ownership never appears after a successful Checkout, check `stripe-webhook` logs and that `sync_purchase_from_stripe` migration is applied.
-- **Drip unlock / redistribute to roster** after a team purchase is STORY-10.2+ — this epic only covers buying for team scope.
+- **STORY-10.2 drip engine (AC-1–AC-5)** — no drip timeline UI yet (that is STORY-10.3). After purchase, the webhook seeds `drip_progress` (first module unlocked immediately; later modules on the package cadence). Due unlocks run via `process-drip-unlocks` and enqueue `drip_module_unlocked` (native push is still DEP-07 / STORY-14.1). Confirmed product rules: same cadence for all tiers (OQ-14.3); upgrading mid-drip does not unlock remaining modules early (OQ-14.5).
+- **Redistribute purchased content to roster** remains a later marketplace story — this epic covers buying + drip schedule seeding, not team redistribution UX.
 
 ---
 

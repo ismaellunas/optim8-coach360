@@ -2984,40 +2984,58 @@
         {
           "id": "AC-1",
           "statement": "Initial modules unlock immediately on purchase (e.g. lessons 1–4)",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC1_initial_module_unlocks_on_purchase"
         },
         {
           "id": "AC-2",
           "statement": "Subsequent modules unlock per configured cadence (weekly/biweekly)",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC2_subsequent_modules_follow_cadence"
         },
         {
           "id": "AC-3",
           "statement": "Push notification sent when new module available",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC3_enqueue_push_on_module_unlock"
         },
         {
           "id": "AC-4",
           "statement": "Higher tier may accelerate drip per OQ-14.3 resolution",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC4_no_tier_acceleration_same_cadence"
         },
         {
           "id": "AC-5",
           "statement": "Upgrade mid-drip unlock behavior per OQ-14.5",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC5_upgrade_mid_drip_no_schedule_change"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "supabase/ (inferred)",
-          "lib/drip/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC1_initial_module_unlocks_on_purchase",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC2_subsequent_modules_follow_cadence",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC3_enqueue_push_on_module_unlock",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC4_no_tier_acceleration_same_cadence",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC5_upgrade_mid_drip_no_schedule_change"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/drip.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/notification-repository.ts",
+          "packages/api/src/adapters/console/console-notification-repository.ts",
+          "packages/api/src/index.ts",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "supabase/migrations/20260723140000_drip_schedule_engine.sql",
+          "supabase/functions/process-drip-unlocks/handler.ts",
+          "supabase/functions/process-drip-unlocks/index.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "docs/product/stakeholder-questions.md",
+          "tests/marketplace/story-10.2.test.js",
+          "package.json",
+          "apps/mobile/src/types/database.ts"
+        ],
+        "command": "npm run test:story-10.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Drip engine seeds first module on purchase; cadence from package intervalDays; enqueue drip_module_unlocked (DEP-07). OQ-14.3=no acceleration; OQ-14.5=no mid-upgrade unlock. npm run test:story-10.2 — AC1–AC5 pass."
     },
     {
       "id": "STORY-10.3",
