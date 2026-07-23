@@ -3032,35 +3032,50 @@
         {
           "id": "AC-1",
           "statement": "Drip schedule and next unlock date visible on package detail",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC1_drip_schedule_and_next_unlock_on_detail"
         },
         {
           "id": "AC-2",
           "statement": "Progress bar reflects completed lessons vs total",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC2_progress_bar_completed_vs_total"
         },
         {
           "id": "AC-3",
           "statement": "Locked modules show unlock date or tier requirement",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC3_locked_modules_show_unlock_or_tier"
         },
         {
           "id": "AC-4",
           "statement": "Completion data available to coach for team purchases",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC4_coach_team_purchase_completion"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC1_drip_schedule_and_next_unlock_on_detail",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC2_progress_bar_completed_vs_total",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC3_locked_modules_show_unlock_or_tier",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC4_coach_team_purchase_completion"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/drip-progress.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/marketplace-drip-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-marketplace-drip-repository.ts",
+          "packages/api/src/adapters/rest/rest-marketplace-drip-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "apps/mobile/src/features/marketplace/ui/OwnedPackageProgress.jsx",
+          "apps/mobile/src/features/marketplace/ui/TeamPackageCompletion.jsx",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "supabase/migrations/20260723160000_drip_progress_completion.sql"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_10_3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Owned package detail now shows drip schedule, next unlock, module-completion progress bar, and per-module lock state (unlock date or tier requirement for trial); team purchases seed drip rows for active roster players and buyer coach reads per-player completion via list_team_purchase_completions. All 4 AC tests pass (vitest)."
     },
     {
       "id": "STORY-10.4",

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { canPurchaseForTeamDistribution } from '@coach360/domain';
+import { canAccessDrippedContent, canPurchaseForTeamDistribution } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
+import { OwnedPackageProgress } from '@/features/marketplace/ui/OwnedPackageProgress.jsx';
+import { TeamPackageCompletion } from '@/features/marketplace/ui/TeamPackageCompletion.jsx';
 import {
   Badge,
   Button as Btn,
@@ -86,6 +88,7 @@ function mapCatalogRow(row, ownedIds) {
     own: ownedIds.has(row.id),
     c: colorForTag(row.tag),
     description: row.description,
+    dr: row.dripLabel || null,
   };
 }
 
@@ -107,6 +110,7 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   const [purchaseScope, setPurchaseScope] = useState('personal');
   const [teams, setTeams] = useState([]);
   const [teamId, setTeamId] = useState('');
+  const [ownedPurchases, setOwnedPurchases] = useState([]);
 
   const allowTeamPurchase = canPurchaseForTeamDistribution(user?.role, user?.tier);
 
@@ -127,10 +131,12 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
         repos.marketplacePurchases.listOwned().catch(() => []),
       ]);
       const ownedIds = new Set((owned || []).map((p) => p.sanityDocumentId));
+      setOwnedPurchases(owned || []);
       setPkgs((rows || []).map((row) => mapCatalogRow(row, ownedIds)));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'catalog_load_failed');
       setPkgs([]);
+      setOwnedPurchases([]);
     } finally {
       setLoading(false);
     }
@@ -294,7 +300,22 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
             </Btn>
           </div>
         ) : (
-          <div className="mt-5 font-body text-sm font-semibold text-coach-green">Owned</div>
+          (() => {
+            const purchase = ownedPurchases.find((p) => p.sanityDocumentId === pk.id) || null;
+            const hasDripAccess = canAccessDrippedContent(user?.tier);
+            return (
+              <>
+                <OwnedPackageProgress
+                  purchaseId={purchase?.id ?? null}
+                  hasDripAccess={hasDripAccess}
+                  dripLabel={pk.dr}
+                />
+                {purchase?.scope === 'team' ? (
+                  <TeamPackageCompletion purchaseId={purchase.id} />
+                ) : null}
+              </>
+            );
+          })()
         )}
       </ScreenContainer>
     );

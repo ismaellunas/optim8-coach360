@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { buildMuxHlsUrl, mapContentError } from '@coach360/domain';
+import { buildMuxHlsUrl, canAccessDrippedContent, mapContentError } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { SessionVideoPlayer } from '@/features/session/ui/SessionVideoPlayer.jsx';
+import { OwnedPackageProgress } from '@/features/marketplace/ui/OwnedPackageProgress.jsx';
 import {
   Badge,
   Button as Btn,
@@ -80,6 +81,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
   const [viewing, setViewing] = useState(null);
   const [viewingAssigned, setViewingAssigned] = useState(null);
   const [pkgs, setPkgs] = useState([]);
+  const [ownedPurchases, setOwnedPurchases] = useState([]);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [checkoutError, setCheckoutError] = useState(null);
 
@@ -95,6 +97,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
         ]);
         if (cancelled) return;
         const ownedIds = new Set((owned || []).map((p) => p.sanityDocumentId));
+        setOwnedPurchases(owned || []);
         setPkgs(
           (rows || []).map((row, index) => ({
             id: row.id,
@@ -107,11 +110,14 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
             own: ownedIds.has(row.id),
             c: COLORS[['orange', 'blue', 'purple', 'yellow'][index % 4]] || COLORS.orange,
             description: row.description,
-            pr: 0,
+            dr: row.dripLabel || null,
           })),
         );
       } catch {
-        if (!cancelled) setPkgs([]);
+        if (!cancelled) {
+          setPkgs([]);
+          setOwnedPurchases([]);
+        }
       }
     })();
     return () => {
@@ -217,25 +223,13 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
         </div>
         {/* OQ-4.6: no outline or drip schedule preview before purchase */}
         {pk.own ? (
-          <div className="mt-4">
-            <div className="mb-1.5 flex justify-between">
-              <span className="font-body text-xs text-coach-t2">Progress</span>
-              <span
-                className={`font-mono text-xs ${pk.pr === 100 ? 'text-coach-green' : 'text-coach-orange'}`}
-              >
-                {pk.pr + '%'}
-              </span>
-            </div>
-            <div className="h-2 rounded bg-coach-border">
-              <div
-                className="h-full rounded"
-                style={{
-                  width: pk.pr + '%',
-                  backgroundColor: pk.pr === 100 ? COLORS.green : COLORS.orange,
-                }}
-              />
-            </div>
-          </div>
+          <OwnedPackageProgress
+            purchaseId={
+              (ownedPurchases.find((p) => p.sanityDocumentId === pk.id) || {}).id ?? null
+            }
+            hasDripAccess={canAccessDrippedContent(user?.tier)}
+            dripLabel={pk.dr}
+          />
         ) : (
           <div className="mt-5">
             {checkoutError ? (

@@ -171,8 +171,8 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 12.1 | What is the difference between a **session**, a **package**, and a **playbook/strategy** in the data model? | Undocumented packaging process | | | |
-| 12.2 | Is **strategy** the same as **playbook**, or is playbook a container of strategies + drills? | Terminology | | | |
+| 12.1 | What is the difference between a **session**, a **package**, and a **playbook/strategy** in the data model? | Undocumented packaging process | **Session** = scheduled calendar plan only (date, time, recipients); it **references** reusable content, it is not a library object. **Package** = reusable non-calendar bundle for distribution/marketplace. **Playbooks/strategies live in a parallel reusable content library**, not the curriculum hierarchy (OQ-14.4 unchanged): Strategy (Play) = leaf; Playbook = container of strategies/plays. Lessons, Sessions, and Packages **reference** library objects (drills, videos, strategies, playbooks, assessments) so the same item is reusable without duplication. | product | 2026-07-23 |
+| 12.2 | Is **strategy** the same as **playbook**, or is playbook a container of strategies + drills? | Terminology | **Not the same.** Strategy (or Play) = leaf content item; **Playbook = container of multiple strategies/plays** in the reusable content library (OQ-12.1). | product | 2026-07-23 |
 | 12.3 | Packaging workflow — create atomic items first then bundle, or build package in one flow? | UX and DEP-04 | | | |
 | 12.4 | Max video length/size for coach uploads? Transcoding required (Mux)? | Video pipeline | | | |
 | 12.5 | Can coaches **edit/delete** content after distribution, and what happens for players who already started it? | Content lifecycle | | | |
@@ -199,7 +199,7 @@
 | 14.1 | Who configures drip schedules — **admin globally**, **coach per package** (Pro), or both? | Matrix: coach ○ at Pro, admin always | **Coach per package (Pro).** Package `dripSchedule` in Sanity; admin global rules deferred (STORY-12.x). | product | 2026-07-23 |
 | 14.2 | Default drip cadence options — weekly, biweekly, custom per module? | Flow 14 italic rule | **Weekly / biweekly / custom** via positive `intervalDays` (7, 14, or any custom day count). Not per-module offsets in MVP. | product | 2026-07-23 |
 | 14.3 | Does **higher subscription tier** unlock drip **faster** for the same package? Confirm rules. | Tier-dependent drip speed | **No.** Same package cadence for all paid tiers (STORY-10.2). | product | 2026-07-23 |
-| 14.4 | Package structure — **program → modules → lessons → items**? How many levels? | Content model + dripping | | | |
+| 14.4 | Package structure — **program → modules → lessons → items**? How many levels? | Content model + dripping | **Yes — four levels as in content-model.md.** `TrainingProgram` (marketplace listing) → `Module` (drip unlock unit, e.g. lessons 1–4) → `Lesson` → `ContentItem` (Drill \| Video \| Strategy). Drip schedule and `drip_progress` operate at the **module** level; lesson/item completion rolls up under modules (STORY-10.3). | product | 2026-07-23 |
 | 14.5 | If a user upgrades mid-drip, do previously locked modules unlock immediately? | Flow 17 interaction | **No.** Upgrade does not change remaining unlock dates (STORY-10.2). | product | 2026-07-23 |
 
 ---
