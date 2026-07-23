@@ -23,6 +23,12 @@ const PEER_SQL_PATH = path.join(
   'migrations',
   '20260722140000_peer_knowledge_sharing.sql',
 );
+const PEER_CONSTRAINT_FIX_SQL_PATH = path.join(
+  REPO_ROOT,
+  'supabase',
+  'migrations',
+  '20260723230100_fix_peer_share_chat_constraints.sql',
+);
 const PEER_SHARE_DOMAIN_PATH = path.join(
   REPO_ROOT,
   'packages',
@@ -135,7 +141,8 @@ describe('STORY_8_3 AC1 — Advanced+ share achievements to team chat', () => {
     expect(previewBodyForMessage('achievement', '', achievement)).toBe(achievement.title);
 
     expect(existsSync(PEER_SQL_PATH)).toBe(true);
-    const sql = readFileSync(PEER_SQL_PATH, 'utf8');
+    expect(existsSync(PEER_CONSTRAINT_FIX_SQL_PATH)).toBe(true);
+    const sql = readFileSync(PEER_CONSTRAINT_FIX_SQL_PATH, 'utf8');
     expect(sql).toMatch(/achievement/);
     expect(sql).toMatch(/shareType/);
 
@@ -168,7 +175,7 @@ describe('STORY_8_3 AC2 — insight/tips formatted team channel message', () => 
     expect(attachment.shareType).toBe('insight');
     expect(previewBodyForMessage('insight', '', attachment)).toBe('Form tip');
 
-    const sql = readFileSync(PEER_SQL_PATH, 'utf8');
+    const sql = readFileSync(PEER_CONSTRAINT_FIX_SQL_PATH, 'utf8');
     expect(sql).toMatch(/insight/);
     expect(sql).toMatch(/attachment \? 'tip'/);
 
