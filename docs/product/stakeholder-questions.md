@@ -14,13 +14,13 @@
 
 | Ref | Question (short) | Flow |
 | --- | --- | --- |
-| 2.1 | What does “track own progress” mean at Basic tier? | 2 |
+| 2.1 | What does “track own progress” mean at Basic tier? — **resolved 2026-07-23: Basic ◎ log + count; Advanced ○ locked; Pro ✓ full dashboard** | 2 |
 | 2.2 | What is included in “Full MVP access” at Pro tier? | 2 |
-| 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule | 2 |
+| 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule — **resolved 2026-07-23: full coaching tools at Advanced; Pro = +AI/objectives/analytics** | 2 |
 | 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
 | 3.7 | Notifications on create/update/cancel/reminder? — **resolved 2026-07-21: immediate + 24h reminder** | 3 |
-| 4.1 | Who creates marketplace packages — admins, coaches, or both? | 4, 7, 12 |
+| 4.1 | Who creates marketplace packages — admins, coaches, or both? — **resolved 2026-07-23: both with approval** | 4, 7, 12 |
 | 6.1 | What does “set objectives” at Pro include? | 6 |
 | 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
 
@@ -42,9 +42,9 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 2.1 | **P0** — What does **“track own progress”** mean at **Basic** tier — drill logs only, completion %, stats, or full profile dashboard? | Undefined in tier breakdown (`what progress?`) | | | |
+| 2.1 | **P0** — What does **“track own progress”** mean at **Basic** tier — drill logs only, completion %, stats, or full profile dashboard? | Undefined in tier breakdown (`what progress?`) | **Basic players** can log drill completions (mark done + optional reps/time) and see a **completion count only** on Progress/Profile (◎, + upgrade banner). Full stats / practice-minute trends / progress dashboard are **Pro** ✓. **Advanced player Progress UI is ○ until Pro** — not the same as Basic ◎; Advanced sees an Upgrade-to-Pro lock (peer share on Progress remains Advanced+). Matches shipped STORY-7.2 / STORY-7.4 and `LAUNCH_ACCESS_BANDS.viewProgress` (player: `readonlyTiers: ['basic'], fullFrom: 'pro'`). | product | 2026-07-23 |
 | 2.2 | **P0** — What exactly is included in **“Full MVP access”** at **Pro** tier beyond what Advanced already gets? | Undefined in tier breakdown | | | |
-| 2.3 | **P0** — At **Advanced**, what are the precise boundaries for **coach & communicate**, **distribute content**, and **plan & schedule** vs Pro? | Three `(Need more Info)` items in estimate | | | |
+| 2.3 | **P0** — At **Advanced**, what are the precise boundaries for **coach & communicate**, **distribute content**, and **plan & schedule** vs Pro? | Three `(Need more Info)` items in estimate | **Advanced = full coaching tools without AI.** Communicate: full chat (team, DM, peer) at Advanced; Pro adds nothing for chat. Distribute: create + assign/share to own players/teams at Advanced; Pro adds nothing for distribution. Plan & schedule: full session planning at Advanced; Pro adds nothing for schedule. **○** = unlocks at a higher tier (same legend as OQ-6.5), not partial access — Advanced features above are ✓ at Advanced. **Pro** = Advanced + AI + objectives + full analytics. | product | 2026-07-23 |
 | 2.4 | What is the trial duration, and is it one trial per user, per device, or per Apple/Google account? | Trial logic (Flows 2, 9) | | | |
 | 2.5 | Does trial always grant **full Pro access**, or a subset? | Access matrix vs Flow 2 diagram | | | |
 | 2.6 | Are subscription tiers priced per user, per team, or per organization? | Stripe product design | | | |
@@ -71,12 +71,12 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 4.1 | **P0** — Who creates marketplace packages — **admins only**, **coaches only**, or **both** (with approval)? | Open question in Flow 4 intro | | | |
-| 4.2 | Can coach-created content (Flow 12) be **listed for sale** in the marketplace, or only distributed privately? | Marketplace supply model | | | |
-| 4.3 | What is the approval workflow before a package goes live (draft → review → publish)? | Flow 7 admin + DEP-05 | | | |
-| 4.4 | Who sets **pricing** — admin only, coaches with admin approval, or fixed catalog? | Admin matrix “configure pricing” | | | |
+| 4.1 | **P0** — Who creates marketplace packages — **admins only**, **coaches only**, or **both** (with approval)? | Open question in Flow 4 intro | **Both (with approval).** Coaches and admins may create marketplace packages; coach listings require admin approval before publish (STORY-10.4 / Path B). | product | 2026-07-23 |
+| 4.2 | Can coach-created content (Flow 12) be **listed for sale** in the marketplace, or only distributed privately? | Marketplace supply model | **Yes — after admin approval.** Coach-created library content may be bundled into a package and listed for sale via Path B (`pending_review` → approve → publish). Private Path A distribution remains without marketplace listing. | product | 2026-07-23 |
+| 4.3 | What is the approval workflow before a package goes live (draft → review → publish)? | Flow 7 admin + DEP-05 | **`draft → pending_review → approved \| rejected → published` (boolean).** Admin approves or rejects from the Content dashboard; publish requires approved status plus a Stripe price ID (STORY-10.4). | product | 2026-07-23 |
+| 4.4 | Who sets **pricing** — admin only, coaches with admin approval, or fixed catalog? | Admin matrix “configure pricing” | **Coach suggests; admin approves and may override.** Coach may set `suggestedPriceCents`; admin sets the final Stripe price ID and display price at publish (STORY-10.4). | product | 2026-07-23 |
 | 4.5 | Does **team age range** (Flow 11) hard-filter marketplace listings, or only affect AI recommendations? | Filtering rules | | | |
-| 4.6 | Can users **preview** package contents before purchase (trailer, sample lesson, outline)? | Marketplace UX | | | |
+| 4.6 | Can users **preview** package contents before purchase (trailer, sample lesson, outline)? | Marketplace UX | **No.** Pre-purchase catalog shows marketing metadata only (title, description, price, rating, skills, module count). No trailer, sample lesson, outline, or drip schedule preview before purchase (STORY-10.1 / OQ-4.6). | product | 2026-07-23 |
 | 4.7 | After purchase, can content be **re-downloaded offline**, or streaming only? | Mobile storage scope | | | |
 | 4.8 | What currencies and regions are supported at launch? | Stripe + localization | | | |
 
@@ -171,8 +171,8 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 12.1 | What is the difference between a **session**, a **package**, and a **playbook/strategy** in the data model? | Undocumented packaging process | | | |
-| 12.2 | Is **strategy** the same as **playbook**, or is playbook a container of strategies + drills? | Terminology | | | |
+| 12.1 | What is the difference between a **session**, a **package**, and a **playbook/strategy** in the data model? | Undocumented packaging process | **Session** = scheduled calendar plan only (date, time, recipients); it **references** reusable content, it is not a library object. **Package** = reusable non-calendar bundle for distribution/marketplace. **Playbooks/strategies live in a parallel reusable content library**, not the curriculum hierarchy (OQ-14.4 unchanged): Strategy (Play) = leaf; Playbook = container of strategies/plays. Lessons, Sessions, and Packages **reference** library objects (drills, videos, strategies, playbooks, assessments) so the same item is reusable without duplication. | product | 2026-07-23 |
+| 12.2 | Is **strategy** the same as **playbook**, or is playbook a container of strategies + drills? | Terminology | **Not the same.** Strategy (or Play) = leaf content item; **Playbook = container of multiple strategies/plays** in the reusable content library (OQ-12.1). | product | 2026-07-23 |
 | 12.3 | Packaging workflow — create atomic items first then bundle, or build package in one flow? | UX and DEP-04 | | | |
 | 12.4 | Max video length/size for coach uploads? Transcoding required (Mux)? | Video pipeline | | | |
 | 12.5 | Can coaches **edit/delete** content after distribution, and what happens for players who already started it? | Content lifecycle | | | |
@@ -196,11 +196,11 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 14.1 | Who configures drip schedules — **admin globally**, **coach per package** (Pro), or both? | Matrix: coach ○ at Pro, admin always | | | |
-| 14.2 | Default drip cadence options — weekly, biweekly, custom per module? | Flow 14 italic rule | | | |
-| 14.3 | Does **higher subscription tier** unlock drip **faster** for the same package? Confirm rules. | Tier-dependent drip speed | | | |
-| 14.4 | Package structure — **program → modules → lessons → items**? How many levels? | Content model + dripping | | | |
-| 14.5 | If a user upgrades mid-drip, do previously locked modules unlock immediately? | Flow 17 interaction | | | |
+| 14.1 | Who configures drip schedules — **admin globally**, **coach per package** (Pro), or both? | Matrix: coach ○ at Pro, admin always | **Coach per package (Pro).** Package `dripSchedule` in Sanity; admin global rules deferred (STORY-12.x). | product | 2026-07-23 |
+| 14.2 | Default drip cadence options — weekly, biweekly, custom per module? | Flow 14 italic rule | **Weekly / biweekly / custom** via positive `intervalDays` (7, 14, or any custom day count). Not per-module offsets in MVP. | product | 2026-07-23 |
+| 14.3 | Does **higher subscription tier** unlock drip **faster** for the same package? Confirm rules. | Tier-dependent drip speed | **No.** Same package cadence for all paid tiers (STORY-10.2). | product | 2026-07-23 |
+| 14.4 | Package structure — **program → modules → lessons → items**? How many levels? | Content model + dripping | **Yes — four levels as in content-model.md.** `TrainingProgram` (marketplace listing) → `Module` (drip unlock unit, e.g. lessons 1–4) → `Lesson` → `ContentItem` (Drill \| Video \| Strategy). Drip schedule and `drip_progress` operate at the **module** level; lesson/item completion rolls up under modules (STORY-10.3). | product | 2026-07-23 |
+| 14.5 | If a user upgrades mid-drip, do previously locked modules unlock immediately? | Flow 17 interaction | **No.** Upgrade does not change remaining unlock dates (STORY-10.2). | product | 2026-07-23 |
 
 ---
 
@@ -251,7 +251,7 @@
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
 | AC.1 | The matrix references **~223 rules** in benchmarks; MVP ships **basic gating only** (DEP-06). Which rules are **must-have for launch**? | Scope control (+40–80 h post-MVP) | | | |
-| AC.2 | Several cells use **◎ read-only** and **○ partial** — need a definitive list of what partial means per feature. | Implementation ambiguity | | | |
+| AC.2 | Several cells use **◎ read-only** and **○ partial** — need a definitive list of what partial means per feature. | Implementation ambiguity | **○ legend confirmed** (OQ-6.5 / OQ-2.3): ○ means “available at a higher tier,” not partial access at the current tier. Per-feature **◎ read-only** list and remaining matrix cells still need a definitive MVP list (AC.1). | product | 2026-07-23 |
 | AC.3 | **Trial** column mirrors Pro in many rows — confirm trial = Pro for all features, or exceptions? | Consistent gating | | | |
 | AC.4 | Can a **Basic coach** purchase and use content without Advanced coaching features? | Independent coach path | | | |
 | AC.5 | English only at launch, or multi-language required? | SOW assumption | | | |

@@ -52,20 +52,77 @@ export const trainingPackage = defineType({
     workflowStatusField,
     publishedField,
     defineField({
+      name: 'createdByRole',
+      title: 'Created by',
+      type: 'string',
+      description:
+        'OQ-4.1 — Both coaches and admins may create packages. Coach listings need admin approval.',
+      options: {
+        list: [
+          { title: 'Coach', value: 'coach' },
+          { title: 'Admin', value: 'admin' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'coach',
+    }),
+    defineField({
+      name: 'suggestedPriceCents',
+      title: 'Suggested price (minor units)',
+      type: 'number',
+      description:
+        'OQ-4.4 — Coach suggestion for catalog display price. Admin sets final Stripe price ID and may override.',
+      validation: (Rule) => Rule.min(0).integer(),
+    }),
+    defineField({
       name: 'stripePriceId',
       title: 'Stripe price ID',
       type: 'string',
+      description: 'Admin-owned Stripe Price id required before publish (price_…).',
+    }),
+    defineField({
+      name: 'priceCents',
+      title: 'Display price (minor units)',
+      type: 'number',
+      description:
+        'Admin-finalized catalog amount in the currency below, expressed in minor units (e.g. 2900 = $29.00 for USD or 29.00 kr for SEK).',
+      validation: (Rule) => Rule.min(0).integer(),
+    }),
+    defineField({
+      name: 'currency',
+      title: 'Currency',
+      type: 'string',
+      description:
+        'ISO 4217 code matching the Stripe Price this package charges (usd, sek, eur, …). Defaults to usd when empty.',
+      validation: (Rule) =>
+        Rule.custom((value) => {
+          if (value === undefined || value === null || value === '') return true;
+          if (typeof value !== 'string') return 'Must be a string';
+          return /^[A-Za-z]{3}$/.test(value.trim())
+            ? true
+            : 'Must be a 3-letter ISO 4217 code (e.g. usd, sek, eur)';
+        }),
+    }),
+    defineField({
+      name: 'rating',
+      title: 'Rating',
+      type: 'number',
+      description: 'Catalog rating 0–5 (optional).',
+      validation: (Rule) => Rule.min(0).max(5),
     }),
     defineField({
       name: 'dripSchedule',
       title: 'Drip schedule',
       type: 'object',
+      description:
+        'OQ-14.1 — Coach Pro configures per package. OQ-14.2 — weekly (7), biweekly (14), or any custom positive day count.',
       fields: [
         defineField({
           name: 'intervalDays',
           title: 'Days between modules',
           type: 'number',
-          validation: (Rule) => Rule.min(0).integer(),
+          description: 'Positive days between module unlocks (7 = weekly, 14 = biweekly, or custom).',
+          validation: (Rule) => Rule.min(1).integer(),
         }),
         defineField({
           name: 'notes',

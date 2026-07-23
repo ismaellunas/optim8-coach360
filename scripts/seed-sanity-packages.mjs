@@ -34,6 +34,9 @@ const PACKAGES = [
     ageRange: { _type: 'ageRange', min: 12, max: 18 },
     objectives: ['Improve shooting percentage', 'Build consistent free-throw routine'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
+    priceCents: 2900,
+    currency: 'usd',
+    rating: 4.8,
     drill: {
       title: 'Form shooting ladder',
       instructions: 'Start close to the rim. Make 5, step back. Focus on elbow and follow-through.',
@@ -50,6 +53,9 @@ const PACKAGES = [
     ageRange: { _type: 'ageRange', min: 13, max: 17 },
     objectives: ['Improve on-ball pressure', 'Reduce blow-by drives'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
+    priceCents: 2500,
+    currency: 'usd',
+    rating: 4.6,
     drill: {
       title: 'Closeout + slide',
       instructions: 'Sprint to closeout, chop feet, then defensive slides along the arc.',
@@ -66,6 +72,9 @@ const PACKAGES = [
     ageRange: { _type: 'ageRange', min: 14, max: 18 },
     objectives: ['Improve decision speed', 'Reduce turnovers under pressure'],
     dripSchedule: { intervalDays: 7, notes: 'One module per week' },
+    priceCents: 2700,
+    currency: 'usd',
+    rating: 4.7,
     drill: {
       title: '3-man weave read',
       instructions: 'Run weave; on coach signal, skip pass or attack. Keep eyes up.',
@@ -183,6 +192,9 @@ function buildMutationsForPackage(pkg) {
         status: 'approved',
         published: true,
         dripSchedule: pkg.dripSchedule,
+        priceCents: pkg.priceCents,
+        currency: pkg.currency,
+        rating: pkg.rating,
       },
     },
   ];

@@ -35,6 +35,26 @@ const CURRENT_RBAC_MIGRATION_PATH = path.join(
 /** @deprecated alias — AC1–AC4 still assert against the original launch-matrix file. */
 const MIGRATION_PATH = LAUNCH_MATRIX_MIGRATION_PATH;
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
+const STORE_SCREEN_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'marketplace',
+  'ui',
+  'StoreScreen.jsx',
+);
+const PLAYER_CONTENT_SCREEN_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'content',
+  'ui',
+  'PlayerContentScreen.jsx',
+);
 const LAUNCH_MATRIX_PATH = path.join(
   REPO_ROOT,
   'packages',
@@ -157,11 +177,18 @@ describe('STORY_5_2 AC4 — ◎ read-only and ○ higher-tier behaviors document
     expect(featureAccessLevel('player', 'advanced', 'viewTrainingMaterials')).toBe('full');
     expect(featureAccessLevel('player', 'basic', 'watchSharedVideo')).toBe('readonly');
 
-    // Mobile wires browseMarketplace access level (◎ trial banner / gate).
+    // App shell still wires featureAccessLevel for tier-scoped screens (viewProgress etc.).
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/featureAccessLevel/);
-    expect(app).toMatch(/browseMarketplace/);
-    expect(app).toMatch(/Browse only/);
+
+    // Marketplace screens wire browseMarketplace access level (◎ trial banner / gate).
+    const storeScreen = readFileSync(STORE_SCREEN_PATH, 'utf8');
+    expect(storeScreen).toMatch(/browseMarketplace/);
+    expect(storeScreen).toMatch(/Browse only/);
+
+    const playerContentScreen = readFileSync(PLAYER_CONTENT_SCREEN_PATH, 'utf8');
+    expect(playerContentScreen).toMatch(/browseMarketplace/);
+    expect(playerContentScreen).toMatch(/Browse only/);
   });
 });
 

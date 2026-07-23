@@ -14,6 +14,10 @@ export type SanityWebhookDocument = {
   dripSchedule?: Record<string, unknown> | null;
   status?: string | null;
   published?: boolean | null;
+  suggestedPriceCents?: number | null;
+  priceCents?: number | null;
+  currency?: string | null;
+  createdByRole?: string | null;
   modules?: Array<{ _ref?: string; _type?: string } | string> | null;
   /** When true (or operation delete), treat as unpublish/delete. */
   _deleted?: boolean;
@@ -32,6 +36,10 @@ export type PackageMetadataUpsert = {
   workflow_status: string | null;
   published: boolean;
   module_ids: string[];
+  suggested_price_cents: number | null;
+  price_cents: number | null;
+  currency: string | null;
+  created_by_role: string | null;
 };
 
 export type RagEmbeddingJobInsert = {
@@ -93,6 +101,11 @@ export function mapPackageMetadata(doc: SanityWebhookDocument): PackageMetadataU
     workflow_status: doc.status?.trim() || null,
     published,
     module_ids: moduleIdsFromDoc(doc),
+    suggested_price_cents:
+      typeof doc.suggestedPriceCents === 'number' ? doc.suggestedPriceCents : null,
+    price_cents: typeof doc.priceCents === 'number' ? doc.priceCents : null,
+    currency: doc.currency?.trim()?.toLowerCase() || null,
+    created_by_role: doc.createdByRole?.trim() || null,
   };
 }
 
@@ -160,22 +173,24 @@ export async function verifySanityWebhookSignature(options: {
   rawBody: string;
   signatureHeader: string | null;
   secret: string;
-}): Promise<boolean> {
+}): Promise<'ok' | 'missing' | 'malformed' | 'mismatch'> {
   const header = options.signatureHeader?.trim() || '';
-  if (!header || !options.secret) return false;
+  const secret = options.secret.trim();
+  if (!secret) return 'missing';
+  if (!header) return 'missing';
 
   const match = header.match(/^t=(\d+)[, ]+v1=([^, ]+)$/);
-  if (!match) return false;
+  if (!match) return 'malformed';
 
   const timestamp = Number(match[1]);
-  if (!Number.isFinite(timestamp) || timestamp < 1_609_459_200_000) return false;
+  const provided = match[2];
+  if (!Number.isFinite(timestamp) || timestamp < 1_609_459_200_000 || !provided) {
+    return 'malformed';
+  }
 
-  const expected = await encodeSanityWebhookSignature(
-    options.rawBody,
-    options.secret,
-    timestamp,
-  );
-  return timingSafeEqualString(expected, header);
+  // Compare digest only — header may use `t=…,v1=…` or `t=…, v1=…`.
+  const expectedDigest = await createHs256Base64Url(options.rawBody, timestamp, secret);
+  return timingSafeEqualString(expectedDigest, provided) ? 'ok' : 'mismatch';
 }
 
 async function createHs256Base64Url(

@@ -4,7 +4,7 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–9, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–10, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
 
@@ -150,9 +150,10 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
-12. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
+12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
+13. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
-**Estimated time:** 3.5–5.5 hours for a full first pass, longer if you hit payment sync delays.
+**Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
 ---
 
@@ -1264,6 +1265,127 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
+<div class="page-break"></div>
+
+## Epic 10 — Marketplace Browse, Purchase, Drip Progress & Supply (STORY-10.1–10.4)
+
+*Needs published Sanity packages (see **E9-T17** / `npm run seed:sanity`) with **Display price**, **Rating**, and a **Stripe price ID** on each package, plus `package_metadata` synced so checkout can resolve the price. Edge Functions must be running for package checkout (`create-package-checkout-session`), Stripe webhooks (`stripe-webhook`), and for **E10-T9–T11** the admin review function (`review-marketplace-package`) with `SANITY_API_TOKEN` set. Use the Stripe test card from Part 1. For **E10-T5–T8**, the purchase webhook must have seeded drip progress (wait ~30s after Checkout, or refresh), and the drip-progress completion migration must be applied. For supply tests, the marketplace supply migration must be applied.*
+
+**Accounts needed:** Coach or Player on **Basic+** for personal purchase and drip progress; **Coach on Advanced or Pro** with a team (and roster players) for team purchase + team completion; **Admin** for Content → Package review queue (E10-T9–T11).
+
+### E10-T1: Store lists title, price, rating, and skills (STORY-10.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as a **Coach** (or Player) who can browse the marketplace. | Home screen. |
+| 2 | Open **Store** (Coach/Team Manager) or **Content** (Player). | Catalog cards load. |
+| 3 | Scan a package card (e.g. **Elite Shooting System**). | Card shows **title**, **price** (e.g. `$29`), **rating** (★), and **skills** tags (not only a single filter badge). |
+| 4 | Tap the card. | Package detail repeats title, rating, skills, and price on the purchase button. |
+
+### E10-T2: No outline or drip preview before purchase (STORY-10.1 AC-2 / OQ-4.6)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open an **unowned** package detail from **Store** / **Content**. | Title, description, skills, rating, module/lesson count. |
+| 2 | Look for outline, module list, trailer, sample lesson, or drip schedule preview. | Those are **not** shown before purchase. |
+
+### E10-T3: Purchase with Stripe records ownership (STORY-10.1 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On an unowned package, keep **Personal** selected (Coach) or use the default purchase button (Player). Tap **Purchase $…**. | Stripe Checkout opens (or paywall first if plan is too low). |
+| 2 | Pay with the test card `4242 4242 4242 4242`. | Checkout succeeds and returns to the app. |
+| 3 | Wait ~30 seconds, reopen **Store** / package detail. | Package shows **Owned** (or ownership after refresh). |
+
+### E10-T4: Coach Advanced+ can purchase for a team (STORY-10.1 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as a **Coach on Advanced or Pro** with at least one team. Open an unowned package. | **Personal** / **For team** options appear. |
+| 2 | Tap **For team**, pick a team, tap **Purchase for team $…**. | Stripe Checkout opens. |
+| 3 | Complete payment with the test card. | Checkout succeeds. |
+| 4 | (Optional) Sign in as a **Coach on Basic** and open the same package. | No **For team** option — personal purchase only (or paywall if locked). |
+
+### E10-T5: Owned package shows drip schedule and next unlock (STORY-10.3 AC-1)
+
+*Requires an owned package from **E10-T3** (or **E10-T4**). Wait ~30 seconds after purchase so drip progress can seed, then refresh.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the buyer on **Basic+**. Open **Store** (Coach) or **Content** (Player). | Catalog loads; owned packages show **Owned**. |
+| 2 | Tap an **Owned** package. | Package detail opens with an **Owned** section (not just a bare label). |
+| 3 | Look near the top of the progress block. | A drip cadence line such as **Drips every 1 week** (or similar), when the package has a schedule. |
+| 4 | Look for the next unlock line (multi-module packages that still have locked modules). | **Next unlock:** with a date — or **All modules unlocked** if everything is already open. |
+
+### E10-T6: Progress bar and Mark done update completion (STORY-10.3 AC-2)
+
+*Same owned package as **E10-T5**. First module should already be unlocked after purchase.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On the owned package detail, find the **Progress** row and bar. | Counts like **0/4 · 0%** (or similar) and an empty/partial orange bar. |
+| 2 | In the module list, find an unlocked module that is not completed. Tap **Mark done**. | Button may show **Saving…**, then the module shows **Completed** and the progress count/% increases (e.g. **1/4 · 25%**). |
+| 3 | Tap **Mark done** again is not available on that row. | Completed modules have no **Mark done** button. |
+
+### E10-T7: Locked modules show unlock date (or tier lock) (STORY-10.3 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Still on the owned package (Basic+ buyer), scan modules that are not unlocked yet. | Locked rows show a lock and a label like **Unlocks Jul 15, 2026** (date matches the drip cadence). |
+| 2 | Confirm unlocked modules do not show that lock date. | Unlocked rows show **Unlocked** or **Completed**, not an unlock date. |
+| 3 | (Optional) If you have a **Trial** account that can open an owned package detail, check locked modules. | Lock label is **Requires Basic plan** instead of an unlock date. Skip if Trial cannot see ownership. |
+
+### E10-T8: Coach sees team completion after team purchase (STORY-10.3 AC-4)
+
+*Requires **E10-T4** (team purchase) and at least one active roster player on that team.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the **Coach** who bought **For team**. Open that **Owned** package on **Store**. | Package detail shows personal drip progress as in E10-T5. |
+| 2 | Scroll below the module list. | A **Team completion** section appears. |
+| 3 | Scan the rows. | Each roster player (and typically the buyer) has a name/initial, a small progress bar, and a count like **0/4**. |
+| 4 | (Optional) Have a roster player mark a module done on their own Content tab for the same package, then refresh the coach view. | That player's count/% increases. |
+
+### Admin — Marketplace supply & approval (STORY-10.4)
+
+*Needs Admin dashboard access and a Training package in Sanity set to **Pending review** (Workflow status), with **Created by = Coach** and optionally a **Suggested price**. Ensure the package has synced into `package_metadata` (save/publish the Sanity document so the webhook runs).*
+
+### E10-T9: Admin approves or rejects a coach submission (STORY-10.4 AC-2 / AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in to the **Admin** dashboard. Open **Content**. | **Package review queue** section appears. |
+| 2 | Find the pending package (status badge **pending_review**). | Title shows; optional **coach** badge and **Suggested:** price chip if set in Studio. |
+| 3 | Tap **Approve**. | Package moves to **approved** (still unpublished). **Approve** / **Reject** buttons go away; publish fields appear. |
+| 4 | (Alternate) On another pending package, tap **Reject**. | Status becomes **rejected**; it leaves the approve/publish path. |
+
+### E10-T10: Admin publishes with Stripe price ID (STORY-10.4 AC-1 / AC-3)
+
+*Use an **approved** unpublished package from E10-T9 (or approve one first).*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On the approved package row, find **Stripe price ID** and **Display price**. | Suggested price may already fill the display-price field. |
+| 2 | Enter a valid Stripe test **price_…** ID. Optionally change the display price (admin override). | Fields accept values. |
+| 3 | Tap **Publish to marketplace**. | Package leaves the review queue (published). |
+
+### E10-T11: Published package appears in the mobile Store (STORY-10.4 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On mobile, sign in as a Coach/Player who can browse **Store** / **Content**. | Catalog loads. |
+| 2 | Find the package you just published in E10-T10. | It appears with title and a price (not “See details” only when display price was set). |
+| 3 | Open the package detail. | Purchase button shows the priced label; package is buyable (checkout still needs the Stripe price ID on the package). |
+
+### Not testable by clicking (for awareness only)
+
+- **Stripe webhook → `purchases` row** is verified in automated tests; if ownership never appears after a successful Checkout, check `stripe-webhook` logs and that `sync_purchase_from_stripe` migration is applied.
+- **STORY-10.2 drip schedule engine (AC-1–AC-5)** — time-based unlocks and push enqueue remain backend: webhook seeds `drip_progress` (first module unlocked immediately; later modules on cadence); due unlocks run via `process-drip-unlocks` and enqueue `drip_module_unlocked` (native push is still DEP-07 / STORY-14.1). Same cadence for all tiers (OQ-14.3); upgrading mid-drip does not unlock remaining modules early (OQ-14.5). **Progress UI after purchase is covered by E10-T5–T8 (STORY-10.3).**
+- **STORY-10.4 workflow transitions** (`draft → pending_review → approved|rejected → published`) and publish preconditions are covered by automated tests; Studio field options remain in **E9-T4**. Admin click path is **E10-T9–T11**.
+- **Redistribute purchased content to roster** remains a later marketplace story — this epic covers buying, drip seeding, completion visibility, and Path B supply approval, not a separate redistribute UX.
+
+---
+
 ## Epic 12 — Admin Dashboard: Users (STORY-12.1)
 
 *Admin website only, plus one step on mobile for E12-T3. Skip this section if you were not given an Admin account or dashboard URL.*
@@ -1418,6 +1540,17 @@ Print this page and check off results as you go.
 | E9-T15 Solo clients need team roster first | | |
 | E9-T16 Assignment shows for player after share | | |
 | E9-T17 Store shows published Sanity packages | | |
+| E10-T1 Store lists title, price, rating, skills | | |
+| E10-T2 No outline/drip preview before purchase | | |
+| E10-T3 Stripe package purchase records ownership | | |
+| E10-T4 Coach Advanced+ team purchase | | |
+| E10-T5 Owned package drip schedule + next unlock | | |
+| E10-T6 Progress bar and Mark done | | |
+| E10-T7 Locked modules show unlock date | | |
+| E10-T8 Coach team completion after team purchase | | |
+| E10-T9 Admin approve/reject coach package | | |
+| E10-T10 Admin publish with Stripe price ID | | |
+| E10-T11 Published package appears in Store | | |
 | E12-T1 Admin can search user list | | |
 | E12-T2 Admin edits name and role | | |
 | E12-T3 Suspend blocks mobile sign-in | | |

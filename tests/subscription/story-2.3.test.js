@@ -230,6 +230,34 @@ describe('STORY_2_3 AC4 — stripe webhook syncs subscription', () => {
     expect(result.upsert.status).toBe('active');
     expect(result.upsert.stripe_subscription_id).toBe('sub_test_story_2_3');
     expect(result.upsert.stripe_customer_id).toBe('cus_test_story_2_3');
+
+    // Basil+ payloads put current_period_end on the subscription item.
+    const basilResult = handleStripeWebhookEvent({
+      id: 'evt_test_story_2_3_basil',
+      type: 'customer.subscription.updated',
+      data: {
+        object: {
+          id: 'sub_test_story_2_3_basil',
+          customer: 'cus_test_story_2_3',
+          status: 'active',
+          metadata: {
+            profile_id: profileId,
+            tier: 'pro',
+          },
+          items: {
+            data: [{ current_period_end: 1_900_000_000 }],
+          },
+          trial_end: null,
+        },
+      },
+    });
+    expect(basilResult.handled).toBe(true);
+    if (!basilResult.handled) {
+      throw new Error('expected handled basil webhook result');
+    }
+    expect(basilResult.upsert.current_period_end).toBe(
+      new Date(1_900_000_000 * 1000).toISOString(),
+    );
   });
 });
 

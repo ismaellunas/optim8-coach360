@@ -29,7 +29,13 @@ Sanity Studio has **its own UI** for content editors. The admin dashboard govern
 | --- | --- | --- | --- |
 | **Drill** | Coach (Advanced+), Admin | 12 | Written instructions, optional media |
 | **Video** | Coach (Advanced+), Admin | 12 | Film, demos; upload pipeline (Mux or storage) |
-| **Strategy / Playbook** | Coach (Advanced+), Admin | 12 | Plays, formations; terminology TBD — see Stakeholder Q 12.2 |
+| **Strategy (Play)** | Coach (Advanced+), Admin | 12 | Plays, formations — leaf item (OQ-12.2) |
+
+### Library containers
+
+| Type | Created by | Flow | Notes |
+| --- | --- | --- | --- |
+| **Playbook** | Coach (Advanced+), Admin | 12 | Container of multiple strategies/plays (OQ-12.2) — lives in the reusable library, not the curriculum hierarchy |
 
 ### Containers
 
@@ -39,19 +45,26 @@ Sanity Studio has **its own UI** for content editors. The admin dashboard govern
 | **Package** | Reusable bundle of content | 12, 4 | No | Optional (marketplace) |
 | **Training program** | Marketplace + drip unit | 4, 14 | No | Yes |
 
-**Proposed hierarchy** (pending stakeholder confirmation on Q 12.1, 14.4):
+**Hierarchy** (OQ-14.4 confirmed 2026-07-23; OQ-12.1 / OQ-12.2 confirmed 2026-07-23).
+
+The **curriculum hierarchy** (guided learning + drip) is separate from the **reusable content library**. Lessons, Sessions, and Packages **reference** library objects rather than owning them, so the same drill/play/strategy is reusable everywhere without duplication:
 
 ```
-TrainingProgram (marketplace listing)
-  └── Module (drip unit, e.g. lessons 1–4)
-        └── Lesson
-              └── ContentItem (reference: Drill | Video | Strategy)
+Curriculum (drip / guided learning)
+  TrainingProgram (marketplace listing)
+    └── Module (drip unit, e.g. lessons 1–4)
+          └── Lesson
+                └── ContentItem (reference into library)
 
-Session (scheduled event)
-  └── ordered list of ContentItem and/or Package references
+Reusable content library
+  Drill | Video | Strategy (Play) | Assessment   (leaf items)
+  Playbook                                        (container of strategies/plays)
 
-Package (coach bundle)
-  └── ordered list of ContentItem references
+Session (scheduled calendar event — not a library object)
+  └── ordered list of library references and/or Package references
+
+Package (coach bundle — reusable, non-calendar)
+  └── ordered list of library references
 ```
 
 ---
@@ -107,9 +120,7 @@ flowchart LR
 | **A — Direct distribution** | Assigned recipients only | No |
 | **B — Marketplace listing** | Public catalog (after publish) | Yes |
 
-**Open product decision:** Who may supply Path B — admins only, coaches with approval, or both? See Stakeholder Q **4.1**, **4.2**.
-
-Default workflow for coach → marketplace (recommended):
+**Resolved (OQ-4.1 / 4.2 / 4.3 / 4.4 — 2026-07-23):** Path B supply is **both with approval** — coaches and admins create packages; coach listings need admin approval. Coach may **suggest** a price; admin sets final Stripe price ID and may override. Workflow:
 
 ```
 draft → pending_review → approved | rejected → published (boolean)

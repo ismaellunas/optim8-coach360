@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRepositories } from '@coach360/api';
-import { buildMuxHlsUrl, mapContentError } from '@coach360/domain';
+import { buildMuxHlsUrl, canAccessDrippedContent, mapContentError } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import { SessionVideoPlayer } from '@/features/session/ui/SessionVideoPlayer.jsx';
+import { OwnedPackageProgress } from '@/features/marketplace/ui/OwnedPackageProgress.jsx';
 import {
   Badge,
   Button as Btn,
@@ -80,6 +81,9 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
   const [viewing, setViewing] = useState(null);
   const [viewingAssigned, setViewingAssigned] = useState(null);
   const [pkgs, setPkgs] = useState([]);
+  const [ownedPurchases, setOwnedPurchases] = useState([]);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   const filters = ['all', 'shooting', 'defense', 'conditioning'];
 
@@ -87,8 +91,13 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
     let cancelled = false;
     (async () => {
       try {
-        const rows = await repos.marketplaceCatalog.listPublished();
+        const [rows, owned] = await Promise.all([
+          repos.marketplaceCatalog.listPublished(),
+          repos.marketplacePurchases.listOwned().catch(() => []),
+        ]);
         if (cancelled) return;
+        const ownedIds = new Set((owned || []).map((p) => p.sanityDocumentId));
+        setOwnedPurchases(owned || []);
         setPkgs(
           (rows || []).map((row, index) => ({
             id: row.id,
@@ -96,22 +105,49 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
             l: row.moduleCount || 0,
             p: row.priceLabel || 'See details',
             tag: row.tag || 'training',
-            own: false,
+            skills: Array.isArray(row.skills) ? row.skills : [],
+            rating: typeof row.rating === 'number' ? row.rating : null,
+            own: ownedIds.has(row.id),
             c: COLORS[['orange', 'blue', 'purple', 'yellow'][index % 4]] || COLORS.orange,
-            dr: row.dripLabel || 'Scheduled drip',
-            pr: 0,
+            description: row.description,
+            dr: row.dripLabel || null,
           })),
         );
       } catch {
-        if (!cancelled) setPkgs([]);
+        if (!cancelled) {
+          setPkgs([]);
+          setOwnedPurchases([]);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [repos.marketplaceCatalog]);
+  }, [repos.marketplaceCatalog, repos.marketplacePurchases]);
 
   const filtered = fil === 'all' ? pkgs : pkgs.filter((p) => p.tag === fil);
+
+  async function startPersonalCheckout(pkg) {
+    setCheckoutBusy(true);
+    setCheckoutError(null);
+    try {
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+      const result = await repos.marketplacePurchases.createCheckoutSession({
+        sanityDocumentId: pkg.id,
+        scope: 'personal',
+        successUrl: `${origin}/?checkout=success&kind=package`,
+        cancelUrl: `${origin}/?checkout=cancel&kind=package`,
+      });
+      if (typeof window !== 'undefined' && result.url) {
+        window.location.assign(result.url);
+      }
+    } catch (cause) {
+      setCheckoutError(cause instanceof Error ? cause.message : 'checkout_failed');
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }
 
   const loadAssigned = useCallback(
     async function () {
@@ -156,51 +192,64 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
   if (viewing) {
     const pk = pkgs.find((x) => x.id === viewing);
     return (
-      <ScreenContainer>
+      <ScreenContainer data-testid="marketplace-package-detail">
         <PageHeader title="PACKAGE" onBack={function () { setViewing(null); }} />
         <div className="mb-4">
           <PackageThumb tag={pk.tag} color={pk.c} size="full" />
         </div>
         <Badge color={pk.c}>{pk.tag}</Badge>
         <div className="mt-3 font-display text-2xl font-bold text-coach-t1">{pk.t}</div>
-        <div className="mt-2 font-body text-[13px] text-coach-t3">
-          {pk.l + ' lessons - Drip: ' + pk.dr}
-        </div>
-        {pk.own ? (
-          <div className="mt-4">
-            <div className="mb-1.5 flex justify-between">
-              <span className="font-body text-xs text-coach-t2">Progress</span>
-              <span
-                className={`font-mono text-xs ${pk.pr === 100 ? 'text-coach-green' : 'text-coach-orange'}`}
-              >
-                {pk.pr + '%'}
-              </span>
-            </div>
-            <div className="h-2 rounded bg-coach-border">
-              <div
-                className="h-full rounded"
-                style={{
-                  width: pk.pr + '%',
-                  backgroundColor: pk.pr === 100 ? COLORS.green : COLORS.orange,
-                }}
-              />
-            </div>
-            <div className="mt-3 font-body text-xs text-coach-t3">
-              Content drips weekly based on your tier.
-            </div>
+        {pk.rating != null ? (
+          <div className="mt-1 font-body text-sm text-coach-t2" data-testid="package-rating">
+            ★ {pk.rating.toFixed(1)}
           </div>
+        ) : null}
+        {pk.skills && pk.skills.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5" data-testid="package-skills">
+            {pk.skills.map(function (skill) {
+              return (
+                <Badge key={skill} color={pk.c}>
+                  {skill}
+                </Badge>
+              );
+            })}
+          </div>
+        ) : null}
+        {pk.description ? (
+          <div className="mt-2 font-body text-[13px] text-coach-t2">{pk.description}</div>
+        ) : null}
+        <div className="mt-2 font-body text-[13px] text-coach-t3">
+          {pk.l + ' lessons'}
+        </div>
+        {/* OQ-4.6: no outline or drip schedule preview before purchase */}
+        {pk.own ? (
+          <OwnedPackageProgress
+            purchaseId={
+              (ownedPurchases.find((p) => p.sanityDocumentId === pk.id) || {}).id ?? null
+            }
+            hasDripAccess={canAccessDrippedContent(user?.tier)}
+            dripLabel={pk.dr}
+          />
         ) : (
           <div className="mt-5">
+            {checkoutError ? (
+              <div className="mb-3 font-body text-xs text-coach-red">{checkoutError}</div>
+            ) : null}
             <Btn
               primary
               full
+              disabled={checkoutBusy}
               onClick={function () {
                 tryA('purchase', function () {
-                  setViewing(null);
+                  void startPersonalCheckout(pk);
                 });
               }}
             >
-              {pk.p === 'FREE' ? 'Get Free' : 'Purchase ' + pk.p}
+              {checkoutBusy
+                ? 'Starting checkout…'
+                : pk.p === 'FREE'
+                  ? 'Get Free'
+                  : 'Purchase ' + pk.p}
             </Btn>
           </div>
         )}
@@ -305,6 +354,7 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
               setViewing(p.id);
             }}
             className="relative overflow-hidden p-0"
+            data-testid="marketplace-package-card"
           >
             <PackageThumb tag={p.tag} color={p.c} size="full" />
             <div
@@ -313,14 +363,30 @@ export function PlayerContentScreen({ user, tryA, canAccess, accessLevel }) {
               {p.own ? <IconCheck /> : <IconLock />}
             </div>
             <div className="px-4 pb-4 pt-3">
-              <Badge color={p.c}>{p.tag}</Badge>
+              <div className="flex flex-wrap gap-1.5">
+                {p.skills && p.skills.length > 0
+                  ? p.skills.slice(0, 3).map(function (skill) {
+                      return (
+                        <Badge key={skill} color={p.c}>
+                          {skill}
+                        </Badge>
+                      );
+                    })
+                  : (
+                    <Badge color={p.c}>{p.tag}</Badge>
+                  )}
+              </div>
               <div className="my-2 pr-7 font-display text-[17px] font-bold text-coach-t1">{p.t}</div>
               <div className="flex items-center justify-between">
-                <span className="font-body text-xs text-coach-t3">{p.l + ' lessons'}</span>
+                <span className="font-body text-xs text-coach-t3">
+                  {p.rating != null ? `★ ${p.rating.toFixed(1)} · ` : ''}
+                  {p.l + ' lessons'}
+                </span>
                 <span
                   className={`font-display text-lg font-bold ${
                     p.p === 'FREE' && !p.own ? 'text-coach-green' : 'text-coach-t1'
                   }`}
+                  data-testid="package-price"
                 >
                   {p.own ? 'Owned' : p.p}
                 </span>

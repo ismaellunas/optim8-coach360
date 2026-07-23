@@ -92,6 +92,27 @@ export type StripeDowngradeSchedulePhasesBody = {
   end_behavior: 'release';
 };
 
+/**
+ * Stripe Basil (2025-03-31+) moved billing periods onto subscription items.
+ * Prefer item-level fields; fall back to subscription-level for older payloads.
+ */
+export function resolveSubscriptionBillingPeriod(sub: {
+  current_period_start?: number | null;
+  current_period_end?: number | null;
+  items?: {
+    data?: Array<{
+      current_period_start?: number | null;
+      current_period_end?: number | null;
+    }>;
+  };
+}): { periodStart: number; periodEnd: number } {
+  const item = sub.items?.data?.[0];
+  return {
+    periodStart: Number(item?.current_period_start ?? sub.current_period_start ?? 0),
+    periodEnd: Number(item?.current_period_end ?? sub.current_period_end ?? 0),
+  };
+}
+
 export function buildDowngradeSchedulePhasesBody(input: {
   currentPriceId: string;
   targetPriceId: string;
@@ -132,6 +153,11 @@ export type ChangeSubscriptionTierInput = {
   targetPriceId: string;
   currentPeriodStart: number;
   currentPeriodEnd: number;
+  /**
+   * When the subscription already has a schedule (e.g. a prior downgrade
+   * attempt), reuse it — Stripe rejects a second `from_subscription` migrate.
+   */
+  existingScheduleId?: string | null;
 };
 
 export type ChangeSubscriptionTierResult = {
@@ -152,7 +178,25 @@ export type StripeTierChangeCalls = {
     scheduleId: string,
     body: StripeDowngradeSchedulePhasesBody,
   ) => Promise<{ id: string }>;
+  /** Detach a schedule so the subscription can be updated directly (upgrades). */
+  releaseSchedule: (scheduleId: string) => Promise<void>;
 };
+
+/**
+ * Stripe allows only one active schedule per subscription. Reuse the attached
+ * schedule when present; otherwise migrate via `from_subscription`.
+ */
+export async function ensureSubscriptionSchedule(
+  stripe: Pick<StripeTierChangeCalls, 'createSchedule'>,
+  subscriptionId: string,
+  existingScheduleId: string | null | undefined,
+): Promise<string> {
+  if (existingScheduleId) {
+    return existingScheduleId;
+  }
+  const created = await stripe.createSchedule(subscriptionId);
+  return created.id;
+}
 
 export type TierChangePersistence = {
   /** AC-2: apply the new tier to the read model immediately after payment. */
@@ -188,6 +232,10 @@ export async function changeSubscriptionTier(options: {
   }
 
   if (direction === 'upgrade') {
+    // Pending downgrade schedules block direct subscription item updates.
+    if (input.existingScheduleId) {
+      await stripe.releaseSchedule(input.existingScheduleId);
+    }
     const body = buildStripeSubscriptionUpgradeBody({
       subscriptionItemId: input.subscriptionItemId,
       priceId: input.targetPriceId,
@@ -206,7 +254,11 @@ export async function changeSubscriptionTier(options: {
     };
   }
 
-  const schedule = await stripe.createSchedule(input.stripeSubscriptionId);
+  const scheduleId = await ensureSubscriptionSchedule(
+    stripe,
+    input.stripeSubscriptionId,
+    input.existingScheduleId,
+  );
   const phasesBody = buildDowngradeSchedulePhasesBody({
     currentPriceId: input.currentPriceId,
     targetPriceId: input.targetPriceId,
@@ -215,7 +267,7 @@ export async function changeSubscriptionTier(options: {
     targetTier: input.targetTier,
     profileId: input.profileId,
   });
-  await stripe.updateSchedule(schedule.id, phasesBody);
+  await stripe.updateSchedule(scheduleId, phasesBody);
 
   const pendingTierEffectiveAt = new Date(input.currentPeriodEnd * 1000).toISOString();
   await persist.schedulePendingDowngrade({

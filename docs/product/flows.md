@@ -435,7 +435,7 @@ Player access is consumption-focused. Basic players can set up a profile and pur
 | Engage in peer discussions | ✗ | ✗ | ✓ | ✓ |
 | **Objectives & Progress Tracking (Flows 6, 8, 13)** | | | | |
 | Log drill completions & reps | ✗ | ✓ | ✓ | ✓ |
-| Track own progress | ✗ | ✓ | ✓ | ✓ |
+| Track own progress | ✗ | ◎ | ○ | ✓ |
 | View own objectives | ✗ | ✗ | ○ | ✓ |
 | View progress dashboard | ✗ | ◎ | ○ | ✓ |
 | Set objectives | ✗ | ✗ | ✗ | ✗ |

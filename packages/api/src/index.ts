@@ -29,6 +29,7 @@ export type {
   SessionReminderPayload,
   TrialExpiryWarningPayload,
   ContentAssignedNotificationPayload,
+  DripModuleUnlockedNotificationPayload,
 } from './ports/notification-repository.js';
 export type { SessionRepository } from './ports/session-repository.js';
 export type {
@@ -50,9 +51,20 @@ export type {
 export type {
   MarketplaceCatalogRepository,
 } from './ports/marketplace-catalog-repository.js';
+export type {
+  MarketplacePurchaseRepository,
+  CreatePackageCheckoutInput,
+  CreatePackageCheckoutResult,
+  MarketplacePurchaseRecord,
+} from './ports/marketplace-purchase-repository.js';
 export { SanityMarketplaceCatalogRepository } from './adapters/sanity/sanity-marketplace-catalog-repository.js';
 export type { SanityCatalogEnv } from './adapters/sanity/sanity-marketplace-catalog-repository.js';
 export { RestMarketplaceCatalogRepository } from './adapters/rest/rest-marketplace-catalog-repository.js';
+export { SupabaseMarketplacePurchaseRepository } from './adapters/supabase/supabase-marketplace-purchase-repository.js';
+export { RestMarketplacePurchaseRepository } from './adapters/rest/rest-marketplace-purchase-repository.js';
+export type { MarketplaceDripRepository } from './ports/marketplace-drip-repository.js';
+export { SupabaseMarketplaceDripRepository } from './adapters/supabase/supabase-marketplace-drip-repository.js';
+export { RestMarketplaceDripRepository } from './adapters/rest/rest-marketplace-drip-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,

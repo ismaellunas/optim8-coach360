@@ -4,6 +4,7 @@ import {
   changeSubscriptionTier,
   encodeStripeFormBody,
   resolvePriceIdForTier,
+  resolveSubscriptionBillingPeriod,
   type PaidTier,
   type StripeDowngradeSchedulePhasesBody,
   type StripeSubscriptionUpgradeBody,
@@ -159,21 +160,46 @@ Deno.serve(async (request) => {
   }
 
   // Live Stripe subscription is the source of truth for item / price / period.
+  // Basil+ APIs expose period on the item, not the subscription root.
   let stripeSub: {
     itemId: string;
     priceId: string;
     periodStart: number;
     periodEnd: number;
+    scheduleId: string | null;
   };
   try {
     const raw = await stripeRequest(stripeSecret, `/v1/subscriptions/${stripeSubscriptionId}`);
-    const items = raw.items as { data?: Array<{ id?: string; price?: { id?: string } }> };
+    const items = raw.items as {
+      data?: Array<{
+        id?: string;
+        price?: { id?: string };
+        current_period_start?: number;
+        current_period_end?: number;
+      }>;
+    };
     const firstItem = items?.data?.[0];
+    const { periodStart, periodEnd } = resolveSubscriptionBillingPeriod({
+      current_period_start:
+        typeof raw.current_period_start === 'number' ? raw.current_period_start : null,
+      current_period_end:
+        typeof raw.current_period_end === 'number' ? raw.current_period_end : null,
+      items,
+    });
+    const scheduleField = raw.schedule;
     stripeSub = {
       itemId: firstItem?.id ?? '',
       priceId: firstItem?.price?.id ?? '',
-      periodStart: Number(raw.current_period_start ?? 0),
-      periodEnd: Number(raw.current_period_end ?? 0),
+      periodStart,
+      periodEnd,
+      scheduleId:
+        typeof scheduleField === 'string'
+          ? scheduleField
+          : scheduleField &&
+              typeof scheduleField === 'object' &&
+              typeof (scheduleField as { id?: unknown }).id === 'string'
+            ? String((scheduleField as { id: string }).id)
+            : null,
     };
   } catch (cause) {
     return jsonResponse(
@@ -194,6 +220,7 @@ Deno.serve(async (request) => {
         targetPriceId,
         currentPeriodStart: stripeSub.periodStart,
         currentPeriodEnd: stripeSub.periodEnd,
+        existingScheduleId: stripeSub.scheduleId,
       },
       stripe: {
         updateSubscription: async (
@@ -223,6 +250,9 @@ Deno.serve(async (request) => {
             phasesBody as unknown as Record<string, string>,
           );
           return { id: String(raw.id ?? '') };
+        },
+        releaseSchedule: async (scheduleId: string) => {
+          await stripeRequest(stripeSecret, `/v1/subscription_schedules/${scheduleId}/release`);
         },
       },
       persist: {

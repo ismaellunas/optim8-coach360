@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
+import { canAccessDrippedContent, canPurchaseForTeamDistribution } from '@coach360/domain';
+import { useAuth } from '@/features/auth/model/use-auth.js';
+import { OwnedPackageProgress } from '@/features/marketplace/ui/OwnedPackageProgress.jsx';
+import { TeamPackageCompletion } from '@/features/marketplace/ui/TeamPackageCompletion.jsx';
 import {
   Badge,
   Button as Btn,
@@ -72,16 +76,43 @@ function colorForTag(tag) {
   return TAG_COLORS[tag] || COLORS.yellow;
 }
 
+function mapCatalogRow(row, ownedIds) {
+  return {
+    id: row.id,
+    t: row.title,
+    l: row.moduleCount || 0,
+    p: row.priceLabel || 'See details',
+    tag: row.tag || 'training',
+    skills: Array.isArray(row.skills) ? row.skills : [],
+    rating: typeof row.rating === 'number' ? row.rating : null,
+    own: ownedIds.has(row.id),
+    c: colorForTag(row.tag),
+    description: row.description,
+    dr: row.dripLabel || null,
+  };
+}
+
 /**
- * Coach/manager marketplace store — published packages from Sanity CDN/API (STORY-9.5).
+ * Coach/manager marketplace store — catalog + Stripe package checkout (STORY-10.1).
+ * OQ-4.6: no pre-purchase outline / drip preview.
  */
 export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   const repos = useRepositories();
+  const { session } = useAuth();
+  const profileId = session?.user?.id ?? null;
   const [fil, setFil] = useState('all');
   const [viewing, setViewing] = useState(null);
   const [pkgs, setPkgs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
+  const [purchaseScope, setPurchaseScope] = useState('personal');
+  const [teams, setTeams] = useState([]);
+  const [teamId, setTeamId] = useState('');
+  const [ownedPurchases, setOwnedPurchases] = useState([]);
+
+  const allowTeamPurchase = canPurchaseForTeamDistribution(user?.role, user?.tier);
 
   const filters = useMemo(() => {
     const tags = new Set(['all']);
@@ -95,32 +126,75 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
     setLoading(true);
     setError(null);
     try {
-      const rows = await repos.marketplaceCatalog.listPublished();
-      setPkgs(
-        (rows || []).map((row) => ({
-          id: row.id,
-          t: row.title,
-          l: row.moduleCount || 0,
-          p: row.priceLabel || 'See details',
-          tag: row.tag || 'training',
-          own: false,
-          c: colorForTag(row.tag),
-          dr: row.dripLabel || 'Scheduled drip',
-          pr: 0,
-          description: row.description,
-        })),
-      );
+      const [rows, owned] = await Promise.all([
+        repos.marketplaceCatalog.listPublished(),
+        repos.marketplacePurchases.listOwned().catch(() => []),
+      ]);
+      const ownedIds = new Set((owned || []).map((p) => p.sanityDocumentId));
+      setOwnedPurchases(owned || []);
+      setPkgs((rows || []).map((row) => mapCatalogRow(row, ownedIds)));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'catalog_load_failed');
       setPkgs([]);
+      setOwnedPurchases([]);
     } finally {
       setLoading(false);
     }
-  }, [repos.marketplaceCatalog]);
+  }, [repos.marketplaceCatalog, repos.marketplacePurchases]);
 
   useEffect(() => {
     void loadCatalog();
   }, [loadCatalog]);
+
+  useEffect(() => {
+    if (!allowTeamPurchase || !viewing) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const ownedTeams = await repos.teams.listForUser(profileId);
+        if (cancelled) return;
+        const next = ownedTeams || [];
+        setTeams(next);
+        if (next.length > 0 && !teamId) {
+          setTeamId(next[0].id);
+        }
+      } catch {
+        if (!cancelled) setTeams([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [allowTeamPurchase, viewing, repos.teams, profileId, teamId]);
+
+  async function startCheckout(pkg, scope) {
+    setCheckoutBusy(true);
+    setCheckoutError(null);
+    try {
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+      const result = await repos.marketplacePurchases.createCheckoutSession({
+        sanityDocumentId: pkg.id,
+        scope,
+        teamId: scope === 'team' ? teamId : null,
+        successUrl: `${origin}/?checkout=success&kind=package`,
+        cancelUrl: `${origin}/?checkout=cancel&kind=package`,
+      });
+      if (typeof window !== 'undefined' && result.url) {
+        window.location.assign(result.url);
+      }
+    } catch (cause) {
+      setCheckoutError(cause instanceof Error ? cause.message : 'checkout_failed');
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }
+
+  function handlePurchase(pkg) {
+    tryA('purchase', () => {
+      void startCheckout(pkg, purchaseScope === 'team' && allowTeamPurchase ? 'team' : 'personal');
+    });
+  }
 
   const filtered = fil === 'all' ? pkgs : pkgs.filter((p) => p.tag === fil);
   const browseLevel = accessLevel(user, 'browseMarketplace');
@@ -131,32 +205,118 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
       return null;
     }
     return (
-      <ScreenContainer>
+      <ScreenContainer data-testid="marketplace-package-detail">
         <PageHeader title="PACKAGE" onBack={() => setViewing(null)} />
         <div className="mb-4">
           <PackageThumb tag={pk.tag} color={pk.c} size="full" />
         </div>
         <Badge color={pk.c}>{pk.tag}</Badge>
         <div className="mt-3 font-display text-2xl font-bold text-coach-t1">{pk.t}</div>
+        {pk.rating != null ? (
+          <div className="mt-1 font-body text-sm text-coach-t2" data-testid="package-rating">
+            ★ {pk.rating.toFixed(1)}
+          </div>
+        ) : null}
+        {pk.skills.length > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5" data-testid="package-skills">
+            {pk.skills.map((skill) => (
+              <Badge key={skill} color={colorForTag(skill)}>
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        ) : null}
         {pk.description ? (
           <div className="mt-2 font-body text-[13px] text-coach-t2">{pk.description}</div>
         ) : null}
-        <div className="mt-2 font-body text-[13px] text-coach-t3">
-          {pk.l + ' modules · Drip: ' + pk.dr}
-        </div>
+        <div className="mt-2 font-body text-[13px] text-coach-t3">{pk.l + ' modules'}</div>
+        {/* OQ-4.6: no outline or drip schedule preview before purchase */}
         {!pk.own ? (
           <div className="mt-5">
+            {allowTeamPurchase ? (
+              <div className="mb-3" data-testid="team-purchase-options">
+                <div className="mb-2 flex gap-2">
+                  <button
+                    type="button"
+                    data-testid="purchase-scope-personal"
+                    onClick={() => setPurchaseScope('personal')}
+                    className={`flex-1 rounded-xl border px-3 py-2.5 font-body text-xs font-semibold ${
+                      purchaseScope === 'personal'
+                        ? 'border-coach-orange bg-coach-orange-glow text-coach-orange'
+                        : 'border-coach-border text-coach-t3'
+                    }`}
+                  >
+                    Personal
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="purchase-scope-team"
+                    onClick={() => setPurchaseScope('team')}
+                    className={`flex-1 rounded-xl border px-3 py-2.5 font-body text-xs font-semibold ${
+                      purchaseScope === 'team'
+                        ? 'border-coach-orange bg-coach-orange-glow text-coach-orange'
+                        : 'border-coach-border text-coach-t3'
+                    }`}
+                  >
+                    For team
+                  </button>
+                </div>
+                {purchaseScope === 'team' ? (
+                  <select
+                    data-testid="team-purchase-select"
+                    value={teamId}
+                    onChange={(e) => setTeamId(e.target.value)}
+                    className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3 font-body text-sm text-coach-t1"
+                  >
+                    {teams.length === 0 ? (
+                      <option value="">No teams yet</option>
+                    ) : (
+                      teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name || team.id}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                ) : null}
+              </div>
+            ) : null}
+            {checkoutError ? (
+              <div className="mb-3 font-body text-xs text-coach-red">{checkoutError}</div>
+            ) : null}
             <Btn
               primary
               full
-              onClick={() => {
-                tryA('purchase', () => setViewing(null));
-              }}
+              disabled={checkoutBusy || (purchaseScope === 'team' && !teamId)}
+              onClick={() => handlePurchase(pk)}
             >
-              {pk.p === 'FREE' ? 'Get Free' : 'Purchase ' + pk.p}
+              {checkoutBusy
+                ? 'Starting checkout…'
+                : pk.p === 'FREE'
+                  ? 'Get Free'
+                  : purchaseScope === 'team' && allowTeamPurchase
+                    ? `Purchase for team ${pk.p}`
+                    : `Purchase ${pk.p}`}
             </Btn>
           </div>
-        ) : null}
+        ) : (
+          (() => {
+            const purchase = ownedPurchases.find((p) => p.sanityDocumentId === pk.id) || null;
+            const hasDripAccess = canAccessDrippedContent(user?.tier);
+            return (
+              <>
+                <OwnedPackageProgress
+                  purchaseId={purchase?.id ?? null}
+                  hasDripAccess={hasDripAccess}
+                  dripLabel={pk.dr}
+                />
+                {purchase?.scope === 'team' ? (
+                  <TeamPackageCompletion purchaseId={purchase.id} />
+                ) : null}
+              </>
+            );
+          })()
+        )}
       </ScreenContainer>
     );
   }
@@ -182,7 +342,7 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   }
 
   return (
-    <ScreenContainer>
+    <ScreenContainer data-testid="marketplace-store">
       <PageHeader title="STORE" user={user} />
       {browseLevel === 'readonly' ? (
         <Card className="mb-3 border border-coach-orange/20 bg-coach-orange-glow/40">
@@ -241,20 +401,35 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
           key={p.id}
           onClick={() => setViewing(p.id)}
           className="relative mb-3 overflow-hidden p-0"
+          data-testid="marketplace-package-card"
         >
           <PackageThumb tag={p.tag} color={p.c} size="full" />
           <div className={`absolute right-3.5 top-3.5 ${p.own ? 'text-coach-green' : 'text-coach-t3'}`}>
             {p.own ? <IconCheck /> : <IconLock />}
           </div>
           <div className="px-4 pb-4 pt-3">
-            <Badge color={p.c}>{p.tag}</Badge>
+            <div className="flex flex-wrap gap-1.5">
+              {p.skills.length > 0
+                ? p.skills.slice(0, 3).map((skill) => (
+                    <Badge key={skill} color={colorForTag(skill)}>
+                      {skill}
+                    </Badge>
+                  ))
+                : (
+                  <Badge color={p.c}>{p.tag}</Badge>
+                )}
+            </div>
             <div className="my-2 pr-7 font-display text-[17px] font-bold text-coach-t1">{p.t}</div>
-            <div className="flex items-center justify-between">
-              <span className="font-body text-xs text-coach-t3">{p.l + ' modules'}</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-body text-xs text-coach-t3">
+                {p.rating != null ? `★ ${p.rating.toFixed(1)} · ` : ''}
+                {p.l + ' modules'}
+              </span>
               <span
                 className={`font-display text-lg font-bold ${
                   p.p === 'FREE' && !p.own ? 'text-coach-green' : 'text-coach-t1'
                 }`}
+                data-testid="package-price"
               >
                 {p.own ? 'Owned' : p.p}
               </span>

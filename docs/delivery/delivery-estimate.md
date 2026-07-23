@@ -213,10 +213,10 @@ Flow 2’s 15-hour *Rough Estimate* includes the following per-tier line items. 
 | --- | --- | --- |
 | Basic | Profile setup | `1 Hour` |
 | Basic | Purchase content | `(1 Hours. dependent, Content Management)` |
-| Basic | Track own progress | `(what progress?)` |
-| Advanced | Coach & communicate | `(Need more Info)` |
-| Advanced | Distribute content | `(Need more Info)` |
-| Advanced | Plan & schedule | `(Need more Info)` |
+| Basic | Track own progress | Resolved OQ-2.1: drill log + completion count |
+| Advanced | Coach & communicate | Resolved OQ-2.3: full chat at Advanced |
+| Advanced | Distribute content | Resolved OQ-2.3: create + assign to own players/teams |
+| Advanced | Plan & schedule | Resolved OQ-2.3: full session planning at Advanced |
 | Pro | AI personalization | — |
 | Pro | Set objectives | `(Need more Info)` |
 | Pro | Full MVP access | `(Need more Info)` |
@@ -228,9 +228,9 @@ The revised estimate adds clarifying notes (italic prose) and open questions (pa
 | Location | Note (verbatim or paraphrased) | Type | Planning impact |
 | --- | --- | --- | --- |
 | Flow 1 | *Coaches and players can operate independently without a team… Team managers must set up a team… Admin accounts are provisioned through the backend…* | Italic — scope rule | Confirms Flow 11 team setup is **required** for Team Manager but **optional** for Coach/Player; admin is backend-only (Flow 7), not self-signup |
-| Flow 2 — Basic | `(what progress?)` | Parenthetical — open question | **Scope gap:** “Track own progress” at Basic tier is undefined — likely Flow 8 / Flow 13; needs product definition before estimating |
+| Flow 2 — Basic | `(what progress?)` | Parenthetical — **resolved 2026-07-23** | **Resolved (OQ-2.1):** Basic players log drills + see completion count only; full progress dashboard is Pro. Maps to Flow 8 / Flow 13. |
 | Flow 2 — Basic | `(1 Hours. dependent, Content Management)` | Parenthetical — dependency | Addressed in dependency DEP-04 (content management platform) — separate from Flow 4's 5 h marketplace UI |
-| Flow 2 — Advanced | `(Need more Info)` × 3 | Parenthetical — open question | Coach & communicate, distribute content, plan & schedule at Advanced tier need feature boundaries — maps to Flows 3, 5, 12 |
+| Flow 2 — Advanced | `(Need more Info)` × 3 | Parenthetical — **resolved 2026-07-23** | **Resolved (OQ-2.3):** Advanced = full chat, create/assign content, and session planning; Pro adds AI + objectives + full analytics. ○ = higher tier (not partial). Maps to Flows 3, 5, 12 |
 | Flow 2 — Pro | `(Need more Info)` × 2 | Parenthetical — open question | Set objectives and Full MVP access are undefined — maps to Flow 6 and overall tier matrix |
 | Flow 3 | *…(Need more information, what happens during sessions? How do we schedule sessions?)* | Italic + parenthetical | **Scope gap:** session **runtime** behaviour (in-session vs calendar-only) is undefined; may add hours beyond the 3 h estimate |
 | Flow 4 intro | *Should we have a content contributor which content, users will buy? Who determines the packages? – Refer to Flow 7* | Italic — open question | **Product decision:** marketplace supply model (coach-created vs admin-curated) deferred to Flow 7 admin; affects Flows 4, 12, and 7 estimates |
@@ -248,10 +248,11 @@ The revised estimate adds clarifying notes (italic prose) and open questions (pa
 
 **Summary of open items requiring product input:**
 
-1. What does “track own progress” mean at Basic tier? (Flow 2)
-2. What happens **during** a scheduled session vs at scheduling time? (Flow 3)
+1. ~~What does “track own progress” mean at Basic tier? (Flow 2)~~ — **resolved 2026-07-23 (OQ-2.1)**
+2. ~~What happens during a scheduled session vs at scheduling time? (Flow 3)~~ — **resolved 2026-07-21 (OQ-3.1: calendar only)**
 3. Who creates marketplace packages — coaches, admins, or both? (Flow 4 → Flow 7)
-4. What is included in “Full MVP access” at Pro tier? (Flow 2)
+4. What is included in “Full MVP access” at Pro tier? (Flow 2) — still open (**OQ-2.2**)
+5. ~~Advanced boundaries for communicate / distribute / plan & schedule? (Flow 2)~~ — **resolved 2026-07-23 (OQ-2.3)**
 
 *Items previously flagged (RAG scope, content management, Stripe gating) are now covered in §4.0.4 dependencies.*
 

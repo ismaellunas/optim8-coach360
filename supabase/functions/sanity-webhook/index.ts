@@ -27,7 +27,7 @@ Deno.serve(async (request) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('VITE_SUPABASE_URL');
   const serviceRoleKey =
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
-  const webhookSecret = Deno.env.get('SANITY_WEBHOOK_SECRET');
+  const webhookSecret = (Deno.env.get('SANITY_WEBHOOK_SECRET') || '').trim();
 
   if (!supabaseUrl || !serviceRoleKey) {
     return new Response(JSON.stringify({ error: 'supabase_env_missing' }), {
@@ -39,16 +39,23 @@ Deno.serve(async (request) => {
   const rawBody = await request.text();
 
   if (webhookSecret) {
-    const ok = await verifySanityWebhookSignature({
+    const verdict = await verifySanityWebhookSignature({
       rawBody,
       signatureHeader: request.headers.get(SANITY_SIGNATURE_HEADER),
       secret: webhookSecret,
     });
-    if (!ok) {
-      return new Response(JSON.stringify({ error: 'invalid_signature' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    if (verdict !== 'ok') {
+      return new Response(
+        JSON.stringify({
+          error: 'invalid_signature',
+          reason: verdict,
+          hasSignatureHeader: Boolean(request.headers.get(SANITY_SIGNATURE_HEADER)),
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
     }
   }
 

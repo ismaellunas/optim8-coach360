@@ -354,24 +354,16 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-06-26",
+  "last_generated": "2026-07-23",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
     "Single-stack decision 2026-06-27: Vite + React + Capacitor (src/App.jsx) for prototype and production; Expo/Next.js client stack abandoned.",
-    "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.)."
+    "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.).",
+    "OQ-2.1 / OQ-2.3 resolved 2026-07-23: Basic progress = log + completion count; Advanced = full coaching tools without AI; Pro = +AI/objectives/full analytics; ○ = higher tier.",
+    "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+)."
   ],
   "open_questions": [
-    {
-      "id": "OQ-2.1",
-      "question": "What does 'track own progress' mean at Basic tier — drill logs, completion %, stats, or full profile dashboard? Flow 2 tier summary grants Basic ✓ but the player access matrix gates it to Advanced+.",
-      "source": "docs/product/stakeholder-questions.md#flow-2",
-      "status": "sent",
-      "blocks": [
-        "STORY-4.3",
-        "STORY-7.2"
-      ]
-    },
     {
       "id": "OQ-2.2",
       "question": "What exactly is included in 'Full MVP access' at Pro tier beyond what Advanced already gets?",
@@ -379,18 +371,6 @@
       "status": "sent",
       "blocks": [
         "STORY-11.3"
-      ]
-    },
-    {
-      "id": "OQ-2.3",
-      "question": "At Advanced, what are the precise boundaries for coach & communicate, distribute content, and plan & schedule vs Pro — including what ○ partial means for each feature?",
-      "source": "docs/product/stakeholder-questions.md#flow-2",
-      "status": "sent",
-      "blocks": [
-        "STORY-5.2",
-        "STORY-6.1",
-        "STORY-8.1",
-        "STORY-9.2"
       ]
     }
   ],
@@ -2879,7 +2859,7 @@
       },
       "status": "DONE",
       "last_updated": "2026-07-23T00:00:00Z",
-      "audit_notes": "Sanity webhook upserts package_metadata + queues rag_embedding_jobs; mobile Store reads Sanity API; AC1–AC4 tests pass. Live Sanity dashboard webhook + Viewer token still ops."
+      "audit_notes": "Re-audit 2026-07-23: npm run test:story-9.5 — AC1–AC4 all pass. verify.files present. Live Sanity Attempt log returns 200 synced/queued on publish; signed probe OK. Ops: keep Drafts off on webhook; actual RAG embeddings remain STORY-11.4."
     },
     {
       "id": "EPIC-10",
@@ -2918,35 +2898,54 @@
         {
           "id": "AC-1",
           "statement": "Marketplace lists published packages with title, price, rating, skills tags",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC1_catalog_lists_title_price_rating_skills"
         },
         {
           "id": "AC-2",
           "statement": "Package detail shows outline and drip schedule preview if OQ-4.6 resolved",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC2_no_outline_or_drip_preview_before_purchase"
         },
         {
           "id": "AC-3",
           "statement": "Stripe checkout completes purchase and records in Supabase",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC3_stripe_checkout_records_purchase"
         },
         {
           "id": "AC-4",
           "statement": "Coach at Advanced+ can purchase for team distribution",
-          "test": null
+          "test": "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC4_coach_advanced_team_purchase"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC1_catalog_lists_title_price_rating_skills",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC2_no_outline_or_drip_preview_before_purchase",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC3_stripe_checkout_records_purchase",
+          "tests/marketplace/story-10.1.test.js::test_STORY_10_1_AC4_coach_advanced_team_purchase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/content/marketplace-catalog.ts",
+          "packages/domain/src/marketplace/purchase.ts",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "packages/api/src/ports/marketplace-purchase-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-marketplace-purchase-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "supabase/functions/create-package-checkout-session/handler.ts",
+          "supabase/functions/create-package-checkout-session/index.ts",
+          "supabase/functions/stripe-webhook/handler.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "supabase/migrations/20260723120000_marketplace_purchases.sql",
+          "tests/marketplace/story-10.1.test.js",
+          "docs/product/stakeholder-questions.md",
+          "package.json"
+        ],
+        "command": "npm run test:story-10.1"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Catalog shows title/price/rating/skills; OQ-4.6=no preview; Stripe payment checkout + webhook writes purchases; coach Advanced+ team scope. npm run test:story-10.1 — AC1–AC4 pass."
     },
     {
       "id": "STORY-10.2",
@@ -2965,40 +2964,58 @@
         {
           "id": "AC-1",
           "statement": "Initial modules unlock immediately on purchase (e.g. lessons 1–4)",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC1_initial_module_unlocks_on_purchase"
         },
         {
           "id": "AC-2",
           "statement": "Subsequent modules unlock per configured cadence (weekly/biweekly)",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC2_subsequent_modules_follow_cadence"
         },
         {
           "id": "AC-3",
           "statement": "Push notification sent when new module available",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC3_enqueue_push_on_module_unlock"
         },
         {
           "id": "AC-4",
           "statement": "Higher tier may accelerate drip per OQ-14.3 resolution",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC4_no_tier_acceleration_same_cadence"
         },
         {
           "id": "AC-5",
           "statement": "Upgrade mid-drip unlock behavior per OQ-14.5",
-          "test": null
+          "test": "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC5_upgrade_mid_drip_no_schedule_change"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "supabase/ (inferred)",
-          "lib/drip/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC1_initial_module_unlocks_on_purchase",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC2_subsequent_modules_follow_cadence",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC3_enqueue_push_on_module_unlock",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC4_no_tier_acceleration_same_cadence",
+          "tests/marketplace/story-10.2.test.js::test_STORY_10_2_AC5_upgrade_mid_drip_no_schedule_change"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/drip.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/notification-repository.ts",
+          "packages/api/src/adapters/console/console-notification-repository.ts",
+          "packages/api/src/index.ts",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "supabase/migrations/20260723140000_drip_schedule_engine.sql",
+          "supabase/functions/process-drip-unlocks/handler.ts",
+          "supabase/functions/process-drip-unlocks/index.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "docs/product/stakeholder-questions.md",
+          "tests/marketplace/story-10.2.test.js",
+          "package.json",
+          "apps/mobile/src/types/database.ts"
+        ],
+        "command": "npm run test:story-10.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Drip engine seeds first module on purchase; cadence from package intervalDays; enqueue drip_module_unlocked (DEP-07). OQ-14.3=no acceleration; OQ-14.5=no mid-upgrade unlock. npm run test:story-10.2 — AC1–AC5 pass."
     },
     {
       "id": "STORY-10.3",
@@ -3015,35 +3032,50 @@
         {
           "id": "AC-1",
           "statement": "Drip schedule and next unlock date visible on package detail",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC1_drip_schedule_and_next_unlock_on_detail"
         },
         {
           "id": "AC-2",
           "statement": "Progress bar reflects completed lessons vs total",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC2_progress_bar_completed_vs_total"
         },
         {
           "id": "AC-3",
           "statement": "Locked modules show unlock date or tier requirement",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC3_locked_modules_show_unlock_or_tier"
         },
         {
           "id": "AC-4",
           "statement": "Completion data available to coach for team purchases",
-          "test": null
+          "test": "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC4_coach_team_purchase_completion"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC1_drip_schedule_and_next_unlock_on_detail",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC2_progress_bar_completed_vs_total",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC3_locked_modules_show_unlock_or_tier",
+          "tests/marketplace/story-10.3.test.js::test_STORY_10_3_AC4_coach_team_purchase_completion"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/drip-progress.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/marketplace-drip-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-marketplace-drip-repository.ts",
+          "packages/api/src/adapters/rest/rest-marketplace-drip-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "apps/mobile/src/features/marketplace/ui/OwnedPackageProgress.jsx",
+          "apps/mobile/src/features/marketplace/ui/TeamPackageCompletion.jsx",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/content/ui/PlayerContentScreen.jsx",
+          "supabase/migrations/20260723160000_drip_progress_completion.sql"
+        ],
+        "command": "npm test -- --reporter=json -t STORY_10_3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Owned package detail now shows drip schedule, next unlock, module-completion progress bar, and per-module lock state (unlock date or tier requirement for trial); team purchases seed drip rows for active roster players and buyer coach reads per-player completion via list_team_purchase_completions. All 4 AC tests pass (vitest)."
     },
     {
       "id": "STORY-10.4",
@@ -3062,35 +3094,55 @@
         {
           "id": "AC-1",
           "statement": "Submission workflow follows draft → pending_review → approved/rejected → published",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC1_workflow_transitions"
         },
         {
           "id": "AC-2",
           "statement": "Admin approves or rejects coach-submitted packages from dashboard",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC2_admin_dashboard_approve_reject"
         },
         {
           "id": "AC-3",
           "statement": "Published packages appear in marketplace with Stripe price ID",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC3_published_requires_stripe_price_in_catalog"
         },
         {
           "id": "AC-4",
           "statement": "Supply model follows content-model.md default (coaches submit with admin approval)",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC4_coach_submit_admin_approval_supply_model"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)",
-          "sanity/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC1_workflow_transitions",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC2_admin_dashboard_approve_reject",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC3_published_requires_stripe_price_in_catalog",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC4_coach_submit_admin_approval_supply_model"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/workflow.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-content-repository.ts",
+          "packages/api/src/adapters/rest/rest-content-repository.ts",
+          "apps/admin/src/pages/content/ContentPage.tsx",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "apps/studio/schemaTypes/objects/workflowFields.ts",
+          "supabase/functions/review-marketplace-package/handler.ts",
+          "supabase/functions/review-marketplace-package/index.ts",
+          "supabase/functions/sanity-webhook/handler.ts",
+          "supabase/functions/sanity-webhook/webhook-projection.groq",
+          "supabase/migrations/20260723180000_marketplace_supply_workflow.sql",
+          "docs/product/stakeholder-questions.md",
+          "docs/architecture/content-model.md",
+          "tests/marketplace/story-10.4.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-10.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Supply model defaulted to content-model.md (coaches with admin approval); not sent to client."
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Path B supply: both with approval (OQ-4.1); workflow draft→pending_review→approved|rejected→published (OQ-4.3); coach suggests price, admin overrides (OQ-4.4). Admin Content review queue + review-marketplace-package edge fn. npm run test:story-10.4 — AC1–AC4 pass."
     },
     {
       "id": "EPIC-11",

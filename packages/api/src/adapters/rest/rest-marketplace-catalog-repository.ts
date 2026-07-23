@@ -1,4 +1,7 @@
-import type { MarketplaceCatalogPackage } from '@coach360/domain';
+import {
+  formatPackagePriceLabel,
+  type MarketplaceCatalogPackage,
+} from '@coach360/domain';
 import type { MarketplaceCatalogRepository } from '../../ports/marketplace-catalog-repository.js';
 
 /** Offline / rest-mode fallback catalog (mirrors seed titles). */
@@ -14,7 +17,10 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve shooting percentage', 'Build consistent free-throw routine'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2900,
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2900, null, 'usd'),
+    rating: 4.8,
   },
   {
     id: 'seed.coach360.lockdown-defense.package',
@@ -27,7 +33,10 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve on-ball pressure', 'Reduce blow-by drives'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2500,
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2500, null, 'usd'),
+    rating: 4.6,
   },
   {
     id: 'seed.coach360.court-vision.package',
@@ -40,7 +49,10 @@ const FALLBACK: MarketplaceCatalogPackage[] = [
     objectives: ['Improve decision speed', 'Reduce turnovers under pressure'],
     moduleCount: 1,
     dripLabel: '1 week',
-    priceLabel: 'See details',
+    priceCents: 2700,
+    currency: 'usd',
+    priceLabel: formatPackagePriceLabel(2700, null, 'usd'),
+    rating: 4.7,
   },
 ];
 
