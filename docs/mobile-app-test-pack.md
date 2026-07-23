@@ -4,7 +4,7 @@
 
 **For non-technical testers**
 
-Complete click-through instructions for Epics 1–10, plus reference sheets you can keep open while testing.
+Complete click-through instructions for Epics 1–11, plus reference sheets you can keep open while testing.
 
 Version: July 2026 · Document: mobile-app-test-pack
 
@@ -151,7 +151,8 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
-13. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
+13. **Epic 11** — Objectives: coach set player/team goals, player progress rings (4 tests) — needs Coach Pro + Player Pro, roster with at least one player
+14. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1386,6 +1387,52 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
+## Epic 11 — AI Engine & Objectives (STORY-11.1)
+
+*Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Package recommendations / AI (STORY-11.2+) are not in this epic yet.*
+
+**Accounts needed:** Coach on **Pro** (or active trial), Player on **Pro** (or active trial) on the coach's roster, and at least one team with that player. Use Epic 3 roster + Epic 4 Pro upgrade if needed.
+
+**Before you start:** Apply the `objectives` database migration if your environment is behind (ask the team). Home already gates Objectives to Pro (see E5-T8 / E7-T14).
+
+### E11-T1: Coach creates a player objective (STORY-11.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach on Pro**. On **Home**, find **Objectives** and tap **Manage**. | **OBJECTIVES** screen opens (not a Pro lock). |
+| 2 | Tap **+ Add Objective**. | A create form appears with **Title**, **Scope** (player/team), assignee, **Category**, and **Target drills**. |
+| 3 | Leave a title (e.g. **Improve 3PT**), leave scope on **player**, pick your roster player, set target drills to **5**, tap **Save objective**. | Form closes; a new card shows the title, the player's name, **0/5 drills**, and a progress bar at **0%**. |
+
+### E11-T2: Coach creates a team objective (STORY-11.1 AC-1 / AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Still on **OBJECTIVES**, tap **+ Add Objective** again. | Create form opens. |
+| 2 | Tap scope **team**, pick a team, enter a title (e.g. **Defensive rotations**), save. | A second card appears with the **team** name and **0/N drills**. |
+
+### E11-T3: Player sees assigned objectives with progress rings (STORY-11.1 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as the **Player on Pro** who was assigned in E11-T1. On **Home**, tap **Objectives** → **Manage**. | **OBJECTIVES** list opens (not locked). |
+| 2 | Look at the cards. | Each objective shows a **circular progress ring** with a percent, the title, and a count like **0/5 drills**. Player and team goals you can see both appear. |
+
+### E11-T4: Logging a drill advances objective progress (STORY-11.1 AC-3)
+
+*Needs a scheduled session with a **drill** for this player (Epic 6/7). Log the drill from the session detail.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As the **Player**, open the session → log a **drill** complete (mark done). | Drill shows as completed. |
+| 2 | Return to **OBJECTIVES** (or reopen **Manage**). | The player objective count increases (e.g. **1/5 drills**) and the ring percent updates. Team objectives for that player's team may also tick up. |
+
+### Not testable by clicking (for awareness only)
+
+- **Shooting-% / custom performance KPIs** are out of MVP (OQ-6.1) — only drill-completion targets ship here.
+- **AI package recommendations** on the objectives screen are STORY-11.2+.
+
+---
+
 ## Epic 12 — Admin Dashboard: Users (STORY-12.1)
 
 *Admin website only, plus one step on mobile for E12-T3. Skip this section if you were not given an Admin account or dashboard URL.*
@@ -1551,6 +1598,10 @@ Print this page and check off results as you go.
 | E10-T9 Admin approve/reject coach package | | |
 | E10-T10 Admin publish with Stripe price ID | | |
 | E10-T11 Published package appears in Store | | |
+| E11-T1 Coach creates player objective | | |
+| E11-T2 Coach creates team objective | | |
+| E11-T3 Player views objectives + progress rings | | |
+| E11-T4 Drill log advances objective progress | | |
 | E12-T1 Admin can search user list | | |
 | E12-T2 Admin edits name and role | | |
 | E12-T3 Suspend blocks mobile sign-in | | |

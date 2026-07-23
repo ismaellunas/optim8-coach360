@@ -267,6 +267,19 @@ export {
   SESSION_MVP_TYPES,
 } from './session/types.js';
 export {
+  objectiveScopeSchema,
+  objectiveCategorySchema,
+  objectiveSchema,
+  createObjectiveInputSchema,
+  computeObjectiveProgress,
+  isPlayerObjective,
+  isTeamObjective,
+  type ObjectiveScope,
+  type ObjectiveCategory,
+  type Objective,
+  type CreateObjectiveInput,
+} from './objectives/schema.js';
+export {
   mapSessionValidationMessage,
   formatSessionValidationError,
   looksLikeZodIssueDump,

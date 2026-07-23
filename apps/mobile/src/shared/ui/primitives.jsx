@@ -137,12 +137,13 @@ export function PageHeader({ title, subtitle, user, onBack, trailing }) {
   );
 }
 
-export function DashedBtn({ children, onClick }) {
+export function DashedBtn({ children, onClick, ...rest }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className="w-full cursor-pointer rounded-xl border-2 border-dashed border-coach-border bg-transparent px-3.5 py-3.5 font-display text-[13px] font-semibold uppercase text-coach-t3"
+      {...rest}
     >
       {children}
     </button>
@@ -150,7 +151,7 @@ export function DashedBtn({ children, onClick }) {
 }
 
 /** Standard horizontal padding for full-screen flows (auth, gates, tab screens). */
-export function ScreenContainer({ children, className = '', centered = false }) {
+export function ScreenContainer({ children, className = '', centered = false, ...rest }) {
   return (
     <div
       className={[
@@ -160,6 +161,7 @@ export function ScreenContainer({ children, className = '', centered = false }) 
       ]
         .filter(Boolean)
         .join(' ')}
+      {...rest}
     >
       {children}
     </div>

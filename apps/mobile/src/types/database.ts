@@ -128,6 +128,70 @@ export type Database = {
           },
         ]
       }
+      objectives: {
+        Row: {
+          id: string
+          coach_id: string
+          scope: string
+          player_id: string | null
+          team_id: string | null
+          title: string
+          category: string | null
+          target_completions: number
+          current_completions: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          coach_id: string
+          scope: string
+          player_id?: string | null
+          team_id?: string | null
+          title: string
+          category?: string | null
+          target_completions?: number
+          current_completions?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          coach_id?: string
+          scope?: string
+          player_id?: string | null
+          team_id?: string | null
+          title?: string
+          category?: string | null
+          target_completions?: number
+          current_completions?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objectives_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objectives_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           key: string

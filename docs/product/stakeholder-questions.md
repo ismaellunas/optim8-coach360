@@ -21,7 +21,7 @@
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
 | 3.7 | Notifications on create/update/cancel/reminder? — **resolved 2026-07-21: immediate + 24h reminder** | 3 |
 | 4.1 | Who creates marketplace packages — admins, coaches, or both? — **resolved 2026-07-23: both with approval** | 4, 7, 12 |
-| 6.1 | What does “set objectives” at Pro include? | 6 |
+| 6.1 | What does “set objectives” at Pro include? — **resolved 2026-07-23: coach-set, player-visible, team-level; KPI = drill targets** | 6 |
 | 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
 
 ---
@@ -99,7 +99,7 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 6.1 | **P0** — What does **“set objectives”** at Pro include — coach-set only, player-visible, team-level, measurable KPIs? | `(Need more Info)` in Flow 2 Pro tier | | | |
+| 6.1 | **P0** — What does **“set objectives”** at Pro include — coach-set only, player-visible, team-level, measurable KPIs? | `(Need more Info)` in Flow 2 Pro tier | **Coach-set, player-visible, team-level; KPI = drill-completion targets only for MVP.** Coaches set player and team objectives; assigned players can view them (Pro). Progress is measured as completions toward a target drill count (updates when a drill is logged). No shooting-% / custom performance KPIs in MVP. | product | 2026-07-23 |
 | 6.2 | Which **AI provider** is approved (Mistral per tech stack, or OpenAI/Anthropic)? | DEP-01 | | | |
 | 6.3 | What inputs drive **package recommendations** — objectives, progress, age, behavior, all of the above? | RAG design (DEP-02) | | | |
 | 6.4 | Is **RAG required at MVP**, or can v1 use metadata filters + simple ranking? | DEP-02 scope (+10–20 h risk) | | | |

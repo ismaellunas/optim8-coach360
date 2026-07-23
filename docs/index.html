@@ -3181,36 +3181,46 @@
         {
           "id": "AC-1",
           "statement": "Coach at Pro sets objectives for individual players and teams",
-          "test": null
+          "test": "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_coach_pro_sets_player_and_team_objectives"
         },
         {
           "id": "AC-2",
           "statement": "Player at Pro views assigned objectives and progress rings",
-          "test": null
+          "test": "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC2_player_pro_views_objectives_with_progress_rings"
         },
         {
           "id": "AC-3",
           "statement": "Objective progress updates when drill completion logged",
-          "test": null
+          "test": "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC3_drill_completion_updates_objective_progress"
         },
         {
           "id": "AC-4",
           "statement": "Objective schema supports player and team goals per Flow 6 (details TBD post-MVP if needed)",
-          "test": null
+          "test": "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_objective_schema_supports_player_and_team_goals"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/App.jsx",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_coach_pro_sets_player_and_team_objectives",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC2_player_pro_views_objectives_with_progress_rings",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC3_drill_completion_updates_objective_progress",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_objective_schema_supports_player_and_team_goals"
         ],
-        "command": null
+        "files": [
+          "apps/mobile/src/features/objectives/ui/ObjectivesScreen.jsx",
+          "apps/mobile/src/App.jsx",
+          "packages/domain/src/objectives/schema.ts",
+          "packages/api/src/ports/objectives-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-objectives-repository.ts",
+          "supabase/migrations/20260723220000_objectives.sql",
+          "tests/objectives/story-11.1.test.js"
+        ],
+        "command": "npm run test:story-11.1"
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "OQ-6.1: coach-set, player-visible, team-level; KPI=drill targets. Extracted ObjectivesScreen; objectives table+RLS+drill bump trigger. npm run test:story-11.1 — AC1–AC4 pass."
     },
     {
       "id": "STORY-11.2",
