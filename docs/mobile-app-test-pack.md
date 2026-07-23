@@ -150,6 +150,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 9. **Epic 8** — Chat channels, rich messages, peer sharing (11 tests)
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
+12. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
 **Estimated time:** 3.5–5.5 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1263,6 +1264,54 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
+## Epic 12 — Admin Dashboard: Users (STORY-12.1)
+
+*Admin website only, plus one step on mobile for E12-T3. Skip this section if you were not given an Admin account or dashboard URL.*
+
+**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit and suspend — ask the team for one, or use a throwaway account you created in earlier epics.
+
+### E12-T1: Admin can search the user list (STORY-12.1 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Open the Admin dashboard URL in a browser. Sign in with your **Admin** account. | Dashboard loads. |
+| 2 | Navigate to **Users** (sidebar or menu). | Page titled **Users** with subtitle about profiles, roles, and account status. A list of user cards, each showing a name, role, and an **Active**/**Suspended** badge. |
+| 3 | Type part of a test user's name into the search box at the top. | The list narrows to matching names as you type. Clear the box to see everyone again. |
+
+### E12-T2: Admin edits a user's name and role (STORY-12.1 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users**, find your non-admin test account. Tap **Manage** on its card. | The card expands to show a name field, a role dropdown, and a **Suspend** button. |
+| 2 | Change the name field and click outside it (tab or click away). | No error; the name on the card updates to the new value. |
+| 3 | Change the role dropdown (e.g. **player** → **coach**). | No error; the role shown under the user's name updates. |
+
+### E12-T3: Suspending a user blocks their mobile sign-in (STORY-12.1 AC-3)
+
+This is a two-person or two-browser test (Admin dashboard + mobile app).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On the mobile app, sign in as your non-admin test account to confirm it currently works, then sign out. | Sign-in succeeds normally. |
+| 2 | In the Admin dashboard, **Manage** that same user and tap **Suspend**. | Badge on the card changes to **Suspended**; the button now reads **Reactivate**. |
+| 3 | On the mobile app, try signing in as that user again. | Sign-in fails with a message like **"Your account has been suspended. Contact support for assistance."** — not a generic error. |
+| 4 | **Cleanup:** In the Admin dashboard, tap **Reactivate** on that user. | Badge returns to **Active**; the user can sign in on mobile again. |
+
+### E12-T4: Admin views a user's team rosters (STORY-12.1 AC-4)
+
+Best tested with a user who is on at least one team (e.g. a Player or Coach from Epic 3).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users**, tap **Manage** on a user who belongs to a team. | Card expands with edit fields and a **Team rosters** section below them. |
+| 2 | Look at **Team rosters**. | The name(s) of every team that user is on. If they are on no team, it reads **Not on any team.** instead. |
+
+### Not testable by clicking (for awareness only)
+
+- **Server-side enforcement** — role/suspension changes are also blocked at the database level for non-admins (Postgres trigger). You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.
+
+---
+
 <div class="page-break"></div>
 
 ## Part 3 — Quick Results Sheet
@@ -1369,6 +1418,10 @@ Print this page and check off results as you go.
 | E9-T15 Solo clients need team roster first | | |
 | E9-T16 Assignment shows for player after share | | |
 | E9-T17 Store shows published Sanity packages | | |
+| E12-T1 Admin can search user list | | |
+| E12-T2 Admin edits name and role | | |
+| E12-T3 Suspend blocks mobile sign-in | | |
+| E12-T4 Admin views user team rosters | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

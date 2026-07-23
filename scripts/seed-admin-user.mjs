@@ -56,16 +56,20 @@ async function readDotEnv(filePath) {
   }
 }
 
+const VALID_ROLES = ['admin', 'coach', 'player', 'team_manager'];
+
 function printHelp() {
-  console.log(`Seed or promote an admin user in Supabase.
+  console.log(`Seed or promote a user in Supabase.
 
 Usage:
   npm run seed:admin -- --email you@example.com --password "StrongPass123!"
+  npm run seed:admin -- --email player1@example.com --password "TestPass123!" --role player
 
 Options:
-  --email         Admin email. Defaults to ADMIN_SEED_EMAIL or admin@coach360.local
+  --email         User email. Defaults to ADMIN_SEED_EMAIL or admin@coach360.local
   --password      Password for new users. Defaults to ADMIN_SEED_PASSWORD
   --display-name  Profile display name. Defaults to ADMIN_SEED_DISPLAY_NAME or Local Admin
+  --role          One of: ${VALID_ROLES.join(', ')}. Defaults to ADMIN_SEED_ROLE or admin
   --help          Show this message
 
 Required env:
@@ -112,6 +116,12 @@ if (!supabaseUrl || !serviceRoleKey) {
 const email = args.email ?? env.ADMIN_SEED_EMAIL ?? 'admin@coach360.local';
 const password = args.password ?? env.ADMIN_SEED_PASSWORD;
 const displayName = args['display-name'] ?? env.ADMIN_SEED_DISPLAY_NAME ?? 'Local Admin';
+const role = args.role ?? env.ADMIN_SEED_ROLE ?? 'admin';
+
+if (!VALID_ROLES.includes(role)) {
+  console.error(`Invalid --role "${role}". Must be one of: ${VALID_ROLES.join(', ')}.`);
+  process.exit(1);
+}
 
 const admin = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -131,7 +141,7 @@ if (!user) {
     email,
     password,
     email_confirm: true,
-    user_metadata: { display_name: displayName, role: 'admin' },
+    user_metadata: { display_name: displayName, role },
   });
 
   if (created.error) throw created.error;
@@ -144,7 +154,7 @@ if (!user) {
 const profile = await admin.from('profiles').upsert(
   {
     id: user.id,
-    role: 'admin',
+    role,
     display_name: displayName,
     is_suspended: false,
   },
@@ -153,4 +163,4 @@ const profile = await admin.from('profiles').upsert(
 
 if (profile.error) throw profile.error;
 
-console.log(`Admin profile ensured for ${email} (${user.id}).`);
+console.log(`Profile ensured for ${email} (${user.id}) with role "${role}".`);

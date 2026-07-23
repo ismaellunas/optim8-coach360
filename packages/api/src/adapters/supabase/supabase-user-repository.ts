@@ -1,21 +1,28 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { User } from '@coach360/domain';
 import type { PaginatedResult } from '../../client/types.js';
-import type { UserRepository } from '../../ports/user-repository.js';
+import type { UpdateUserInput, UserListParams, UserRepository } from '../../ports/user-repository.js';
 import { mapProfileToUser } from './mappers/user-mapper.js';
 
 export class SupabaseUserRepository implements UserRepository {
   constructor(private readonly client: SupabaseClient) {}
 
-  async list(page = 1, pageSize = 20): Promise<PaginatedResult<User>> {
+  async list(params: UserListParams = {}): Promise<PaginatedResult<User>> {
+    const page = params.page ?? 1;
+    const pageSize = params.pageSize ?? 20;
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    const { data, error, count } = await this.client
+    let query = this.client
       .from('profiles')
       .select('id, role, display_name, is_suspended', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
+
+    if (params.search?.trim()) {
+      query = query.ilike('display_name', `%${params.search.trim()}%`);
+    }
+
+    const { data, error, count } = await query.range(from, to);
 
     if (error) {
       throw new Error(error.message);
@@ -46,6 +53,32 @@ export class SupabaseUserRepository implements UserRepository {
 
     if (!data) {
       return null;
+    }
+
+    return mapProfileToUser(data, 'unknown@coach360.local');
+  }
+
+  async updateUser(id: string, input: UpdateUserInput): Promise<User> {
+    const patch: Record<string, unknown> = {};
+    if (input.displayName !== undefined) {
+      patch.display_name = input.displayName;
+    }
+    if (input.role !== undefined) {
+      patch.role = input.role;
+    }
+    if (input.isSuspended !== undefined) {
+      patch.is_suspended = input.isSuspended;
+    }
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .update(patch)
+      .eq('id', id)
+      .select('id, role, display_name, is_suspended')
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
     }
 
     return mapProfileToUser(data, 'unknown@coach360.local');
