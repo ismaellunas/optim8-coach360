@@ -350,6 +350,25 @@ export {
   type TeamMemberPackageCompletion,
 } from './marketplace/drip-progress.js';
 export {
+  WORKFLOW_STATUSES,
+  MARKETPLACE_SUPPLY_MODEL,
+  MARKETPLACE_PRICING_MODEL,
+  isWorkflowStatus,
+  canCreateMarketplacePackage,
+  canApproveOrRejectPackage,
+  canPublishMarketplacePackage,
+  canTransitionWorkflowStatus,
+  canSetPackagePublished,
+  resolvePublishPricing,
+  nextStatusForReviewAction,
+  type WorkflowStatus,
+  type WorkflowActor,
+  type PublishPreconditions,
+  type ResolvePublishPricingInput,
+  type ResolvedPublishPricing,
+  type ReviewAction,
+} from './marketplace/workflow.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

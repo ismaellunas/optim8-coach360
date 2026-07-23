@@ -5,6 +5,9 @@ import type {
   ContentRepository,
   FeatureFlagInput,
   FreeContentCatalogItemInput,
+  MarketplaceReviewActionResult,
+  PublishMarketplacePackageInput,
+  MarketplaceReviewItem,
 } from '../../ports/content-repository.js';
 
 export class RestContentRepository implements ContentRepository {
@@ -35,5 +38,26 @@ export class RestContentRepository implements ContentRepository {
   async removeFreeContentCatalogItem(id: string): Promise<void> {
     void id;
     throw new NotImplementedAdapterError('rest', 'removeFreeContentCatalogItem');
+  }
+
+  async listMarketplaceReviewQueue(): Promise<MarketplaceReviewItem[]> {
+    throw new NotImplementedAdapterError('rest', 'listMarketplaceReviewQueue');
+  }
+
+  async approveMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult> {
+    void sanityDocumentId;
+    throw new NotImplementedAdapterError('rest', 'approveMarketplacePackage');
+  }
+
+  async rejectMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult> {
+    void sanityDocumentId;
+    throw new NotImplementedAdapterError('rest', 'rejectMarketplacePackage');
+  }
+
+  async publishMarketplacePackage(
+    input: PublishMarketplacePackageInput,
+  ): Promise<MarketplaceReviewActionResult> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'publishMarketplacePackage');
   }
 }

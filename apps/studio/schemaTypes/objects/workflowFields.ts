@@ -22,8 +22,24 @@ export const publishedField = defineField({
   name: 'published',
   title: 'Published',
   type: 'boolean',
-  description: 'Set true after approval to list on the marketplace.',
+  description:
+    'Set true after approval to list on the marketplace. Requires status=approved and a Stripe price ID.',
   initialValue: false,
+  validation: (Rule) =>
+    Rule.custom((published, context) => {
+      if (published !== true) return true;
+      const parent = context.parent as {
+        status?: string;
+        stripePriceId?: string | null;
+      } | null;
+      if (parent?.status !== 'approved') {
+        return 'Publish requires workflow status Approved';
+      }
+      if (!parent?.stripePriceId?.trim()) {
+        return 'Publish requires a Stripe price ID';
+      }
+      return true;
+    }),
 });
 
 export const WORKFLOW_STATUS_VALUES = [

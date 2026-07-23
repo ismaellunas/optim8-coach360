@@ -3094,35 +3094,55 @@
         {
           "id": "AC-1",
           "statement": "Submission workflow follows draft → pending_review → approved/rejected → published",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC1_workflow_transitions"
         },
         {
           "id": "AC-2",
           "statement": "Admin approves or rejects coach-submitted packages from dashboard",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC2_admin_dashboard_approve_reject"
         },
         {
           "id": "AC-3",
           "statement": "Published packages appear in marketplace with Stripe price ID",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC3_published_requires_stripe_price_in_catalog"
         },
         {
           "id": "AC-4",
           "statement": "Supply model follows content-model.md default (coaches submit with admin approval)",
-          "test": null
+          "test": "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC4_coach_submit_admin_approval_supply_model"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)",
-          "sanity/ (inferred)"
+        "tests": [
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC1_workflow_transitions",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC2_admin_dashboard_approve_reject",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC3_published_requires_stripe_price_in_catalog",
+          "tests/marketplace/story-10.4.test.js::test_STORY_10_4_AC4_coach_submit_admin_approval_supply_model"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/workflow.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-content-repository.ts",
+          "packages/api/src/adapters/rest/rest-content-repository.ts",
+          "apps/admin/src/pages/content/ContentPage.tsx",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "apps/studio/schemaTypes/objects/workflowFields.ts",
+          "supabase/functions/review-marketplace-package/handler.ts",
+          "supabase/functions/review-marketplace-package/index.ts",
+          "supabase/functions/sanity-webhook/handler.ts",
+          "supabase/functions/sanity-webhook/webhook-projection.groq",
+          "supabase/migrations/20260723180000_marketplace_supply_workflow.sql",
+          "docs/product/stakeholder-questions.md",
+          "docs/architecture/content-model.md",
+          "tests/marketplace/story-10.4.test.js",
+          "package.json"
+        ],
+        "command": "npm run test:story-10.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Supply model defaulted to content-model.md (coaches with admin approval); not sent to client."
+      "status": "DONE",
+      "last_updated": "2026-07-23T00:00:00Z",
+      "audit_notes": "Path B supply: both with approval (OQ-4.1); workflow draft→pending_review→approved|rejected→published (OQ-4.3); coach suggests price, admin overrides (OQ-4.4). Admin Content review queue + review-marketplace-package edge fn. npm run test:story-10.4 — AC1–AC4 pass."
     },
     {
       "id": "EPIC-11",

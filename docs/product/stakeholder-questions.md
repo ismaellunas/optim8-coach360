@@ -20,7 +20,7 @@
 | 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
 | 3.7 | Notifications on create/update/cancel/reminder? — **resolved 2026-07-21: immediate + 24h reminder** | 3 |
-| 4.1 | Who creates marketplace packages — admins, coaches, or both? | 4, 7, 12 |
+| 4.1 | Who creates marketplace packages — admins, coaches, or both? — **resolved 2026-07-23: both with approval** | 4, 7, 12 |
 | 6.1 | What does “set objectives” at Pro include? | 6 |
 | 6.5 | AI at Advanced (○ partial) vs Pro only — which is correct? — **resolved 2026-07-16: Pro only** | 6, Part 3 |
 
@@ -71,10 +71,10 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 4.1 | **P0** — Who creates marketplace packages — **admins only**, **coaches only**, or **both** (with approval)? | Open question in Flow 4 intro | | | |
-| 4.2 | Can coach-created content (Flow 12) be **listed for sale** in the marketplace, or only distributed privately? | Marketplace supply model | | | |
-| 4.3 | What is the approval workflow before a package goes live (draft → review → publish)? | Flow 7 admin + DEP-05 | | | |
-| 4.4 | Who sets **pricing** — admin only, coaches with admin approval, or fixed catalog? | Admin matrix “configure pricing” | | | |
+| 4.1 | **P0** — Who creates marketplace packages — **admins only**, **coaches only**, or **both** (with approval)? | Open question in Flow 4 intro | **Both (with approval).** Coaches and admins may create marketplace packages; coach listings require admin approval before publish (STORY-10.4 / Path B). | product | 2026-07-23 |
+| 4.2 | Can coach-created content (Flow 12) be **listed for sale** in the marketplace, or only distributed privately? | Marketplace supply model | **Yes — after admin approval.** Coach-created library content may be bundled into a package and listed for sale via Path B (`pending_review` → approve → publish). Private Path A distribution remains without marketplace listing. | product | 2026-07-23 |
+| 4.3 | What is the approval workflow before a package goes live (draft → review → publish)? | Flow 7 admin + DEP-05 | **`draft → pending_review → approved \| rejected → published` (boolean).** Admin approves or rejects from the Content dashboard; publish requires approved status plus a Stripe price ID (STORY-10.4). | product | 2026-07-23 |
+| 4.4 | Who sets **pricing** — admin only, coaches with admin approval, or fixed catalog? | Admin matrix “configure pricing” | **Coach suggests; admin approves and may override.** Coach may set `suggestedPriceCents`; admin sets the final Stripe price ID and display price at publish (STORY-10.4). | product | 2026-07-23 |
 | 4.5 | Does **team age range** (Flow 11) hard-filter marketplace listings, or only affect AI recommendations? | Filtering rules | | | |
 | 4.6 | Can users **preview** package contents before purchase (trailer, sample lesson, outline)? | Marketplace UX | **No.** Pre-purchase catalog shows marketing metadata only (title, description, price, rating, skills, module count). No trailer, sample lesson, outline, or drip schedule preview before purchase (STORY-10.1 / OQ-4.6). | product | 2026-07-23 |
 | 4.7 | After purchase, can content be **re-downloaded offline**, or streaming only? | Mobile storage scope | | | |
