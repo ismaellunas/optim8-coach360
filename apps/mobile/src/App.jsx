@@ -19,6 +19,7 @@ import { CoachLibraryScreen } from "./features/content/ui/CoachLibraryScreen.jsx
 import { DistributeContentScreen } from "./features/content/ui/DistributeContentScreen.jsx";
 import { PlayerContentScreen } from "./features/content/ui/PlayerContentScreen.jsx";
 import { StoreScreen } from "./features/marketplace/ui/StoreScreen.jsx";
+import { ObjectivesScreen } from "./features/objectives/ui/ObjectivesScreen.jsx";
 import { SubscriptionScreen } from "./features/subscription/ui/SubscriptionScreen.jsx";
 import { TrialBanner } from "./features/subscription/ui/TrialBanner.jsx";
 import { PaywallModal } from "./features/subscription/ui/PaywallModal.jsx";
@@ -41,7 +42,6 @@ import {
   Badge,
   Button as Btn,
   Card,
-  DashedBtn,
   PageHeader,
   ScreenContainer,
   TabBar,
@@ -411,37 +411,6 @@ function HomeScreen({ user, go, tryA }) {
   );
 }
 
-
-/* ── Objectives ── */
-function ObjectivesScreen({ user, onBack }) {
-  var objs = [{ n: "Improve 3PT to 40%", p: 72, pl: "Jaylen Carter" }, { n: "Defensive rotations", p: 45, pl: "Team U14" }, { n: "Free throw 85%+", p: 88, pl: "Deon Williams" }];
-  function progressColor(p) {
-    if (p >= 80) return COLORS.green;
-    if (p >= 50) return COLORS.yellow;
-    return COLORS.orange;
-  }
-  return (
-    <ScreenContainer>
-      <PageHeader title="OBJECTIVES" onBack={onBack} />
-      {objs.map(function(o, i) {
-        const barColor = progressColor(o.p);
-        return (
-          <Card key={i}>
-            <div className="mb-1 flex justify-between">
-              <span className="font-body text-sm font-semibold text-coach-t1">{o.n}</span>
-              <span className={`font-mono text-sm ${tcx(barColor)}`}>{o.p + "%"}</span>
-            </div>
-            {user.role === "coach" && <div className="mb-2 font-body text-[11px] text-coach-t3">{o.pl}</div>}
-            <div className="h-1.5 rounded-sm bg-coach-border">
-              <div className="h-full rounded-sm" style={{ width: o.p + "%", backgroundColor: barColor }} />
-            </div>
-          </Card>
-        );
-      })}
-      {user.role === "coach" && <DashedBtn>+ Add Objective</DashedBtn>}
-    </ScreenContainer>
-  );
-}
 
 /* ── Admin Detail ── */
 function AdminDetailScreen({ screen, onBack }) {

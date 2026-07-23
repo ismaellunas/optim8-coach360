@@ -19,7 +19,10 @@ import type { MessagingRepository } from '../ports/messaging-repository.js';
 import type { MarketplaceCatalogRepository } from '../ports/marketplace-catalog-repository.js';
 import type { MarketplacePurchaseRepository } from '../ports/marketplace-purchase-repository.js';
 import type { MarketplaceDripRepository } from '../ports/marketplace-drip-repository.js';
+import type { ObjectivesRepository } from '../ports/objectives-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
+import { RestObjectivesRepository } from '../adapters/rest/rest-objectives-repository.js';
+import { SupabaseObjectivesRepository } from '../adapters/supabase/supabase-objectives-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
@@ -85,6 +88,7 @@ export type RepositoryBundle = {
   marketplaceCatalog: MarketplaceCatalogRepository;
   marketplacePurchases: MarketplacePurchaseRepository;
   marketplaceDrip: MarketplaceDripRepository;
+  objectives: ObjectivesRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -132,6 +136,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       marketplaceCatalog: createMarketplaceCatalog(options.sanity),
       marketplacePurchases: new RestMarketplacePurchaseRepository(),
       marketplaceDrip: new RestMarketplaceDripRepository(),
+      objectives: new RestObjectivesRepository(),
     };
   }
 
@@ -169,6 +174,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     marketplaceCatalog: createMarketplaceCatalog(options.sanity),
     marketplacePurchases: new SupabaseMarketplacePurchaseRepository(appClient),
     marketplaceDrip: new SupabaseMarketplaceDripRepository(appClient),
+    objectives: new SupabaseObjectivesRepository(appClient),
   };
 }
 
