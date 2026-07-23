@@ -336,6 +336,20 @@ export {
   type DripModuleUnlockedPayload,
 } from './marketplace/drip.js';
 export {
+  DRIP_ACCESS_MIN_TIER,
+  canAccessDrippedContent,
+  resolveModuleLockState,
+  buildPackageDripProgressView,
+  summarizeTeamPackageCompletions,
+  moduleLockLabel,
+  type DripProgressRow,
+  type ModuleLockState,
+  type PackageDripModuleView,
+  type PackageDripProgressView,
+  type TeamMemberDripRow,
+  type TeamMemberPackageCompletion,
+} from './marketplace/drip-progress.js';
+export {
   INVITE_EXPIRY_DAYS,
   allowsMultipleTeamMembership,
   generateInviteCode,

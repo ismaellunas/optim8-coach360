@@ -18,6 +18,7 @@ import type { ContentAssignmentRepository } from '../ports/content-assignment-re
 import type { MessagingRepository } from '../ports/messaging-repository.js';
 import type { MarketplaceCatalogRepository } from '../ports/marketplace-catalog-repository.js';
 import type { MarketplacePurchaseRepository } from '../ports/marketplace-purchase-repository.js';
+import type { MarketplaceDripRepository } from '../ports/marketplace-drip-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
@@ -35,6 +36,7 @@ import { RestContentAssignmentRepository } from '../adapters/rest/rest-content-a
 import { RestMessagingRepository } from '../adapters/rest/rest-messaging-repository.js';
 import { RestMarketplaceCatalogRepository } from '../adapters/rest/rest-marketplace-catalog-repository.js';
 import { RestMarketplacePurchaseRepository } from '../adapters/rest/rest-marketplace-purchase-repository.js';
+import { RestMarketplaceDripRepository } from '../adapters/rest/rest-marketplace-drip-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -55,6 +57,7 @@ import { SupabaseLibraryRepository } from '../adapters/supabase/supabase-library
 import { SupabaseContentAssignmentRepository } from '../adapters/supabase/supabase-content-assignment-repository.js';
 import { SupabaseMessagingRepository } from '../adapters/supabase/supabase-messaging-repository.js';
 import { SupabaseMarketplacePurchaseRepository } from '../adapters/supabase/supabase-marketplace-purchase-repository.js';
+import { SupabaseMarketplaceDripRepository } from '../adapters/supabase/supabase-marketplace-drip-repository.js';
 import {
   SanityMarketplaceCatalogRepository,
   type SanityCatalogEnv,
@@ -81,6 +84,7 @@ export type RepositoryBundle = {
   messaging: MessagingRepository;
   marketplaceCatalog: MarketplaceCatalogRepository;
   marketplacePurchases: MarketplacePurchaseRepository;
+  marketplaceDrip: MarketplaceDripRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -127,6 +131,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       messaging: new RestMessagingRepository(),
       marketplaceCatalog: createMarketplaceCatalog(options.sanity),
       marketplacePurchases: new RestMarketplacePurchaseRepository(),
+      marketplaceDrip: new RestMarketplaceDripRepository(),
     };
   }
 
@@ -163,6 +168,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     messaging: new SupabaseMessagingRepository(appClient),
     marketplaceCatalog: createMarketplaceCatalog(options.sanity),
     marketplacePurchases: new SupabaseMarketplacePurchaseRepository(appClient),
+    marketplaceDrip: new SupabaseMarketplaceDripRepository(appClient),
   };
 }
 

@@ -62,6 +62,9 @@ export type { SanityCatalogEnv } from './adapters/sanity/sanity-marketplace-cata
 export { RestMarketplaceCatalogRepository } from './adapters/rest/rest-marketplace-catalog-repository.js';
 export { SupabaseMarketplacePurchaseRepository } from './adapters/supabase/supabase-marketplace-purchase-repository.js';
 export { RestMarketplacePurchaseRepository } from './adapters/rest/rest-marketplace-purchase-repository.js';
+export type { MarketplaceDripRepository } from './ports/marketplace-drip-repository.js';
+export { SupabaseMarketplaceDripRepository } from './adapters/supabase/supabase-marketplace-drip-repository.js';
+export { RestMarketplaceDripRepository } from './adapters/rest/rest-marketplace-drip-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,
