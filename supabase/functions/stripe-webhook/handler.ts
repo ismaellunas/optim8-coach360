@@ -8,6 +8,8 @@ export type StripeSubscriptionPayload = {
   };
   items?: {
     data: Array<{
+      current_period_start?: number;
+      current_period_end?: number;
       price?: {
         id?: string;
         metadata?: {
@@ -16,9 +18,19 @@ export type StripeSubscriptionPayload = {
       };
     }>;
   };
+  /** Pre-Basil API only; prefer items.data[].current_period_end. */
   current_period_end?: number;
   trial_end?: number | null;
 };
+
+/** Basil+ periods live on items; older payloads keep them on the subscription. */
+export function resolveStripeSubscriptionPeriodEnd(
+  sub: StripeSubscriptionPayload,
+): number | null {
+  const fromItem = sub.items?.data?.[0]?.current_period_end;
+  const end = fromItem ?? sub.current_period_end;
+  return typeof end === 'number' && end > 0 ? end : null;
+}
 
 export type StripeInvoicePayload = {
   id: string;
@@ -157,6 +169,7 @@ export function resolveTierFromInvoice(invoice: StripeInvoicePayload): string | 
 
 export function buildSubscriptionUpsert(sub: StripeSubscriptionPayload, profileId: string) {
   const status = STRIPE_STATUS_MAP[sub.status] ?? 'incomplete';
+  const periodEnd = resolveStripeSubscriptionPeriodEnd(sub);
 
   return {
     profile_id: profileId,
@@ -164,9 +177,7 @@ export function buildSubscriptionUpsert(sub: StripeSubscriptionPayload, profileI
     status,
     stripe_customer_id: resolveStripeCustomerId(sub.customer),
     stripe_subscription_id: sub.id,
-    current_period_end: sub.current_period_end
-      ? new Date(sub.current_period_end * 1000).toISOString()
-      : null,
+    current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
     trial_ends_at: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
   };
 }

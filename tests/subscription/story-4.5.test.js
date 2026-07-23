@@ -21,6 +21,7 @@ import {
   buildStripeSubscriptionUpgradeBody,
   changeSubscriptionTier,
   classifyPaidTierChange,
+  resolveSubscriptionBillingPeriod,
 } from '../../supabase/functions/change-subscription-tier/handler.ts';
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
 
@@ -253,6 +254,24 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
     // Stripe schedule phases: current price until period end, then target price.
     const periodStart = 1753920000;
     const periodEnd = 1756598400;
+
+    // Basil+ Stripe payloads put period on the item; root fields may be absent.
+    expect(
+      resolveSubscriptionBillingPeriod({
+        items: {
+          data: [{ current_period_start: periodStart, current_period_end: periodEnd }],
+        },
+      }),
+    ).toEqual({ periodStart, periodEnd });
+    // Pre-Basil payloads still work via subscription-level fields.
+    expect(
+      resolveSubscriptionBillingPeriod({
+        current_period_start: periodStart,
+        current_period_end: periodEnd,
+      }),
+    ).toEqual({ periodStart, periodEnd });
+    expect(resolveSubscriptionBillingPeriod({})).toEqual({ periodStart: 0, periodEnd: 0 });
+
     const phases = buildDowngradeSchedulePhasesBody({
       currentPriceId: 'price_test_pro',
       targetPriceId: 'price_test_basic',
@@ -314,6 +333,7 @@ describe('STORY_4_5 AC3 — downgrade scheduled for end of current billing perio
     const indexSrc = readFileSync(TIER_CHANGE_INDEX_PATH, 'utf8');
     expect(indexSrc).toMatch(/subscription_schedules/);
     expect(indexSrc).toMatch(/schedulePendingDowngrade/);
+    expect(indexSrc).toMatch(/resolveSubscriptionBillingPeriod/);
 
     // UI: scheduled downgrade banner + confirm step before scheduling.
     const screen = readFileSync(SUBSCRIPTION_SCREEN_PATH, 'utf8');

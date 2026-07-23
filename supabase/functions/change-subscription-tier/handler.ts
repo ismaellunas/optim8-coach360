@@ -92,6 +92,27 @@ export type StripeDowngradeSchedulePhasesBody = {
   end_behavior: 'release';
 };
 
+/**
+ * Stripe Basil (2025-03-31+) moved billing periods onto subscription items.
+ * Prefer item-level fields; fall back to subscription-level for older payloads.
+ */
+export function resolveSubscriptionBillingPeriod(sub: {
+  current_period_start?: number | null;
+  current_period_end?: number | null;
+  items?: {
+    data?: Array<{
+      current_period_start?: number | null;
+      current_period_end?: number | null;
+    }>;
+  };
+}): { periodStart: number; periodEnd: number } {
+  const item = sub.items?.data?.[0];
+  return {
+    periodStart: Number(item?.current_period_start ?? sub.current_period_start ?? 0),
+    periodEnd: Number(item?.current_period_end ?? sub.current_period_end ?? 0),
+  };
+}
+
 export function buildDowngradeSchedulePhasesBody(input: {
   currentPriceId: string;
   targetPriceId: string;
