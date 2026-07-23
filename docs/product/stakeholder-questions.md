@@ -14,9 +14,9 @@
 
 | Ref | Question (short) | Flow |
 | --- | --- | --- |
-| 2.1 | What does “track own progress” mean at Basic tier? | 2 |
+| 2.1 | What does “track own progress” mean at Basic tier? — **resolved 2026-07-23: Basic ◎ log + count; Advanced ○ locked; Pro ✓ full dashboard** | 2 |
 | 2.2 | What is included in “Full MVP access” at Pro tier? | 2 |
-| 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule | 2 |
+| 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule — **resolved 2026-07-23: full coaching tools at Advanced; Pro = +AI/objectives/analytics** | 2 |
 | 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
 | 3.7 | Notifications on create/update/cancel/reminder? — **resolved 2026-07-21: immediate + 24h reminder** | 3 |
@@ -42,9 +42,9 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 2.1 | **P0** — What does **“track own progress”** mean at **Basic** tier — drill logs only, completion %, stats, or full profile dashboard? | Undefined in tier breakdown (`what progress?`) | | | |
+| 2.1 | **P0** — What does **“track own progress”** mean at **Basic** tier — drill logs only, completion %, stats, or full profile dashboard? | Undefined in tier breakdown (`what progress?`) | **Basic players** can log drill completions (mark done + optional reps/time) and see a **completion count only** on Progress/Profile (◎, + upgrade banner). Full stats / practice-minute trends / progress dashboard are **Pro** ✓. **Advanced player Progress UI is ○ until Pro** — not the same as Basic ◎; Advanced sees an Upgrade-to-Pro lock (peer share on Progress remains Advanced+). Matches shipped STORY-7.2 / STORY-7.4 and `LAUNCH_ACCESS_BANDS.viewProgress` (player: `readonlyTiers: ['basic'], fullFrom: 'pro'`). | product | 2026-07-23 |
 | 2.2 | **P0** — What exactly is included in **“Full MVP access”** at **Pro** tier beyond what Advanced already gets? | Undefined in tier breakdown | | | |
-| 2.3 | **P0** — At **Advanced**, what are the precise boundaries for **coach & communicate**, **distribute content**, and **plan & schedule** vs Pro? | Three `(Need more Info)` items in estimate | | | |
+| 2.3 | **P0** — At **Advanced**, what are the precise boundaries for **coach & communicate**, **distribute content**, and **plan & schedule** vs Pro? | Three `(Need more Info)` items in estimate | **Advanced = full coaching tools without AI.** Communicate: full chat (team, DM, peer) at Advanced; Pro adds nothing for chat. Distribute: create + assign/share to own players/teams at Advanced; Pro adds nothing for distribution. Plan & schedule: full session planning at Advanced; Pro adds nothing for schedule. **○** = unlocks at a higher tier (same legend as OQ-6.5), not partial access — Advanced features above are ✓ at Advanced. **Pro** = Advanced + AI + objectives + full analytics. | product | 2026-07-23 |
 | 2.4 | What is the trial duration, and is it one trial per user, per device, or per Apple/Google account? | Trial logic (Flows 2, 9) | | | |
 | 2.5 | Does trial always grant **full Pro access**, or a subset? | Access matrix vs Flow 2 diagram | | | |
 | 2.6 | Are subscription tiers priced per user, per team, or per organization? | Stripe product design | | | |
@@ -251,7 +251,7 @@
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
 | AC.1 | The matrix references **~223 rules** in benchmarks; MVP ships **basic gating only** (DEP-06). Which rules are **must-have for launch**? | Scope control (+40–80 h post-MVP) | | | |
-| AC.2 | Several cells use **◎ read-only** and **○ partial** — need a definitive list of what partial means per feature. | Implementation ambiguity | | | |
+| AC.2 | Several cells use **◎ read-only** and **○ partial** — need a definitive list of what partial means per feature. | Implementation ambiguity | **○ legend confirmed** (OQ-6.5 / OQ-2.3): ○ means “available at a higher tier,” not partial access at the current tier. Per-feature **◎ read-only** list and remaining matrix cells still need a definitive MVP list (AC.1). | product | 2026-07-23 |
 | AC.3 | **Trial** column mirrors Pro in many rows — confirm trial = Pro for all features, or exceptions? | Consistent gating | | | |
 | AC.4 | Can a **Basic coach** purchase and use content without Advanced coaching features? | Independent coach path | | | |
 | AC.5 | English only at launch, or multi-language required? | SOW assumption | | | |

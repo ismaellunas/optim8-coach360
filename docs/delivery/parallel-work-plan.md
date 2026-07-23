@@ -22,7 +22,7 @@ These touch different parts of the stack; separate owners can run them concurren
 
 | Lane | Stories | Why it's unblocked |
 |---|---|---|
-| RBAC follow-ups | STORY-5.3, 7.4 | STORY-5.1 (RBAC middleware) is DONE; only 5.2 still waits on OQ-6.5 |
+| RBAC follow-ups | STORY-5.3, 7.4 | STORY-5.1 (RBAC middleware) is DONE; OQ-6.5 / OQ-2.3 resolved so 5.2 is unblocked |
 | Content foundation | STORY-9.1 (then 9.3) | Sanity schemas need only `content-model.md`; video pipeline is infra-only |
 | Push infrastructure | STORY-14.1 | Standalone FCM/APNs service; 6.3, 8.1, 10.2 all cite DEP-07 |
 | Admin dashboard | STORY-12.1, 12.2, 12.5 | Admin shell exists (STORY-1.3 DONE); reads data from done epics only |
@@ -35,7 +35,7 @@ These touch different parts of the stack; separate owners can run them concurren
 ## Prerequisite chains — sequence within a chain, don't parallelize
 
 - **Scheduling → player flow (critical path):** 6.1 → 6.2 → 6.3 → 7.1 → 7.2 → 7.3.
-  Starts at a BLOCKED story (OQ-3.1/3.2), so this is the chain to unblock first.
+  All prior OQ blocks on this chain (OQ-3.1/3.2, OQ-2.1) are resolved; stories now DONE.
 - **Chat:** 8.1 (SDK choice) → 8.2 → 8.3. 7.3 and 13.3 also depend on 8.1's SDK decision — make it once, early.
 - **Marketplace:** 9.1 → 10.1 → 10.2 → 10.3. 10.4 additionally needs admin dashboard basics (12.x).
 - **AI:** 11.1 → 11.2 (needs 9.1 package metadata) → 11.3 / 11.4. 11.4 also needs 9.5, which needs 9.1.
@@ -43,11 +43,9 @@ These touch different parts of the stack; separate owners can run them concurren
 
 ## Blocked on stakeholder answers — do not start
 
-All six open questions are "sent, pending response". Affected stories per the OQ block lists:
-**5.2, 6.1, 6.2, 7.1, 7.2, 8.1, 9.2, 11.3, 11.4.**
-
-- Priority chase: **OQ-3.1 / OQ-3.2** — they block 6.1 and therefore the whole scheduling → player chain.
-- De-risk option for 8.1: build the chat SDK integration behind a flag; leave tier gating to 5.x (its block, OQ-2.3, concerns tier access only).
+Only **OQ-2.2** remains open (2026-07-23). It blocks **STORY-11.3** ("Full MVP access" at Pro definition).
+OQ-2.1, OQ-2.3, OQ-3.1, OQ-3.2, OQ-3.7, and OQ-6.5 are all resolved; their formerly blocked
+stories (4.3, 5.2, 6.1, 6.2, 7.1, 7.2, 8.1, 9.2) are now DONE.
 
 ## Double-work risks
 
@@ -61,12 +59,11 @@ All six open questions are "sent, pending response". Affected stories per the OQ
 
 ## Tracker inconsistencies found during the scan
 
-- OQ-2.1 lists STORY-4.3 as blocked, but 4.3 is DONE.
-- OQ-2.2 blocks "STORY-5.4", which does not exist (EPIC-5 has 5.1–5.3).
-- Only 5.2 and 6.1 carry `BLOCKED` status, but the OQ block lists implicate seven more stories
-  (6.2, 7.1, 7.2, 8.1, 9.2, 11.3, 11.4) that still show `TODO`.
+- Historical (2026-07-15 scan): OQ-2.1 listed STORY-4.3 as blocked but 4.3 was already DONE.
+  Cleared 2026-07-23 — OQ-2.1 / OQ-2.3 resolved and removed from `open_questions`.
+- OQ-2.2 blocks list still references stories to be re-confirmed once "Full MVP access" scope lands.
 
 ## Suggested immediate allocation
 
 Start **5.3/7.4, 9.1, 14.1, 12.1/12.2/12.5, 11.1** in parallel (five lanes of unblocked work) while
-pressing the client on OQ-3.1/3.2 to unblock the critical scheduling chain.
+pressing the client on **OQ-2.2** (last remaining open question) to unlock STORY-11.3.
