@@ -148,6 +148,10 @@ describe('STORY_9_5 AC2 — Edge function upserts package metadata to Supabase',
       workflow_status: 'approved',
       published: true,
       module_ids: ['seed.coach360.elite-shooting.module'],
+      suggested_price_cents: null,
+      price_cents: null,
+      currency: null,
+      created_by_role: null,
     });
 
     const indexSrc = read(INDEX);

@@ -52,16 +52,40 @@ export const trainingPackage = defineType({
     workflowStatusField,
     publishedField,
     defineField({
+      name: 'createdByRole',
+      title: 'Created by',
+      type: 'string',
+      description:
+        'OQ-4.1 — Both coaches and admins may create packages. Coach listings need admin approval.',
+      options: {
+        list: [
+          { title: 'Coach', value: 'coach' },
+          { title: 'Admin', value: 'admin' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'coach',
+    }),
+    defineField({
+      name: 'suggestedPriceCents',
+      title: 'Suggested price (minor units)',
+      type: 'number',
+      description:
+        'OQ-4.4 — Coach suggestion for catalog display price. Admin sets final Stripe price ID and may override.',
+      validation: (Rule) => Rule.min(0).integer(),
+    }),
+    defineField({
       name: 'stripePriceId',
       title: 'Stripe price ID',
       type: 'string',
+      description: 'Admin-owned Stripe Price id required before publish (price_…).',
     }),
     defineField({
       name: 'priceCents',
       title: 'Display price (minor units)',
       type: 'number',
       description:
-        'Catalog display amount in the currency below, expressed in minor units (e.g. 2900 = $29.00 for USD or 29.00 kr for SEK).',
+        'Admin-finalized catalog amount in the currency below, expressed in minor units (e.g. 2900 = $29.00 for USD or 29.00 kr for SEK).',
       validation: (Rule) => Rule.min(0).integer(),
     }),
     defineField({

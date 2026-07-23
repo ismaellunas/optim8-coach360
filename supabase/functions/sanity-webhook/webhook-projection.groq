@@ -23,5 +23,9 @@ _type == "trainingPackage"
   dripSchedule,
   status,
   published,
+  suggestedPriceCents,
+  priceCents,
+  currency,
+  createdByRole,
   "modules": modules[]._ref
 }

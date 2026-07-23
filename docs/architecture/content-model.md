@@ -120,9 +120,7 @@ flowchart LR
 | **A — Direct distribution** | Assigned recipients only | No |
 | **B — Marketplace listing** | Public catalog (after publish) | Yes |
 
-**Open product decision:** Who may supply Path B — admins only, coaches with approval, or both? See Stakeholder Q **4.1**, **4.2**.
-
-Default workflow for coach → marketplace (recommended):
+**Resolved (OQ-4.1 / 4.2 / 4.3 / 4.4 — 2026-07-23):** Path B supply is **both with approval** — coaches and admins create packages; coach listings need admin approval. Coach may **suggest** a price; admin sets final Stripe price ID and may override. Workflow:
 
 ```
 draft → pending_review → approved | rejected → published (boolean)

@@ -14,6 +14,10 @@ export type SanityWebhookDocument = {
   dripSchedule?: Record<string, unknown> | null;
   status?: string | null;
   published?: boolean | null;
+  suggestedPriceCents?: number | null;
+  priceCents?: number | null;
+  currency?: string | null;
+  createdByRole?: string | null;
   modules?: Array<{ _ref?: string; _type?: string } | string> | null;
   /** When true (or operation delete), treat as unpublish/delete. */
   _deleted?: boolean;
@@ -32,6 +36,10 @@ export type PackageMetadataUpsert = {
   workflow_status: string | null;
   published: boolean;
   module_ids: string[];
+  suggested_price_cents: number | null;
+  price_cents: number | null;
+  currency: string | null;
+  created_by_role: string | null;
 };
 
 export type RagEmbeddingJobInsert = {
@@ -93,6 +101,11 @@ export function mapPackageMetadata(doc: SanityWebhookDocument): PackageMetadataU
     workflow_status: doc.status?.trim() || null,
     published,
     module_ids: moduleIdsFromDoc(doc),
+    suggested_price_cents:
+      typeof doc.suggestedPriceCents === 'number' ? doc.suggestedPriceCents : null,
+    price_cents: typeof doc.priceCents === 'number' ? doc.priceCents : null,
+    currency: doc.currency?.trim()?.toLowerCase() || null,
+    created_by_role: doc.createdByRole?.trim() || null,
   };
 }
 

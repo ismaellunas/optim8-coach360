@@ -27,6 +27,212 @@ function rowKey(feature: string, role: GatedRole): string {
   return `${feature}:${role}`;
 }
 
+function workflowBadgeTone(status: string | null): 'yellow' | 'green' | 'blue' | 'purple' {
+  if (status === 'pending_review') return 'yellow';
+  if (status === 'approved') return 'green';
+  if (status === 'rejected') return 'purple';
+  return 'blue';
+}
+
+function MarketplaceReviewSection() {
+  const repos = useRepositories();
+  const queryClient = useQueryClient();
+  const [publishDrafts, setPublishDrafts] = useState<
+    Record<string, { stripePriceId: string; priceCents: string }>
+  >({});
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'marketplace-review'],
+    queryFn: () => repos.content.listMarketplaceReviewQueue(),
+  });
+
+  const invalidate = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['admin', 'marketplace-review'] });
+    await queryClient.invalidateQueries({ queryKey: ['admin', 'content'] });
+  };
+
+  const approve = useMutation({
+    mutationFn: (id: string) => repos.content.approveMarketplacePackage(id),
+    onSuccess: async () => {
+      setActionError(null);
+      await invalidate();
+    },
+    onError: (cause: unknown) => {
+      setActionError(cause instanceof Error ? cause.message : 'approve_failed');
+    },
+  });
+
+  const reject = useMutation({
+    mutationFn: (id: string) => repos.content.rejectMarketplacePackage(id),
+    onSuccess: async () => {
+      setActionError(null);
+      await invalidate();
+    },
+    onError: (cause: unknown) => {
+      setActionError(cause instanceof Error ? cause.message : 'reject_failed');
+    },
+  });
+
+  const publish = useMutation({
+    mutationFn: (input: {
+      sanityDocumentId: string;
+      stripePriceId: string;
+      priceCents: number | null;
+    }) => repos.content.publishMarketplacePackage(input),
+    onSuccess: async (_result, vars) => {
+      setActionError(null);
+      setPublishDrafts((prev) => {
+        const next = { ...prev };
+        delete next[vars.sanityDocumentId];
+        return next;
+      });
+      await invalidate();
+    },
+    onError: (cause: unknown) => {
+      setActionError(cause instanceof Error ? cause.message : 'publish_failed');
+    },
+  });
+
+  const busy = approve.isPending || reject.isPending || publish.isPending;
+
+  return (
+    <Card className="mt-6" data-testid="marketplace-review-queue">
+      <p className="text-xs uppercase text-coach-t3">Marketplace Path B</p>
+      <p className="mt-1 font-display text-lg font-semibold text-coach-t1">
+        Package review queue
+      </p>
+      <p className="mt-1 font-body text-sm text-coach-t2">
+        Coaches submit packages for review. Approve or reject from here, then publish with a Stripe
+        price ID (coach may have suggested a display price).
+      </p>
+
+      {isLoading ? <p className="mt-4 text-coach-t2">Loading review queue…</p> : null}
+      {actionError ? <p className="mt-2 font-body text-xs text-coach-red">{actionError}</p> : null}
+
+      <div className="mt-4 space-y-3">
+        {(data ?? []).map((item) => {
+          const draft = publishDrafts[item.id] ?? {
+            stripePriceId: item.stripePriceId ?? '',
+            priceCents:
+              item.priceCents != null
+                ? String(item.priceCents)
+                : item.suggestedPriceCents != null
+                  ? String(item.suggestedPriceCents)
+                  : '',
+          };
+          const canPublish = item.workflowStatus === 'approved' && !item.published;
+
+          return (
+            <div
+              key={item.id}
+              className="rounded-xl border border-coach-border p-4"
+              data-testid="marketplace-review-item"
+              data-package-id={item.id}
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-coach-t1">{item.title}</p>
+                  <p className="mt-1 font-body text-xs text-coach-t3">{item.id}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Badge tone={workflowBadgeTone(item.workflowStatus)}>
+                      {item.workflowStatus ?? 'unknown'}
+                    </Badge>
+                    {item.createdByRole ? <Badge tone="blue">{item.createdByRole}</Badge> : null}
+                    {item.suggestedPriceCents != null ? (
+                      <Badge tone="yellow">
+                        Suggested: {item.suggestedPriceCents} ({item.currency || 'usd'})
+                      </Badge>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {item.workflowStatus === 'pending_review' ? (
+                    <>
+                      <Button
+                        disabled={busy}
+                        data-testid="marketplace-approve"
+                        onClick={() => approve.mutate(item.id)}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        disabled={busy}
+                        data-testid="marketplace-reject"
+                        onClick={() => reject.mutate(item.id)}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+
+              {canPublish ? (
+                <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-coach-border pt-4">
+                  <label className="flex flex-col gap-1 font-body text-xs text-coach-t3">
+                    Stripe price ID
+                    <input
+                      type="text"
+                      className="min-w-[220px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+                      aria-label={`Stripe price ID for ${item.title}`}
+                      data-testid="marketplace-stripe-price-input"
+                      value={draft.stripePriceId}
+                      onChange={(event) =>
+                        setPublishDrafts((prev) => ({
+                          ...prev,
+                          [item.id]: { ...draft, stripePriceId: event.target.value },
+                        }))
+                      }
+                      placeholder="price_…"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 font-body text-xs text-coach-t3">
+                    Display price (minor units)
+                    <input
+                      type="number"
+                      min={0}
+                      className="w-[140px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+                      aria-label={`Display price for ${item.title}`}
+                      value={draft.priceCents}
+                      onChange={(event) =>
+                        setPublishDrafts((prev) => ({
+                          ...prev,
+                          [item.id]: { ...draft, priceCents: event.target.value },
+                        }))
+                      }
+                    />
+                  </label>
+                  <Button
+                    disabled={busy || !draft.stripePriceId.trim()}
+                    data-testid="marketplace-publish"
+                    onClick={() =>
+                      publish.mutate({
+                        sanityDocumentId: item.id,
+                        stripePriceId: draft.stripePriceId.trim(),
+                        priceCents: draft.priceCents.trim() ? Number(draft.priceCents) : null,
+                      })
+                    }
+                  >
+                    Publish to marketplace
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      {!isLoading && (data ?? []).length === 0 ? (
+        <p className="mt-3 font-body text-sm text-coach-t3">
+          No packages awaiting review or publish.
+        </p>
+      ) : null}
+    </Card>
+  );
+}
+
 function FeatureGatingSection() {
   const repos = useRepositories();
   const queryClient = useQueryClient();
@@ -249,10 +455,7 @@ function FreeContentCatalogSection() {
               <p className="font-semibold text-coach-t1">{item.title}</p>
               {item.category ? <Badge tone="green">{item.category}</Badge> : null}
             </div>
-            <Button
-              disabled={removeItem.isPending}
-              onClick={() => removeItem.mutate(item.id)}
-            >
+            <Button disabled={removeItem.isPending} onClick={() => removeItem.mutate(item.id)}>
               Remove
             </Button>
           </div>
@@ -263,13 +466,8 @@ function FreeContentCatalogSection() {
 }
 
 export function ContentPage() {
-  const repos = useRepositories();
   const navigate = useNavigate();
   const externalStudioUrl = tryReadSanityStudioUrl();
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'content'],
-    queryFn: () => repos.content.list(),
-  });
 
   return (
     <div>
@@ -296,15 +494,7 @@ export function ContentPage() {
           </Button>
         ) : null}
       </div>
-      {isLoading ? <p className="text-coach-t2">Loading content…</p> : null}
-      <div className="space-y-3">
-        {(data ?? []).map((item) => (
-          <Card key={item.id} className="flex items-center justify-between">
-            <p className="font-semibold text-coach-t1">{item.title}</p>
-            <Badge tone={item.status === 'review' ? 'yellow' : 'green'}>{item.status}</Badge>
-          </Card>
-        ))}
-      </div>
+      <MarketplaceReviewSection />
       <FeatureGatingSection />
       <FreeContentCatalogSection />
     </div>
