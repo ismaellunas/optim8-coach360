@@ -151,7 +151,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
-13. **Epic 11** — Objectives + package suggestions: coach set goals, player rings, Store/Objectives suggestions (6 tests) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages for suggestions
+13. **Epic 11** — Objectives + package suggestions + LLM re-rank: coach set goals, player rings, Store/Objectives suggestions (7 tests) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank
 14. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
@@ -1387,11 +1387,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 11 — AI Engine & Objectives (STORY-11.1–11.2)
+## Epic 11 — AI Engine & Objectives (STORY-11.1–11.3)
 
-*Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Pro users also see **Suggested for you** package recommendations on Store and Objectives (metadata ranking — not RAG yet).*
+*Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Pro users also see **Suggested for you** package recommendations on Store and Objectives. Ranking starts as metadata match; with `MISTRAL_API_KEY` configured, the server may re-order the top suggestions (LLM). “Why this package” text is generated server-side but is **not** required on screen for MVP.*
 
-**Accounts needed:** Coach on **Pro** (or active trial), Player on **Pro** (or active trial) on the coach's roster, and at least one team with that player. Use Epic 3 roster + Epic 4 Pro upgrade if needed. For suggestion tests, Edge Functions must be running (`npm run functions:serve`) and `package_metadata` should have published packages (Sanity webhook sync or team probe).
+**Accounts needed:** Coach on **Pro** (or active trial), Player on **Pro** (or active trial) on the coach's roster, and at least one team with that player. Use Epic 3 roster + Epic 4 Pro upgrade if needed. For suggestion tests, Edge Functions must be running (`npm run functions:serve`) and `package_metadata` should have published packages (Sanity webhook sync or team probe). For live LLM re-rank, `MISTRAL_API_KEY` must be in `.env` / Edge secrets.
 
 **Before you start:** Apply the `objectives` database migration if your environment is behind (ask the team). Home already gates Objectives to Pro (see E5-T8 / E7-T14).
 
@@ -1445,11 +1445,22 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 | 1 | As **Coach or Player on Pro**, open **Objectives** → **Manage**. | A **Suggested packages** block appears above or near the objective list (when recommendations are available). |
 | 2 | Check the cards. | Titles and a **%** match; list is at most a few packages. |
 
+### E11-T7: Suggestions still Pro-only after LLM re-rank (STORY-11.3 AC-3)
+
+*Same Store path as E11-T5. Confirms the Pro gate still applies after Mistral wiring — Basic must not get suggestions.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach or Player on Pro**. Open **Store**. | **Suggested for you** shows up to 3 packages with **% match** (order may differ when Mistral is configured). |
+| 2 | Sign out. Sign in as **Basic** (no Pro / no active trial). Open **Store**. | **Suggested for you** does **not** appear. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Shooting-% / custom performance KPIs** are out of MVP (OQ-6.1) — only drill-completion targets ship here.
 - **Hard filters / match scoring** (owned packages excluded, tier floors, top-3 scores) are covered by automated tests (`npm run test:story-11.2`).
-- **RAG embeddings / LLM “why” copy** remain STORY-11.3 / STORY-11.4 — Phase 1 is metadata ranking only.
+- **LLM re-rank + “why” generation** (STORY-11.3) runs in the Edge Function via Mistral; “why” copy is **not** shown in the UI for MVP (OQ-6.6). Automated: `npm run test:story-11.3`.
+- **RAG embeddings / pgvector retrieval** remain STORY-11.4.
+- **AI chat Q&A** is out of STORY-11.3 MVP scope.
 
 ---
 
@@ -1624,6 +1635,7 @@ Print this page and check off results as you go.
 | E11-T4 Drill log advances objective progress | | |
 | E11-T5 Store suggested packages (Pro) | | |
 | E11-T6 Objectives suggested packages | | |
+| E11-T7 Suggestions Pro-only after LLM re-rank | | |
 | E12-T1 Admin can search user list | | |
 | E12-T2 Admin edits name and role | | |
 | E12-T3 Suspend blocks mobile sign-in | | |

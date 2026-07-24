@@ -354,26 +354,17 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-07-23",
+  "last_generated": "2026-07-24",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
     "Single-stack decision 2026-06-27: Vite + React + Capacitor (src/App.jsx) for prototype and production; Expo/Next.js client stack abandoned.",
     "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.).",
     "OQ-2.1 / OQ-2.3 resolved 2026-07-23: Basic progress = log + completion count; Advanced = full coaching tools without AI; Pro = +AI/objectives/full analytics; ○ = higher tier.",
-    "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+)."
+    "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+).",
+    "OQ-2.2 resolved 2026-07-24: Pro Full MVP access = Advanced + AI + objectives + full analytics; unblocks STORY-11.3. Also OQ-6.2 Mistral; OQ-6.6 why-UI not required MVP; OQ-6.7 listed context/PII allowed to provider; STORY-11.3 MVP scope = LLM re-rank only (no AI chat Q&A)."
   ],
-  "open_questions": [
-    {
-      "id": "OQ-2.2",
-      "question": "What exactly is included in 'Full MVP access' at Pro tier beyond what Advanced already gets?",
-      "source": "docs/product/stakeholder-questions.md#flow-2",
-      "status": "sent",
-      "blocks": [
-        "STORY-11.3"
-      ]
-    }
-  ],
+  "open_questions": [],
   "tickets": [
     {
       "id": "EPIC-1",
@@ -3295,35 +3286,47 @@
         {
           "id": "AC-1",
           "statement": "Mistral API integrated through Vercel AI SDK",
-          "test": null
+          "test": "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC1_mistral_via_vercel_ai_sdk"
         },
         {
           "id": "AC-2",
           "statement": "Recommendation endpoint re-ranks top candidates and generates 'why' copy",
-          "test": null
+          "test": "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC2_rerank_and_why_copy"
         },
         {
           "id": "AC-3",
           "statement": "AI calls blocked for users below Pro tier (per resolved tier policy)",
-          "test": null
+          "test": "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC3_ai_blocked_below_pro"
         },
         {
           "id": "AC-4",
           "statement": "PII sent to provider complies with OQ-6.7 privacy decision",
-          "test": null
+          "test": "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC4_provider_payload_oq_6_7"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "lib/ai/ (inferred)",
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC1_mistral_via_vercel_ai_sdk",
+          "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC2_rerank_and_why_copy",
+          "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC3_ai_blocked_below_pro",
+          "tests/recommendations/story-11.3.test.js::test_STORY_11_3_AC4_provider_payload_oq_6_7"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/recommendations/schema.ts",
+          "packages/domain/src/recommendations/rerank.ts",
+          "packages/domain/src/index.ts",
+          "supabase/functions/recommend-packages/mistral.ts",
+          "supabase/functions/recommend-packages/handler.ts",
+          "supabase/functions/recommend-packages/index.ts",
+          "tests/recommendations/story-11.3.test.js",
+          ".env.example",
+          "package.json"
+        ],
+        "command": "npm run test:story-11.3"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-24T00:00:00Z",
+      "audit_notes": "Mistral via Vercel AI SDK (createMistral + generateText/Output.object) on recommend-packages after Pro ai gate; metadata pool → LLM re-rank + optional why; OQ-6.7 allowlisted payload; metadata fallback. npm run test:story-11.3 — AC1–AC4 pass. Why UI deferred (OQ-6.6); no AI chat."
     },
     {
       "id": "STORY-11.4",

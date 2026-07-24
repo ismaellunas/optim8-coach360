@@ -43,9 +43,9 @@ These touch different parts of the stack; separate owners can run them concurren
 
 ## Blocked on stakeholder answers — do not start
 
-Only **OQ-2.2** remains open (2026-07-23). It blocks **STORY-11.3** ("Full MVP access" at Pro definition).
-OQ-2.1, OQ-2.3, OQ-3.1, OQ-3.2, OQ-3.7, and OQ-6.5 are all resolved; their formerly blocked
-stories (4.3, 5.2, 6.1, 6.2, 7.1, 7.2, 8.1, 9.2) are now DONE.
+**None remaining** (2026-07-24). OQ-2.2 resolved: Pro Full MVP access = Advanced + AI + objectives + full analytics; **STORY-11.3** unblocked.
+OQ-2.1, OQ-2.2, OQ-2.3, OQ-3.1, OQ-3.2, OQ-3.7, and OQ-6.5 are all resolved; their formerly blocked
+stories (4.3, 5.2, 6.1, 6.2, 7.1, 7.2, 8.1, 9.2) are now DONE (11.3 ready to start).
 
 ## Double-work risks
 
@@ -61,9 +61,9 @@ stories (4.3, 5.2, 6.1, 6.2, 7.1, 7.2, 8.1, 9.2) are now DONE.
 
 - Historical (2026-07-15 scan): OQ-2.1 listed STORY-4.3 as blocked but 4.3 was already DONE.
   Cleared 2026-07-23 — OQ-2.1 / OQ-2.3 resolved and removed from `open_questions`.
-- OQ-2.2 blocks list still references stories to be re-confirmed once "Full MVP access" scope lands.
+- Cleared 2026-07-24 — OQ-2.2 resolved and removed from `open_questions`; STORY-11.3 unblocked.
 
 ## Suggested immediate allocation
 
-Start **5.3/7.4, 9.1, 14.1, 12.1/12.2/12.5, 11.1** in parallel (five lanes of unblocked work) while
-pressing the client on **OQ-2.2** (last remaining open question) to unlock STORY-11.3.
+**STORY-11.3** is unblocked (Mistral LLM re-rank on top of 11.2). Continue parallel lanes as capacity allows;
+provision `MISTRAL_API_KEY` for Edge Functions before implement.
