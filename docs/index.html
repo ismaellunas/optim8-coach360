@@ -3238,35 +3238,47 @@
         {
           "id": "AC-1",
           "statement": "Recommendation API accepts context: objectives, age, tier, purchase history",
-          "test": null
+          "test": "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC1_recommendation_api_accepts_context"
         },
         {
           "id": "AC-2",
           "statement": "Hard filters exclude owned packages and ineligible tiers",
-          "test": null
+          "test": "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC2_hard_filters_owned_and_ineligible_tiers"
         },
         {
           "id": "AC-3",
           "statement": "Top 3 packages returned with match score",
-          "test": null
+          "test": "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC3_top_3_with_match_score"
         },
         {
           "id": "AC-4",
           "statement": "Suggestions surface on marketplace and objectives screens",
-          "test": null
+          "test": "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC4_suggestions_on_marketplace_and_objectives"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "lib/ai/recommendations/ (inferred)",
-          "supabase/ (inferred)"
+        "tests": [
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC1_recommendation_api_accepts_context",
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC2_hard_filters_owned_and_ineligible_tiers",
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC3_top_3_with_match_score",
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC4_suggestions_on_marketplace_and_objectives"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/recommendations/schema.ts",
+          "packages/domain/src/recommendations/rank.ts",
+          "supabase/functions/recommend-packages/handler.ts",
+          "supabase/functions/recommend-packages/index.ts",
+          "packages/api/src/ports/package-recommendations-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-package-recommendations-repository.ts",
+          "apps/mobile/src/features/marketplace/ui/StoreScreen.jsx",
+          "apps/mobile/src/features/objectives/ui/ObjectivesScreen.jsx",
+          "tests/recommendations/story-11.2.test.js"
+        ],
+        "command": "npm run test:story-11.2"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-24T00:00:00Z",
+      "audit_notes": "Phase-1 metadata recommendations: domain rank + recommend-packages Edge Function (Pro/ai gate); Store + Objectives suggestion strips. npm run test:story-11.2 — AC1–AC4 pass. No RAG/LLM (11.3/11.4)."
     },
     {
       "id": "STORY-11.3",

@@ -68,6 +68,13 @@ export { RestMarketplaceDripRepository } from './adapters/rest/rest-marketplace-
 export type { ObjectivesRepository } from './ports/objectives-repository.js';
 export { SupabaseObjectivesRepository } from './adapters/supabase/supabase-objectives-repository.js';
 export { RestObjectivesRepository } from './adapters/rest/rest-objectives-repository.js';
+export type {
+  PackageRecommendationsRepository,
+  ListPackageRecommendationsInput,
+  ListPackageRecommendationsResult,
+} from './ports/package-recommendations-repository.js';
+export { SupabasePackageRecommendationsRepository } from './adapters/supabase/supabase-package-recommendations-repository.js';
+export { RestPackageRecommendationsRepository } from './adapters/rest/rest-package-recommendations-repository.js';
 export type { SubscriptionRepository, SubscriptionSummary } from './ports/subscription-repository.js';
 export type {
   BillingRepository,

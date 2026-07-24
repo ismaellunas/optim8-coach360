@@ -20,9 +20,12 @@ import type { MarketplaceCatalogRepository } from '../ports/marketplace-catalog-
 import type { MarketplacePurchaseRepository } from '../ports/marketplace-purchase-repository.js';
 import type { MarketplaceDripRepository } from '../ports/marketplace-drip-repository.js';
 import type { ObjectivesRepository } from '../ports/objectives-repository.js';
+import type { PackageRecommendationsRepository } from '../ports/package-recommendations-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestObjectivesRepository } from '../adapters/rest/rest-objectives-repository.js';
+import { RestPackageRecommendationsRepository } from '../adapters/rest/rest-package-recommendations-repository.js';
 import { SupabaseObjectivesRepository } from '../adapters/supabase/supabase-objectives-repository.js';
+import { SupabasePackageRecommendationsRepository } from '../adapters/supabase/supabase-package-recommendations-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
@@ -89,6 +92,7 @@ export type RepositoryBundle = {
   marketplacePurchases: MarketplacePurchaseRepository;
   marketplaceDrip: MarketplaceDripRepository;
   objectives: ObjectivesRepository;
+  packageRecommendations: PackageRecommendationsRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -137,6 +141,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       marketplacePurchases: new RestMarketplacePurchaseRepository(),
       marketplaceDrip: new RestMarketplaceDripRepository(),
       objectives: new RestObjectivesRepository(),
+      packageRecommendations: new RestPackageRecommendationsRepository(),
     };
   }
 
@@ -175,6 +180,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     marketplacePurchases: new SupabaseMarketplacePurchaseRepository(appClient),
     marketplaceDrip: new SupabaseMarketplaceDripRepository(appClient),
     objectives: new SupabaseObjectivesRepository(appClient),
+    packageRecommendations: new SupabasePackageRecommendationsRepository(appClient),
   };
 }
 

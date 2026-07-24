@@ -151,7 +151,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
-13. **Epic 11** — Objectives: coach set player/team goals, player progress rings (4 tests) — needs Coach Pro + Player Pro, roster with at least one player
+13. **Epic 11** — Objectives + package suggestions: coach set goals, player rings, Store/Objectives suggestions (6 tests) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages for suggestions
 14. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
@@ -1387,11 +1387,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 11 — AI Engine & Objectives (STORY-11.1)
+## Epic 11 — AI Engine & Objectives (STORY-11.1–11.2)
 
-*Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Package recommendations / AI (STORY-11.2+) are not in this epic yet.*
+*Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Pro users also see **Suggested for you** package recommendations on Store and Objectives (metadata ranking — not RAG yet).*
 
-**Accounts needed:** Coach on **Pro** (or active trial), Player on **Pro** (or active trial) on the coach's roster, and at least one team with that player. Use Epic 3 roster + Epic 4 Pro upgrade if needed.
+**Accounts needed:** Coach on **Pro** (or active trial), Player on **Pro** (or active trial) on the coach's roster, and at least one team with that player. Use Epic 3 roster + Epic 4 Pro upgrade if needed. For suggestion tests, Edge Functions must be running (`npm run functions:serve`) and `package_metadata` should have published packages (Sanity webhook sync or team probe).
 
 **Before you start:** Apply the `objectives` database migration if your environment is behind (ask the team). Home already gates Objectives to Pro (see E5-T8 / E7-T14).
 
@@ -1426,10 +1426,30 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 | 1 | As the **Player**, open the session → log a **drill** complete (mark done). | Drill shows as completed. |
 | 2 | Return to **OBJECTIVES** (or reopen **Manage**). | The player objective count increases (e.g. **1/5 drills**) and the ring percent updates. Team objectives for that player's team may also tick up. |
 
+### E11-T5: Store shows suggested packages for Pro (STORY-11.2 AC-4)
+
+*Needs published packages synced into Supabase (`package_metadata`) and Edge Functions running.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in as **Coach or Player on Pro**. Open **Store**. | Near the top, a **Suggested for you** section appears (not only the full catalog). |
+| 2 | Look at the suggestion cards. | Up to **3** packages with a **% match** score. Tapping a card opens package detail. |
+| 3 | Sign in as **Basic** (no Pro/trial) and open **Store**. | **Suggested for you** does **not** appear. |
+
+### E11-T6: Objectives screen shows suggested packages (STORY-11.2 AC-4)
+
+*Best after E11-T1 so objectives exist for ranking.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | As **Coach or Player on Pro**, open **Objectives** → **Manage**. | A **Suggested packages** block appears above or near the objective list (when recommendations are available). |
+| 2 | Check the cards. | Titles and a **%** match; list is at most a few packages. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Shooting-% / custom performance KPIs** are out of MVP (OQ-6.1) — only drill-completion targets ship here.
-- **AI package recommendations** on the objectives screen are STORY-11.2+.
+- **Hard filters / match scoring** (owned packages excluded, tier floors, top-3 scores) are covered by automated tests (`npm run test:story-11.2`).
+- **RAG embeddings / LLM “why” copy** remain STORY-11.3 / STORY-11.4 — Phase 1 is metadata ranking only.
 
 ---
 
@@ -1602,6 +1622,8 @@ Print this page and check off results as you go.
 | E11-T2 Coach creates team objective | | |
 | E11-T3 Player views objectives + progress rings | | |
 | E11-T4 Drill log advances objective progress | | |
+| E11-T5 Store suggested packages (Pro) | | |
+| E11-T6 Objectives suggested packages | | |
 | E12-T1 Admin can search user list | | |
 | E12-T2 Admin edits name and role | | |
 | E12-T3 Suspend blocks mobile sign-in | | |
