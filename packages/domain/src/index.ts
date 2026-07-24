@@ -441,3 +441,19 @@ export {
   type PeerShareEngagementInput,
   type PeerEngagementSummary,
 } from './chat/peer-share.js';
+export {
+  ageRangeSchema,
+  recommendationContextSchema,
+  recommendationCandidateSchema,
+  packageRecommendationSchema,
+  type AgeRange,
+  type RecommendationContext,
+  type RecommendationCandidate,
+  type PackageRecommendation,
+} from './recommendations/schema.js';
+export {
+  ageRangesOverlap,
+  passesHardFilters,
+  scorePackageMatch,
+  rankPackageRecommendations,
+} from './recommendations/rank.js';

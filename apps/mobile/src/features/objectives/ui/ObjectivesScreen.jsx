@@ -107,6 +107,7 @@ export function ObjectivesScreen({ user, onBack }) {
   const [teamId, setTeamId] = useState('');
   const [category, setCategory] = useState('');
   const [targetCompletions, setTargetCompletions] = useState('10');
+  const [suggestions, setSuggestions] = useState([]);
 
   const loadObjectives = useCallback(
     async function () {
@@ -129,6 +130,58 @@ export function ObjectivesScreen({ user, onBack }) {
       }
     },
     [repos.objectives, role, userId],
+  );
+
+  const loadSuggestions = useCallback(
+    async function () {
+      if (!userId || !repos.packageRecommendations) {
+        setSuggestions([]);
+        return;
+      }
+      try {
+        const objectiveTitles = objectives
+          .map(function (o) {
+            return o.category || o.title;
+          })
+          .filter(Boolean);
+        const owned = await repos.marketplacePurchases?.listOwned?.().catch(function () {
+          return [];
+        });
+        const ageMins = teams.map(function (t) {
+          return t.ageMin;
+        }).filter(function (n) {
+          return typeof n === 'number';
+        });
+        const ageMaxs = teams.map(function (t) {
+          return t.ageMax;
+        }).filter(function (n) {
+          return typeof n === 'number';
+        });
+        const age =
+          ageMins.length > 0 && ageMaxs.length > 0
+            ? { min: Math.min(...ageMins), max: Math.max(...ageMaxs) }
+            : null;
+        const result = await repos.packageRecommendations.listRecommendations({
+          objectives: objectiveTitles,
+          age,
+          tier: user?.tier,
+          purchaseHistory: (owned || []).map(function (p) {
+            return p.sanityDocumentId;
+          }),
+        });
+        setSuggestions(result.recommendations || []);
+      } catch {
+        setSuggestions([]);
+      }
+    },
+    [
+      userId,
+      objectives,
+      repos.packageRecommendations,
+      repos.marketplacePurchases,
+      teams,
+      user?.tier,
+    ],
   );
 
   const loadAssigneeOptions = useCallback(
@@ -187,6 +240,13 @@ export function ObjectivesScreen({ user, onBack }) {
     [loadAssigneeOptions],
   );
 
+  useEffect(
+    function () {
+      void loadSuggestions();
+    },
+    [loadSuggestions],
+  );
+
   async function handleCreate(event) {
     event.preventDefault();
     if (!userId || !isCoach) {
@@ -229,6 +289,36 @@ export function ObjectivesScreen({ user, onBack }) {
         <p className="mb-3 font-body text-sm text-coach-red" data-testid="objectives-error">
           {error}
         </p>
+      ) : null}
+
+      {suggestions.length > 0 ? (
+        <div className="mb-3" data-testid="objectives-suggestions">
+          <div className="mb-2 font-body text-xs uppercase tracking-wide text-coach-t3">
+            Suggested packages
+          </div>
+          {suggestions.map(function (s) {
+            return (
+              <Card key={s.id} className="mb-2" data-testid="objectives-suggestion-card">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-body text-sm font-semibold text-coach-t1">
+                      {s.title}
+                    </div>
+                    <div className="font-body text-[11px] text-coach-t3">
+                      Based on your objectives
+                    </div>
+                  </div>
+                  <span
+                    className="shrink-0 font-mono text-xs font-semibold text-coach-orange"
+                    data-testid="suggestion-match-score"
+                  >
+                    {Math.round((s.matchScore || 0) * 100)}%
+                  </span>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       ) : null}
 
       {loading ? (

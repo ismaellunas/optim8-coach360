@@ -111,8 +111,11 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   const [teams, setTeams] = useState([]);
   const [teamId, setTeamId] = useState('');
   const [ownedPurchases, setOwnedPurchases] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsError, setSuggestionsError] = useState(null);
 
   const allowTeamPurchase = canPurchaseForTeamDistribution(user?.role, user?.tier);
+  const showAiSuggestions = typeof canAccess === 'function' && canAccess(user, 'ai');
 
   const filters = useMemo(() => {
     const tags = new Set(['all']);
@@ -142,9 +145,39 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
     }
   }, [repos.marketplaceCatalog, repos.marketplacePurchases]);
 
+  const loadSuggestions = useCallback(async () => {
+    if (!showAiSuggestions || !repos.packageRecommendations) {
+      setSuggestions([]);
+      setSuggestionsError(null);
+      return;
+    }
+    try {
+      const owned = await repos.marketplacePurchases.listOwned().catch(() => []);
+      const result = await repos.packageRecommendations.listRecommendations({
+        objectives: [],
+        tier: user?.tier,
+        purchaseHistory: (owned || []).map((p) => p.sanityDocumentId),
+      });
+      setSuggestions(result.recommendations || []);
+      setSuggestionsError(null);
+    } catch (cause) {
+      setSuggestions([]);
+      setSuggestionsError(cause instanceof Error ? cause.message : 'suggestions_failed');
+    }
+  }, [
+    showAiSuggestions,
+    repos.packageRecommendations,
+    repos.marketplacePurchases,
+    user?.tier,
+  ]);
+
   useEffect(() => {
     void loadCatalog();
   }, [loadCatalog]);
+
+  useEffect(() => {
+    void loadSuggestions();
+  }, [loadSuggestions]);
 
   useEffect(() => {
     if (!allowTeamPurchase || !viewing) return;
@@ -352,16 +385,53 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
           </div>
         </Card>
       ) : null}
-      {canAccess(user, 'ai') ? (
-        <Card className="mb-3 flex items-center gap-3 border border-coach-orange/20 bg-gradient-to-br from-coach-orange-glow to-coach-purple/10">
-          <div className="text-coach-orange">
-            <IconSpark />
-          </div>
-          <div>
-            <div className="font-body text-[13px] font-semibold text-coach-t1">AI Recommended</div>
-            <div className="font-body text-xs text-coach-t2">Based on your objectives</div>
-          </div>
-        </Card>
+      {showAiSuggestions ? (
+        <div className="mb-3" data-testid="marketplace-suggestions">
+          <Card className="mb-2 flex items-center gap-3 border border-coach-orange/20 bg-gradient-to-br from-coach-orange-glow to-coach-purple/10">
+            <div className="text-coach-orange">
+              <IconSpark />
+            </div>
+            <div>
+              <div className="font-body text-[13px] font-semibold text-coach-t1">
+                Suggested for you
+              </div>
+              <div className="font-body text-xs text-coach-t2">
+                Ranked from package metadata and your context
+              </div>
+            </div>
+          </Card>
+          {suggestionsError ? (
+            <div className="mb-2 font-body text-xs text-coach-t3">{suggestionsError}</div>
+          ) : null}
+          {suggestions.length === 0 && !suggestionsError ? (
+            <div className="mb-2 font-body text-xs text-coach-t3">No suggestions yet.</div>
+          ) : null}
+          {suggestions.map((s) => (
+            <Card
+              key={s.id}
+              className="mb-2 cursor-pointer"
+              data-testid="marketplace-suggestion-card"
+              onClick={() => setViewing(s.id)}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="truncate font-body text-sm font-semibold text-coach-t1">
+                    {s.title}
+                  </div>
+                  <div className="font-body text-[11px] text-coach-t3">
+                    {(s.skills || []).slice(0, 2).join(' · ') || 'Package'}
+                  </div>
+                </div>
+                <span
+                  className="shrink-0 font-mono text-xs font-semibold text-coach-orange"
+                  data-testid="suggestion-match-score"
+                >
+                  {Math.round((s.matchScore || 0) * 100)}% match
+                </span>
+              </div>
+            </Card>
+          ))}
+        </div>
       ) : null}
       {loading ? (
         <div className="py-8 text-center font-body text-sm text-coach-t3">Loading catalog…</div>
