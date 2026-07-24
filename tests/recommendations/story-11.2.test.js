@@ -231,7 +231,9 @@ describe('STORY_11_2 AC3 — Top 3 packages returned with match score', () => {
     expect(shootingScore).toBeGreaterThan(defenseScore);
 
     const index = readFileSync(EDGE_INDEX, 'utf8');
-    expect(index).toMatch(/rankPackageRecommendations\(candidates,\s*context,\s*3\)/);
+    expect(index).toMatch(
+      /rankPackageRecommendations\(candidates,\s*context,\s*(?:3|LLM_CANDIDATE_POOL)\)/,
+    );
   });
 });
 

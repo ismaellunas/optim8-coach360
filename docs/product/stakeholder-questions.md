@@ -15,7 +15,7 @@
 | Ref | Question (short) | Flow |
 | --- | --- | --- |
 | 2.1 | What does “track own progress” mean at Basic tier? — **resolved 2026-07-23: Basic ◎ log + count; Advanced ○ locked; Pro ✓ full dashboard** | 2 |
-| 2.2 | What is included in “Full MVP access” at Pro tier? | 2 |
+| 2.2 | What is included in “Full MVP access” at Pro tier? — **resolved 2026-07-24: Pro = Advanced + AI + objectives + full analytics** | 2 |
 | 2.3 | Advanced tier boundaries: coach & communicate, distribute content, plan & schedule — **resolved 2026-07-23: full coaching tools at Advanced; Pro = +AI/objectives/analytics** | 2 |
 | 3.1 | Session = calendar event only, or in-session runtime experience? — **resolved 2026-07-21: calendar only** | 3 |
 | 3.2 | How are sessions scheduled (recurrence, calendar sync)? — **resolved 2026-07-21: date/time picker only** | 3 |
@@ -43,7 +43,7 @@
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
 | 2.1 | **P0** — What does **“track own progress”** mean at **Basic** tier — drill logs only, completion %, stats, or full profile dashboard? | Undefined in tier breakdown (`what progress?`) | **Basic players** can log drill completions (mark done + optional reps/time) and see a **completion count only** on Progress/Profile (◎, + upgrade banner). Full stats / practice-minute trends / progress dashboard are **Pro** ✓. **Advanced player Progress UI is ○ until Pro** — not the same as Basic ◎; Advanced sees an Upgrade-to-Pro lock (peer share on Progress remains Advanced+). Matches shipped STORY-7.2 / STORY-7.4 and `LAUNCH_ACCESS_BANDS.viewProgress` (player: `readonlyTiers: ['basic'], fullFrom: 'pro'`). | product | 2026-07-23 |
-| 2.2 | **P0** — What exactly is included in **“Full MVP access”** at **Pro** tier beyond what Advanced already gets? | Undefined in tier breakdown | | | |
+| 2.2 | **P0** — What exactly is included in **“Full MVP access”** at **Pro** tier beyond what Advanced already gets? | Undefined in tier breakdown | **Pro = Advanced + AI + objectives + full analytics.** Confirms OQ-2.3: Advanced is full coaching tools without AI; Pro adds AI features, objectives, and full analytics. No additional Pro-only coaching tools beyond that bundle for MVP. Unblocks STORY-11.3. | product | 2026-07-24 |
 | 2.3 | **P0** — At **Advanced**, what are the precise boundaries for **coach & communicate**, **distribute content**, and **plan & schedule** vs Pro? | Three `(Need more Info)` items in estimate | **Advanced = full coaching tools without AI.** Communicate: full chat (team, DM, peer) at Advanced; Pro adds nothing for chat. Distribute: create + assign/share to own players/teams at Advanced; Pro adds nothing for distribution. Plan & schedule: full session planning at Advanced; Pro adds nothing for schedule. **○** = unlocks at a higher tier (same legend as OQ-6.5), not partial access — Advanced features above are ✓ at Advanced. **Pro** = Advanced + AI + objectives + full analytics. | product | 2026-07-23 |
 | 2.4 | What is the trial duration, and is it one trial per user, per device, or per Apple/Google account? | Trial logic (Flows 2, 9) | | | |
 | 2.5 | Does trial always grant **full Pro access**, or a subset? | Access matrix vs Flow 2 diagram | | | |
@@ -100,12 +100,12 @@
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
 | 6.1 | **P0** — What does **“set objectives”** at Pro include — coach-set only, player-visible, team-level, measurable KPIs? | `(Need more Info)` in Flow 2 Pro tier | **Coach-set, player-visible, team-level; KPI = drill-completion targets only for MVP.** Coaches set player and team objectives; assigned players can view them (Pro). Progress is measured as completions toward a target drill count (updates when a drill is logged). No shooting-% / custom performance KPIs in MVP. | product | 2026-07-23 |
-| 6.2 | Which **AI provider** is approved (Mistral per tech stack, or OpenAI/Anthropic)? | DEP-01 | | | |
+| 6.2 | Which **AI provider** is approved (Mistral per tech stack, or OpenAI/Anthropic)? | DEP-01 | **Mistral** (matches tech stack). Integrate via Vercel AI SDK in Edge Functions (STORY-11.3). | product | 2026-07-24 |
 | 6.3 | What inputs drive **package recommendations** — objectives, progress, age, behavior, all of the above? | RAG design (DEP-02) | | | |
 | 6.4 | Is **RAG required at MVP**, or can v1 use metadata filters + simple ranking? | DEP-02 scope (+10–20 h risk) | | | |
 | 6.5 | **P0** — AI features show **○ partial at Advanced** in the matrix but principles say **“AI exclusively at Pro”** — which is correct? | Tier gating contradiction | **Pro only — no contradiction.** The matrix legend defines ○ as “available at higher tier”, not partial access: AI rows showing ○ at Advanced mean AI unlocks at Pro. Matches the design principle “AI exclusively at Pro” and the shipped STORY-5.1 gating (`ai` requires Pro for coach and player). MVP gates all AI features at Pro for every role; admin bypasses tiers. | product | 2026-07-16 |
-| 6.6 | Should AI suggestions include a **human-readable “why”** shown to the user? | Marketplace + objectives UX | | | |
-| 6.7 | What player/coach data may be sent to the AI provider (PII, minors)? | Privacy and vendor agreements | | | |
+| 6.6 | Should AI suggestions include a **human-readable “why”** shown to the user? | Marketplace + objectives UX | **Not required for MVP UI.** STORY-11.3 MVP is LLM re-rank of recommendation candidates only; “why” copy may be deferred or generated server-side without mandatory display. | product | 2026-07-24 |
+| 6.7 | What player/coach data may be sent to the AI provider (PII, minors)? | Privacy and vendor agreements | **Allowed for MVP prompts/context:** names, emails, user IDs; ages / DOB / minor status; team names / roster details; objectives text; progress / drill history; free-form chat messages. Enforce Pro tier gate before any provider call (OQ-6.5). | product | 2026-07-24 |
 | 6.8 | Who can configure AI parameters — admin only, or coaches too? | Flow 7 admin matrix | | | |
 
 ---

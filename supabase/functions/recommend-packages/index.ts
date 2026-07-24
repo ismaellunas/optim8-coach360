@@ -5,11 +5,16 @@ import {
   requireFeatureAccess,
 } from '../_shared/rbac.ts';
 import {
+  buildProviderContextPayload,
+  finalizeRecommendations,
+  LLM_CANDIDATE_POOL,
+  LLM_TOP_K,
   parseRecommendationContext,
   rankPackageRecommendations,
   type RecommendationCandidate,
   type RecommendPackagesRequestBody,
 } from './handler.ts';
+import { rerankPackagesWithMistral } from './mistral.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -90,7 +95,7 @@ Deno.serve(async (request) => {
     );
   }
 
-  // OQ-6.5 — AI package suggestions are Pro-only.
+  // OQ-6.5 — AI package suggestions are Pro-only. Gate BEFORE any Mistral call (AC-3).
   const gate = requireFeatureAccess({
     role: access.role,
     tier: access.tier,
@@ -155,7 +160,27 @@ Deno.serve(async (request) => {
     }),
   );
 
-  const recommendations = rankPackageRecommendations(candidates, context, 3);
+  // Phase 1 metadata rank → pool for LLM re-rank (STORY-11.3).
+  const metadataRanked = rankPackageRecommendations(candidates, context, LLM_CANDIDATE_POOL);
+
+  const { data: profileRow } = await admin
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  const providerPayload = buildProviderContextPayload(context, metadataRanked, {
+    userId: user.id,
+    email: user.email ?? null,
+    displayName:
+      profileRow && typeof (profileRow as { display_name?: unknown }).display_name === 'string'
+        ? (profileRow as { display_name: string }).display_name
+        : null,
+  });
+
+  // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata on failure.
+  const llmResult = await rerankPackagesWithMistral(providerPayload);
+  const recommendations = finalizeRecommendations(metadataRanked, llmResult, LLM_TOP_K);
 
   return new Response(
     JSON.stringify({
@@ -166,6 +191,7 @@ Deno.serve(async (request) => {
         tier: context.tier,
         purchaseHistory: context.purchaseHistory,
       },
+      llm: llmResult ? 'mistral' : 'metadata_fallback',
     }),
     {
       status: 200,
