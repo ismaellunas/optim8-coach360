@@ -128,6 +128,12 @@ Deno.serve(async (request) => {
       .eq('sanity_document_id', mapped.metadata.sanity_document_id)
       .eq('status', 'pending');
 
+    // STORY-11.4 — drop vectors when package leaves the published catalog
+    await admin
+      .from('package_embeddings')
+      .delete()
+      .eq('sanity_document_id', mapped.metadata.sanity_document_id);
+
     return new Response(
       JSON.stringify({
         received: true,
@@ -151,11 +157,32 @@ Deno.serve(async (request) => {
     });
   }
 
+  // STORY-11.4 AC-5 — fire-and-forget re-index worker after queue insert
+  const reindexUrl = `${supabaseUrl.replace(/\/$/, '')}/functions/v1/process-rag-embeddings`;
+  fetch(reindexUrl, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${serviceRoleKey}`,
+      apikey: serviceRoleKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      sanityDocumentId: mapped.metadata.sanity_document_id,
+      limit: 5,
+    }),
+  }).catch((cause) => {
+    console.error(
+      'process_rag_embeddings_trigger_failed',
+      cause instanceof Error ? cause.message : String(cause),
+    );
+  });
+
   return new Response(
     JSON.stringify({
       received: true,
       synced: true,
       queued: true,
+      reindexTriggered: true,
       sanityDocumentId: mapped.metadata.sanity_document_id,
     }),
     {

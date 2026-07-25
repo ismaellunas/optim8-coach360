@@ -3342,40 +3342,59 @@
         {
           "id": "AC-1",
           "statement": "Published packages ingested with title, description, tags, drill metadata",
-          "test": null
+          "test": "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC1_ingest_title_description_tags_drill_metadata"
         },
         {
           "id": "AC-2",
           "statement": "Embeddings generated via Mistral or dedicated embedding model",
-          "test": null
+          "test": "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC2_embeddings_via_mistral"
         },
         {
           "id": "AC-3",
           "statement": "Vectors stored in Supabase pgvector table",
-          "test": null
+          "test": "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC3_vectors_in_pgvector_table"
         },
         {
           "id": "AC-4",
           "statement": "Query returns top 5–10 candidates by similarity to recommendation context",
-          "test": null
+          "test": "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC4_query_top_5_to_10_by_similarity"
         },
         {
           "id": "AC-5",
           "statement": "Re-index triggered on Sanity publish webhook",
-          "test": null
+          "test": "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC5_reindex_on_sanity_publish_webhook"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "lib/ai/rag/ (inferred)",
-          "supabase/migrations/ (inferred)"
+        "tests": [
+          "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC1_ingest_title_description_tags_drill_metadata",
+          "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC2_embeddings_via_mistral",
+          "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC3_vectors_in_pgvector_table",
+          "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC4_query_top_5_to_10_by_similarity",
+          "tests/recommendations/story-11.4.test.js::test_STORY_11_4_AC5_reindex_on_sanity_publish_webhook"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/recommendations/rag.ts",
+          "packages/domain/src/index.ts",
+          "supabase/migrations/20260725120000_package_embeddings_pgvector.sql",
+          "supabase/functions/process-rag-embeddings/handler.ts",
+          "supabase/functions/process-rag-embeddings/mistral-embed.ts",
+          "supabase/functions/process-rag-embeddings/index.ts",
+          "supabase/functions/sanity-webhook/handler.ts",
+          "supabase/functions/sanity-webhook/index.ts",
+          "supabase/functions/sanity-webhook/webhook-projection.groq",
+          "supabase/functions/recommend-packages/handler.ts",
+          "supabase/functions/recommend-packages/mistral.ts",
+          "supabase/functions/recommend-packages/index.ts",
+          "tests/recommendations/story-11.4.test.js",
+          ".env.example",
+          "package.json"
+        ],
+        "command": "npm run test:story-11.4"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-25T00:00:00Z",
+      "audit_notes": "RAG pipeline: ingest doc builder, process-rag-embeddings (Mistral mistral-embed), package_embeddings pgvector + match RPC, recommend-packages RAG pool (5–10) with metadata fallback, Sanity webhook queues+triggers re-index and deletes on unpublish. npm run test:story-11.4 — AC1–AC5 pass."
     },
     {
       "id": "EPIC-12",

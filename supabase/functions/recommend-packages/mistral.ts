@@ -1,9 +1,10 @@
 /**
  * STORY-11.3 — Mistral re-rank via Vercel AI SDK (Edge Function only).
- * Uses createMistral + generateText/Output.object; never expose MISTRAL_API_KEY to the client.
+ * STORY-11.4 — also exposes embedTextWithMistral for RAG query vectors.
+ * Uses createMistral + generateText/Output.object / embed; never expose MISTRAL_API_KEY to the client.
  */
 import { createMistral } from 'npm:@ai-sdk/mistral@4.0.14';
-import { generateText, Output } from 'npm:ai@7.0.37';
+import { embed, generateText, Output } from 'npm:ai@7.0.37';
 import { z } from 'npm:zod@3.25.76';
 import {
   buildRerankPrompt,
@@ -52,6 +53,48 @@ export async function rerankPackagesWithMistral(
   } catch (cause) {
     console.error(
       'mistral_rerank_failed',
+      cause instanceof Error ? cause.message : String(cause),
+    );
+    return null;
+  }
+}
+
+export type MistralEmbedOptions = {
+  apiKey?: string | null;
+  modelId?: string;
+};
+
+/** STORY-11.4 — embed recommendation query for pgvector retrieval. */
+export async function embedTextWithMistral(
+  value: string,
+  options: MistralEmbedOptions = {},
+): Promise<number[] | null> {
+  const apiKey = (options.apiKey ?? Deno.env.get('MISTRAL_API_KEY') ?? '').trim();
+  if (!apiKey) {
+    return null;
+  }
+
+  const text = value.trim();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    const mistral = createMistral({ apiKey });
+    const modelId =
+      options.modelId ?? Deno.env.get('MISTRAL_EMBEDDING_MODEL') ?? 'mistral-embed';
+    const result = await embed({
+      model: mistral.embedding(modelId),
+      value: text,
+    });
+    const embedding = result.embedding;
+    if (!Array.isArray(embedding) || embedding.length === 0) {
+      return null;
+    }
+    return embedding;
+  } catch (cause) {
+    console.error(
+      'mistral_embed_failed',
       cause instanceof Error ? cause.message : String(cause),
     );
     return null;

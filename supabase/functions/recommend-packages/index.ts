@@ -6,15 +6,21 @@ import {
 } from '../_shared/rbac.ts';
 import {
   buildProviderContextPayload,
+  buildRecommendationQueryText,
   finalizeRecommendations,
   LLM_CANDIDATE_POOL,
   LLM_TOP_K,
+  mapSimilarityRowsToRecommendations,
   parseRecommendationContext,
+  passesHardFilters,
+  RAG_TOP_K_DEFAULT,
   rankPackageRecommendations,
+  type PackageRecommendation,
   type RecommendationCandidate,
   type RecommendPackagesRequestBody,
+  type SimilarityMatchRow,
 } from './handler.ts';
-import { rerankPackagesWithMistral } from './mistral.ts';
+import { embedTextWithMistral, rerankPackagesWithMistral } from './mistral.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +36,12 @@ type PackageMetadataRow = {
   age_min: number | null;
   age_max: number | null;
   published: boolean;
+};
+
+type MatchPackageEmbeddingRow = {
+  sanity_document_id: string;
+  content_text: string;
+  similarity: number;
 };
 
 Deno.serve(async (request) => {
@@ -160,8 +172,50 @@ Deno.serve(async (request) => {
     }),
   );
 
-  // Phase 1 metadata rank → pool for LLM re-rank (STORY-11.3).
-  const metadataRanked = rankPackageRecommendations(candidates, context, LLM_CANDIDATE_POOL);
+  const byId = new Map(candidates.map((c) => [c.id, c]));
+
+  // STORY-11.4 — RAG retrieval (top 5–10) before LLM re-rank; metadata fallback.
+  let candidatePool: PackageRecommendation[] = [];
+  let retrieval: 'rag' | 'metadata' = 'metadata';
+
+  const queryText = buildRecommendationQueryText(context);
+  const queryEmbedding = queryText ? await embedTextWithMistral(queryText) : null;
+
+  if (queryEmbedding) {
+    const { data: matchRows, error: matchError } = await admin.rpc('match_package_embeddings', {
+      query_embedding: queryEmbedding,
+      match_count: RAG_TOP_K_DEFAULT,
+      match_threshold: 0,
+    });
+
+    if (!matchError && Array.isArray(matchRows) && matchRows.length > 0) {
+      const similarityRows: SimilarityMatchRow[] = [];
+      for (const row of matchRows as MatchPackageEmbeddingRow[]) {
+        const cand = byId.get(row.sanity_document_id);
+        if (!cand) continue;
+        if (!passesHardFilters(cand, context)) continue;
+        similarityRows.push({
+          sanityDocumentId: cand.id,
+          title: cand.title,
+          similarity: row.similarity,
+          skills: cand.skills ?? [],
+          objectives: cand.objectives ?? [],
+        });
+      }
+      const ragRanked = mapSimilarityRowsToRecommendations(
+        similarityRows,
+        RAG_TOP_K_DEFAULT,
+      );
+      if (ragRanked.length > 0) {
+        candidatePool = ragRanked;
+        retrieval = 'rag';
+      }
+    }
+  }
+
+  if (retrieval === 'metadata') {
+    candidatePool = rankPackageRecommendations(candidates, context, LLM_CANDIDATE_POOL);
+  }
 
   const { data: profileRow } = await admin
     .from('profiles')
@@ -169,7 +223,7 @@ Deno.serve(async (request) => {
     .eq('id', user.id)
     .maybeSingle();
 
-  const providerPayload = buildProviderContextPayload(context, metadataRanked, {
+  const providerPayload = buildProviderContextPayload(context, candidatePool, {
     userId: user.id,
     email: user.email ?? null,
     displayName:
@@ -178,9 +232,9 @@ Deno.serve(async (request) => {
         : null,
   });
 
-  // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata on failure.
+  // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata/RAG pool on failure.
   const llmResult = await rerankPackagesWithMistral(providerPayload);
-  const recommendations = finalizeRecommendations(metadataRanked, llmResult, LLM_TOP_K);
+  const recommendations = finalizeRecommendations(candidatePool, llmResult, LLM_TOP_K);
 
   return new Response(
     JSON.stringify({
@@ -191,6 +245,7 @@ Deno.serve(async (request) => {
         tier: context.tier,
         purchaseHistory: context.purchaseHistory,
       },
+      retrieval,
       llm: llmResult ? 'mistral' : 'metadata_fallback',
     }),
     {

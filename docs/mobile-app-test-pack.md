@@ -151,7 +151,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 10. **Epic 9 Mobile** — Coach create content + Mux + private distribute (12 tests) — needs Coach Advanced+
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
-13. **Epic 11** — Objectives + package suggestions + LLM re-rank: coach set goals, player rings, Store/Objectives suggestions (7 tests) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank
+13. **Epic 11** — Objectives + package suggestions + LLM re-rank + RAG: coach set goals, player rings, Store/Objectives suggestions (7 click tests; RAG is backend-only) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank/embeddings
 14. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
@@ -1387,7 +1387,7 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 11 — AI Engine & Objectives (STORY-11.1–11.3)
+## Epic 11 — AI Engine & Objectives (STORY-11.1–11.4)
 
 *Coach Pro sets player and team objectives; players on Pro see assigned goals with progress rings. Progress advances when a player logs a drill completion (KPI = drill count toward a target). Pro users also see **Suggested for you** package recommendations on Store and Objectives. Ranking starts as metadata match; with `MISTRAL_API_KEY` configured, the server may re-order the top suggestions (LLM). “Why this package” text is generated server-side but is **not** required on screen for MVP.*
 
@@ -1459,8 +1459,8 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 - **Shooting-% / custom performance KPIs** are out of MVP (OQ-6.1) — only drill-completion targets ship here.
 - **Hard filters / match scoring** (owned packages excluded, tier floors, top-3 scores) are covered by automated tests (`npm run test:story-11.2`).
 - **LLM re-rank + “why” generation** (STORY-11.3) runs in the Edge Function via Mistral; “why” copy is **not** shown in the UI for MVP (OQ-6.6). Automated: `npm run test:story-11.3`.
-- **RAG embeddings / pgvector retrieval** remain STORY-11.4.
-- **AI chat Q&A** is out of STORY-11.3 MVP scope.
+- **RAG embeddings / pgvector retrieval** (STORY-11.4) run in Edge Functions (`process-rag-embeddings`, `recommend-packages`) after Sanity publish queues a job. No new mobile screens — suggestions still appear via E11-T5 / E11-T6. Apply migration `20260725120000_package_embeddings_pgvector.sql`, keep `MISTRAL_API_KEY` set, and update the Sanity webhook projection to include drills. Automated: `npm run test:story-11.4`.
+- **AI chat Q&A** remains out of Epic 11 MVP scope.
 
 ---
 
