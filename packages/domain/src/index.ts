@@ -446,10 +446,12 @@ export {
   recommendationContextSchema,
   recommendationCandidateSchema,
   packageRecommendationSchema,
+  llmRerankResultSchema,
   type AgeRange,
   type RecommendationContext,
   type RecommendationCandidate,
   type PackageRecommendation,
+  type LlmRerankResult,
 } from './recommendations/schema.js';
 export {
   ageRangesOverlap,
@@ -457,3 +459,15 @@ export {
   scorePackageMatch,
   rankPackageRecommendations,
 } from './recommendations/rank.js';
+export {
+  LLM_CANDIDATE_POOL,
+  LLM_TOP_K,
+  applyLlmRerank,
+  buildProviderContextPayload,
+  buildRerankPrompt,
+  finalizeRecommendations,
+  parseLlmRerankResult,
+  providerPayloadHasNoSecrets,
+  type ProviderContextPayload,
+  type ProviderIdentityContext,
+} from './recommendations/rerank.js';

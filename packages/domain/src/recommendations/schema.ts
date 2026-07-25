@@ -51,6 +51,23 @@ export const packageRecommendationSchema = z.object({
   matchScore: z.number().min(0).max(1),
   skills: z.array(z.string()).default([]),
   objectives: z.array(z.string()).default([]),
+  /** STORY-11.3 — optional LLM "why" copy (UI display not required for MVP / OQ-6.6). */
+  why: z.string().trim().min(1).optional(),
 });
 
 export type PackageRecommendation = z.infer<typeof packageRecommendationSchema>;
+
+/** Structured LLM re-rank result (Vercel AI SDK generateObject). */
+export const llmRerankResultSchema = z.object({
+  rankings: z
+    .array(
+      z.object({
+        id: z.string().trim().min(1),
+        why: z.string().trim().min(1),
+      }),
+    )
+    .min(1)
+    .max(3),
+});
+
+export type LlmRerankResult = z.infer<typeof llmRerankResultSchema>;

@@ -39,7 +39,53 @@ export type PackageRecommendation = {
   matchScore: number;
   skills: string[];
   objectives: string[];
+  why?: string;
 };
+
+export type LlmRerankResult = {
+  rankings: Array<{ id: string; why: string }>;
+};
+
+export type ProviderIdentityContext = {
+  userId?: string | null;
+  email?: string | null;
+  displayName?: string | null;
+  age?: number | null;
+  dateOfBirth?: string | null;
+  isMinor?: boolean | null;
+  teamNames?: string[];
+  rosterDetails?: string[];
+  chatMessages?: string[];
+};
+
+export type ProviderContextPayload = {
+  objectives: string[];
+  age: AgeRange | null;
+  tier: SubscriptionTier;
+  progress?: RecommendationContext['progress'];
+  purchaseHistory: string[];
+  identity: {
+    userId?: string;
+    email?: string;
+    displayName?: string;
+    age?: number;
+    dateOfBirth?: string;
+    isMinor?: boolean;
+    teamNames?: string[];
+    rosterDetails?: string[];
+    chatMessages?: string[];
+  };
+  candidates: Array<{
+    id: string;
+    title: string;
+    matchScore: number;
+    skills: string[];
+    objectives: string[];
+  }>;
+};
+
+export const LLM_CANDIDATE_POOL = 8;
+export const LLM_TOP_K = 3;
 
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
 const DEFAULT_MIN_TIER: SubscriptionTier = 'basic';
@@ -232,4 +278,136 @@ export function parseRecommendationContext(
     purchaseHistory,
     progress: body.progress,
   };
+}
+
+/** STORY-11.3 — OQ-6.7 allowlisted provider context (Deno-safe copy of domain). */
+export function buildProviderContextPayload(
+  context: RecommendationContext,
+  candidates: PackageRecommendation[],
+  identity: ProviderIdentityContext = {},
+): ProviderContextPayload {
+  const identityOut: ProviderContextPayload['identity'] = {};
+
+  if (typeof identity.userId === 'string' && identity.userId.trim()) {
+    identityOut.userId = identity.userId.trim();
+  }
+  if (typeof identity.email === 'string' && identity.email.trim()) {
+    identityOut.email = identity.email.trim();
+  }
+  if (typeof identity.displayName === 'string' && identity.displayName.trim()) {
+    identityOut.displayName = identity.displayName.trim();
+  }
+  if (typeof identity.age === 'number' && Number.isFinite(identity.age)) {
+    identityOut.age = identity.age;
+  }
+  if (typeof identity.dateOfBirth === 'string' && identity.dateOfBirth.trim()) {
+    identityOut.dateOfBirth = identity.dateOfBirth.trim();
+  }
+  if (typeof identity.isMinor === 'boolean') {
+    identityOut.isMinor = identity.isMinor;
+  }
+  if (Array.isArray(identity.teamNames) && identity.teamNames.length > 0) {
+    identityOut.teamNames = identity.teamNames.filter(
+      (v): v is string => typeof v === 'string' && v.trim().length > 0,
+    );
+  }
+  if (Array.isArray(identity.rosterDetails) && identity.rosterDetails.length > 0) {
+    identityOut.rosterDetails = identity.rosterDetails.filter(
+      (v): v is string => typeof v === 'string' && v.trim().length > 0,
+    );
+  }
+  if (Array.isArray(identity.chatMessages) && identity.chatMessages.length > 0) {
+    identityOut.chatMessages = identity.chatMessages.filter(
+      (v): v is string => typeof v === 'string' && v.trim().length > 0,
+    );
+  }
+
+  return {
+    objectives: context.objectives,
+    age: context.age ?? null,
+    tier: context.tier,
+    progress: context.progress,
+    purchaseHistory: context.purchaseHistory,
+    identity: identityOut,
+    candidates: candidates.map((c) => ({
+      id: c.id,
+      title: c.title,
+      matchScore: c.matchScore,
+      skills: c.skills ?? [],
+      objectives: c.objectives ?? [],
+    })),
+  };
+}
+
+export function buildRerankPrompt(payload: ProviderContextPayload): string {
+  return [
+    'You are Coach360 package recommendation assistant.',
+    'Re-rank the candidate marketplace packages for this coach/player context.',
+    'Return the top 3 package ids from the candidates list only, each with a short why explanation.',
+    'Respect business rules: do not suggest owned packages; respect tier and age already filtered.',
+    'Context JSON:',
+    JSON.stringify(payload),
+  ].join('\n');
+}
+
+export function parseLlmRerankResult(raw: unknown): LlmRerankResult | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rankings = (raw as { rankings?: unknown }).rankings;
+  if (!Array.isArray(rankings) || rankings.length < 1) return null;
+  const cleaned: LlmRerankResult['rankings'] = [];
+  for (const row of rankings.slice(0, LLM_TOP_K)) {
+    if (!row || typeof row !== 'object') continue;
+    const id = typeof (row as { id?: unknown }).id === 'string'
+      ? (row as { id: string }).id.trim()
+      : '';
+    const why = typeof (row as { why?: unknown }).why === 'string'
+      ? (row as { why: string }).why.trim()
+      : '';
+    if (!id || !why) continue;
+    cleaned.push({ id, why });
+  }
+  return cleaned.length > 0 ? { rankings: cleaned } : null;
+}
+
+export function applyLlmRerank(
+  candidates: PackageRecommendation[],
+  llmResult: LlmRerankResult,
+  limit = LLM_TOP_K,
+): PackageRecommendation[] {
+  const byId = new Map(candidates.map((c) => [c.id, c]));
+  const used = new Set<string>();
+  const out: PackageRecommendation[] = [];
+
+  for (const row of llmResult.rankings) {
+    if (out.length >= limit) break;
+    const base = byId.get(row.id);
+    if (!base || used.has(row.id)) continue;
+    used.add(row.id);
+    out.push({ ...base, why: row.why });
+  }
+
+  for (const candidate of candidates) {
+    if (out.length >= limit) break;
+    if (used.has(candidate.id)) continue;
+    used.add(candidate.id);
+    out.push({ ...candidate });
+  }
+
+  return out;
+}
+
+export function finalizeRecommendations(
+  metadataRanked: PackageRecommendation[],
+  llmRaw: unknown | null,
+  limit = LLM_TOP_K,
+): PackageRecommendation[] {
+  const pool = metadataRanked.slice(0, Math.max(limit, LLM_CANDIDATE_POOL));
+  if (llmRaw == null) {
+    return pool.slice(0, limit);
+  }
+  const parsed = parseLlmRerankResult(llmRaw);
+  if (!parsed) {
+    return pool.slice(0, limit);
+  }
+  return applyLlmRerank(pool, parsed, limit);
 }

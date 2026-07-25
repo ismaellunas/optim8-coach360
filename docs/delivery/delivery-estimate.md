@@ -219,7 +219,7 @@ Flow 2’s 15-hour *Rough Estimate* includes the following per-tier line items. 
 | Advanced | Plan & schedule | Resolved OQ-2.3: full session planning at Advanced |
 | Pro | AI personalization | — |
 | Pro | Set objectives | `(Need more Info)` |
-| Pro | Full MVP access | `(Need more Info)` |
+| Pro | Full MVP access | Advanced + AI + objectives + full analytics (**OQ-2.2** resolved 2026-07-24) |
 
 #### 4.0.3 Notes analysis — italic text and parenthetical comments
 
@@ -251,7 +251,7 @@ The revised estimate adds clarifying notes (italic prose) and open questions (pa
 1. ~~What does “track own progress” mean at Basic tier? (Flow 2)~~ — **resolved 2026-07-23 (OQ-2.1)**
 2. ~~What happens during a scheduled session vs at scheduling time? (Flow 3)~~ — **resolved 2026-07-21 (OQ-3.1: calendar only)**
 3. Who creates marketplace packages — coaches, admins, or both? (Flow 4 → Flow 7)
-4. What is included in “Full MVP access” at Pro tier? (Flow 2) — still open (**OQ-2.2**)
+4. ~~What is included in “Full MVP access” at Pro tier? (Flow 2)~~ — **resolved 2026-07-24 (OQ-2.2): Pro = Advanced + AI + objectives + full analytics**
 5. ~~Advanced boundaries for communicate / distribute / plan & schedule? (Flow 2)~~ — **resolved 2026-07-23 (OQ-2.3)**
 
 *Items previously flagged (RAG scope, content management, Stripe gating) are now covered in §4.0.4 dependencies.*
