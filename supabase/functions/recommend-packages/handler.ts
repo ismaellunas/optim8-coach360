@@ -87,6 +87,11 @@ export type ProviderContextPayload = {
 export const LLM_CANDIDATE_POOL = 8;
 export const LLM_TOP_K = 3;
 
+/** STORY-11.4 — RAG retrieval window (AC-4). */
+export const RAG_TOP_K_MIN = 5;
+export const RAG_TOP_K_MAX = 10;
+export const RAG_TOP_K_DEFAULT = 8;
+
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
 const DEFAULT_MIN_TIER: SubscriptionTier = 'basic';
 const TOP_K = 3;
@@ -410,4 +415,78 @@ export function finalizeRecommendations(
     return pool.slice(0, limit);
   }
   return applyLlmRerank(pool, parsed, limit);
+}
+
+/** STORY-11.4 — clamp top-k into [5, 10]. */
+export function clampRagTopK(requested?: number | null): number {
+  if (typeof requested !== 'number' || !Number.isFinite(requested)) {
+    return RAG_TOP_K_DEFAULT;
+  }
+  const n = Math.trunc(requested);
+  if (n < RAG_TOP_K_MIN) return RAG_TOP_K_MIN;
+  if (n > RAG_TOP_K_MAX) return RAG_TOP_K_MAX;
+  return n;
+}
+
+/** Build query text embedded for pgvector similarity search. */
+export function buildRecommendationQueryText(
+  context: Pick<RecommendationContext, 'objectives' | 'age' | 'progress'>,
+): string {
+  const objectives = Array.isArray(context.objectives)
+    ? context.objectives.filter((o) => typeof o === 'string' && o.trim())
+    : [];
+  const weakAreas = Array.isArray(context.progress?.weakAreas)
+    ? context.progress.weakAreas.filter((o) => typeof o === 'string' && o.trim())
+    : [];
+  const age = context.age;
+  const agePart =
+    age && (age.min != null || age.max != null)
+      ? `Age range: ${age.min ?? 0}-${age.max ?? 99}`
+      : null;
+
+  return [
+    objectives.length ? `Objectives: ${objectives.join(', ')}` : null,
+    weakAreas.length ? `Weak areas: ${weakAreas.join(', ')}` : null,
+    agePart,
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+export type SimilarityMatchRow = {
+  sanityDocumentId: string;
+  title: string;
+  similarity: number;
+  skills?: string[];
+  objectives?: string[];
+};
+
+export function similarityToMatchScore(similarity: number): number {
+  if (!Number.isFinite(similarity)) return 0;
+  const clamped = Math.min(1, Math.max(0, similarity));
+  return Math.round(clamped * 1000) / 1000;
+}
+
+/**
+ * AC-4 — map pgvector similarity rows to recommendations (top 5–10).
+ */
+export function mapSimilarityRowsToRecommendations(
+  rows: SimilarityMatchRow[],
+  limit?: number | null,
+): PackageRecommendation[] {
+  const topK = clampRagTopK(limit);
+  const ranked = rows
+    .filter((row) => row.sanityDocumentId && row.title)
+    .map((row) => ({
+      id: row.sanityDocumentId,
+      title: row.title,
+      matchScore: similarityToMatchScore(row.similarity),
+      skills: row.skills ?? [],
+      objectives: row.objectives ?? [],
+    }))
+    .sort((a, b) => {
+      if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+      return a.title.localeCompare(b.title);
+    });
+  return ranked.slice(0, topK);
 }

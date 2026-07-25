@@ -19,6 +19,12 @@ export type SanityWebhookDocument = {
   currency?: string | null;
   createdByRole?: string | null;
   modules?: Array<{ _ref?: string; _type?: string } | string> | null;
+  /** STORY-11.4 — flattened drill metadata from GROQ projection. */
+  drills?: Array<{
+    title?: string | null;
+    skills?: string[] | null;
+    instructions?: string | null;
+  } | null> | null;
   /** When true (or operation delete), treat as unpublish/delete. */
   _deleted?: boolean;
 };
@@ -80,6 +86,28 @@ function moduleIdsFromDoc(doc: SanityWebhookDocument): string[] {
       return null;
     })
     .filter((id): id is string => Boolean(id));
+}
+
+/** STORY-11.4 — normalize drill metadata from webhook projection. */
+export function drillsFromDoc(
+  doc: SanityWebhookDocument,
+): Array<{ title: string; skills: string[]; instructions: string | null }> {
+  if (!Array.isArray(doc.drills)) return [];
+  const out: Array<{ title: string; skills: string[]; instructions: string | null }> = [];
+  for (const entry of doc.drills) {
+    if (!entry || typeof entry !== 'object') continue;
+    const title = typeof entry.title === 'string' ? entry.title.trim() : '';
+    if (!title) continue;
+    out.push({
+      title,
+      skills: asStringArray(entry.skills),
+      instructions:
+        typeof entry.instructions === 'string' && entry.instructions.trim()
+          ? entry.instructions.trim()
+          : null,
+    });
+  }
+  return out;
 }
 
 export function mapPackageMetadata(doc: SanityWebhookDocument): PackageMetadataUpsert | null {
@@ -152,6 +180,7 @@ export function mapSanityWebhookPayload(
         skills: metadata.skills,
         objectives: metadata.objectives,
         module_ids: metadata.module_ids,
+        drills: drillsFromDoc(doc),
       },
     },
     idempotencyKey,

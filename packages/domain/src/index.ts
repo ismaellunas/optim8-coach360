@@ -471,3 +471,17 @@ export {
   type ProviderContextPayload,
   type ProviderIdentityContext,
 } from './recommendations/rerank.js';
+export {
+  MISTRAL_EMBEDDING_DIMENSIONS,
+  RAG_TOP_K_DEFAULT,
+  RAG_TOP_K_MAX,
+  RAG_TOP_K_MIN,
+  buildPackageEmbeddingDocument,
+  buildRecommendationQueryText,
+  clampRagTopK,
+  mapSimilarityRowsToRecommendations,
+  similarityToMatchScore,
+  type PackageEmbeddingDrillMeta,
+  type PackageEmbeddingIngestInput,
+  type SimilarityMatchRow,
+} from './recommendations/rag.js';
