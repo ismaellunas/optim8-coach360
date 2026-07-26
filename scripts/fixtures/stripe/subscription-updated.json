@@ -1,0 +1,26 @@
+{
+  "id": "evt_probe_smoke_subscription",
+  "type": "customer.subscription.updated",
+  "data": {
+    "object": {
+      "id": "sub_probe_coach360_smoke",
+      "customer": "cus_probe_coach360_smoke",
+      "status": "active",
+      "metadata": {
+        "profile_id": "REPLACE_PROFILE_ID",
+        "tier": "basic"
+      },
+      "items": {
+        "data": [
+          {
+            "current_period_end": 1893456000,
+            "price": {
+              "id": "price_probe_basic",
+              "metadata": { "tier": "basic" }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

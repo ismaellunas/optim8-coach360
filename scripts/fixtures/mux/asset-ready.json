@@ -1,0 +1,14 @@
+{
+  "id": "evt_probe_mux_asset_ready",
+  "type": "video.asset.ready",
+  "data": {
+    "id": "muxAssetProbeSmoke001",
+    "passthrough": "REPLACE_LIBRARY_ITEM_ID",
+    "playback_ids": [
+      {
+        "id": "muxPlaybackProbeSmoke001",
+        "policy": "public"
+      }
+    ]
+  }
+}

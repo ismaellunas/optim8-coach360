@@ -1,0 +1,18 @@
+{
+  "_id": "probe.coach360.smoke-package",
+  "_type": "trainingPackage",
+  "title": "Coach360 Integration Smoke Package",
+  "description": "Synthetic package for integration-smoke.mjs — safe to overwrite.",
+  "published": true,
+  "status": "approved",
+  "skills": ["shooting", "smoke-test"],
+  "objectives": ["Verify RAG ingest"],
+  "modules": ["probe.coach360.smoke-module"],
+  "drills": [
+    {
+      "title": "Smoke Catch and Shoot",
+      "skills": ["catch", "release"],
+      "instructions": "Square up and shoot for the smoke test."
+    }
+  ]
+}
