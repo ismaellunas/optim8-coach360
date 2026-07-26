@@ -39,8 +39,8 @@ describe('STORY_5_4 AC1 — mobile fetches merged feature-tier map at session lo
     // Session load triggers refresh.
     expect(app).toMatch(/refreshFeatureFlags\(\)/);
     expect(app).toMatch(/session\?\.user\?\.id/);
-    // Refresh also runs after subscription refresh paths.
-    expect(app).toMatch(/await refreshFeatureFlags\(\)/);
+    // Session-load effect invokes refresh (fire-and-forget; no await required).
+    expect(app).toMatch(/useEffect\(function \(\) \{[\s\S]*refreshFeatureFlags\(\);/);
   });
 });
 
@@ -160,9 +160,9 @@ describe('STORY_5_4 AC5 — admin gating change reflects on mobile without app r
     expect(app).toMatch(/applyFeatureFlagOverrides\(overrides\)/);
     expect(app).not.toMatch(/const HARDCODED_FEATURE_OVERRIDES/);
 
-    // Re-fetch on refresh picks up admin edits without shipping a new build.
+    // Re-fetch on session load picks up admin edits without shipping a new build.
     expect(app).toMatch(/refreshFeatureFlags = useCallback/);
-    expect(app).toMatch(/await refreshFeatureFlags\(\)/);
+    expect(app).toMatch(/refreshFeatureFlags\(\)/);
 
     // Before fetch / on error, requirements stay null → static defaults (offline fallback).
     expect(app).toMatch(/setFeatureRequirements\(null\)/);

@@ -231,12 +231,16 @@ describe('STORY_6_1 regression — manual QA bugs from Epic 6', () => {
     const manual = readFileSync(MANUAL_TEST_PACK_PATH, 'utf8');
     const htmlPath = path.join(REPO_ROOT, 'docs', 'mobile-app-test-pack.html');
     const html = readFileSync(htmlPath, 'utf8');
-    expect(manual).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1\)/);
+    // Heading grew as STORY-6.2 / 6.3 cases were added; still anchored on STORY-6.1.
+    expect(manual).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1/);
     expect(manual).toMatch(/E6-T1: Schedule tab loads without error/);
-    expect(manual).toMatch(/session_load_failed/);
-    expect(manual).toMatch(/E6-T7: Player views session read-only/);
+    expect(manual).toMatch(/E6-T7: Player views session without edit controls/);
     expect(manual).toMatch(/E6-T2: Coach sees \*\*\+ Add Session\*\*/);
-    expect(html).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1\)/);
-    expect(html).toMatch(/E6-T7: Player views session read-only/);
+    expect(html).toMatch(/Epic 6 — Session Scheduling \(STORY-6\.1/);
+    expect(html).toMatch(/E6-T7: Player views session without edit controls/);
+
+    // Load-failure token lives in ScheduleScreen (pack uses plain-language wording).
+    const scheduleUi = readFileSync(UI_PATH, 'utf8');
+    expect(scheduleUi).toMatch(/session_load_failed/);
   });
 });
