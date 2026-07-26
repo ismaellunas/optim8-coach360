@@ -89,19 +89,14 @@ export function isPaidSubscriptionTier(tier: SubscriptionTier): tier is PaidSubs
 /** platform_settings key for admin display overrides (STORY-12.2 AC-1). */
 export const TIER_CATALOG_OVERRIDES_SETTING_KEY = 'tier_catalog_overrides';
 
-export type TierCatalogDisplayOverride = {
-  tier: PaidSubscriptionTier;
-  label?: string;
-  displayPrice?: string;
-  features?: string[];
-};
-
 export const tierCatalogDisplayOverrideSchema = z.object({
   tier: paidSubscriptionTierSchema,
   label: z.string().min(1).optional(),
   displayPrice: z.string().min(1).optional(),
   features: z.array(z.string().min(1)).optional(),
 });
+
+export type TierCatalogDisplayOverride = z.infer<typeof tierCatalogDisplayOverrideSchema>;
 
 /**
  * Merge admin display overrides over the code catalog.
