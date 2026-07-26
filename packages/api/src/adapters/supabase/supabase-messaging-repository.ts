@@ -10,8 +10,11 @@ import {
   isMvpChatMessageType,
   isPeerShareMessageType,
   isVideoAttachment,
+  normalizeModerationReason,
   previewBodyForMessage,
   sortMemberPair,
+  type AdminChatChannel,
+  type AdminChatMessage,
   type ChatChannelType,
   type ChatContentLinkAttachment,
   type ChatVideoAttachment,
@@ -184,6 +187,7 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       .from('chat_messages')
       .select(MESSAGE_SELECT)
       .eq('channel_id', channelId)
+      .is('hidden_at', null)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -715,5 +719,71 @@ export class SupabaseMessagingRepository implements MessagingRepository {
       .maybeSingle();
 
     return (data?.display_name as string | undefined) ?? 'Conversation';
+  }
+
+  async adminListChannels(): Promise<AdminChatChannel[]> {
+    const { data, error } = await this.client.rpc('admin_list_chat_channels');
+    if (error) {
+      throw new Error(error.message);
+    }
+    const rows = Array.isArray(data) ? data : [];
+    return rows.map((row: Record<string, unknown>) => ({
+      id: String(row.id ?? ''),
+      type: String(row.type ?? ''),
+      teamId: (row.team_id as string | null) ?? null,
+      title: String(row.title ?? ''),
+      messageCount: Number(row.message_count ?? 0),
+      lastAt: (row.last_at as string | null) ?? null,
+    }));
+  }
+
+  async adminListChannelMessages(channelId: string): Promise<AdminChatMessage[]> {
+    const { data, error } = await this.client.rpc('admin_list_chat_messages', {
+      p_channel_id: channelId,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    const rows = Array.isArray(data) ? data : [];
+    return rows.map((row: Record<string, unknown>) => ({
+      id: String(row.id ?? ''),
+      channelId: String(row.channel_id ?? ''),
+      senderId: String(row.sender_id ?? ''),
+      senderName: (row.sender_name as string | null) ?? null,
+      body: String(row.body ?? ''),
+      messageType: String(row.message_type ?? 'text'),
+      createdAt: String(row.created_at ?? ''),
+      hiddenAt: (row.hidden_at as string | null) ?? null,
+      hiddenBy: (row.hidden_by as string | null) ?? null,
+      hiddenReason: (row.hidden_reason as string | null) ?? null,
+    }));
+  }
+
+  async adminSetMessageHidden(
+    messageId: string,
+    hidden: boolean,
+    reason?: string | null,
+  ): Promise<AdminChatMessage> {
+    const { data, error } = await this.client.rpc('admin_set_chat_message_hidden', {
+      p_message_id: messageId,
+      p_hidden: hidden,
+      p_reason: normalizeModerationReason(reason),
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    const row = (data ?? {}) as Record<string, unknown>;
+    return {
+      id: String(row.id ?? messageId),
+      channelId: String(row.channel_id ?? ''),
+      senderId: '',
+      senderName: null,
+      body: '',
+      messageType: 'text',
+      createdAt: '',
+      hiddenAt: (row.hidden_at as string | null) ?? null,
+      hiddenBy: (row.hidden_by as string | null) ?? null,
+      hiddenReason: (row.hidden_reason as string | null) ?? null,
+    };
   }
 }

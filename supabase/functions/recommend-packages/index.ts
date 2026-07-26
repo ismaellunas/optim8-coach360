@@ -8,12 +8,10 @@ import {
   buildProviderContextPayload,
   buildRecommendationQueryText,
   finalizeRecommendations,
-  LLM_CANDIDATE_POOL,
-  LLM_TOP_K,
   mapSimilarityRowsToRecommendations,
+  parseAiRecommendationConfig,
   parseRecommendationContext,
   passesHardFilters,
-  RAG_TOP_K_DEFAULT,
   rankPackageRecommendations,
   type PackageRecommendation,
   type RecommendationCandidate,
@@ -145,6 +143,10 @@ Deno.serve(async (request) => {
 
   const context = parseRecommendationContext(body, access.tier, serverPurchaseHistory);
 
+  // STORY-12.4 — load admin-configured AI recommendation parameters.
+  const { data: aiConfigRaw } = await admin.rpc('get_ai_recommendation_config');
+  const aiConfig = parseAiRecommendationConfig(aiConfigRaw);
+
   const { data: packageRows, error: packageError } = await admin
     .from('package_metadata')
     .select(
@@ -184,7 +186,7 @@ Deno.serve(async (request) => {
   if (queryEmbedding) {
     const { data: matchRows, error: matchError } = await admin.rpc('match_package_embeddings', {
       query_embedding: queryEmbedding,
-      match_count: RAG_TOP_K_DEFAULT,
+      match_count: aiConfig.ragTopK,
       match_threshold: 0,
     });
 
@@ -204,7 +206,7 @@ Deno.serve(async (request) => {
       }
       const ragRanked = mapSimilarityRowsToRecommendations(
         similarityRows,
-        RAG_TOP_K_DEFAULT,
+        aiConfig.ragTopK,
       );
       if (ragRanked.length > 0) {
         candidatePool = ragRanked;
@@ -214,7 +216,7 @@ Deno.serve(async (request) => {
   }
 
   if (retrieval === 'metadata') {
-    candidatePool = rankPackageRecommendations(candidates, context, LLM_CANDIDATE_POOL);
+    candidatePool = rankPackageRecommendations(candidates, context, aiConfig.candidatePool);
   }
 
   const { data: profileRow } = await admin
@@ -233,8 +235,15 @@ Deno.serve(async (request) => {
   });
 
   // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata/RAG pool on failure.
-  const llmResult = await rerankPackagesWithMistral(providerPayload);
-  const recommendations = finalizeRecommendations(candidatePool, llmResult, LLM_TOP_K);
+  // STORY-12.4 — skip LLM re-rank when admin disables it.
+  const llmResult = aiConfig.llmRerankEnabled
+    ? await rerankPackagesWithMistral(providerPayload)
+    : null;
+  const recommendations = finalizeRecommendations(
+    candidatePool,
+    llmResult,
+    aiConfig.llmTopK,
+  );
 
   return new Response(
     JSON.stringify({
