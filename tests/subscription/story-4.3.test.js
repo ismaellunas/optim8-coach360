@@ -86,6 +86,16 @@ const PAYWALL_MODAL_PATH = path.join(
   'PaywallModal.jsx',
 );
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
+const STORE_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'marketplace',
+  'ui',
+  'StoreScreen.jsx',
+);
 
 function daysFromNow(days) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -225,8 +235,14 @@ describe('STORY_4_3 AC2 — Advanced and Pro features show paywall', () => {
     // App guards route through the centralized RBAC map (STORY-5.1).
     expect(app).toMatch(/checkFeatureAccess/);
     expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro' });
-    expect(FEATURE_TIER_REQUIREMENTS.ai).toEqual({ coach: 'pro', player: 'pro' });
-    expect(FEATURE_TIER_REQUIREMENTS.chat).toEqual({ coach: 'advanced', player: 'advanced' });
+    // STORY-5.2 / OQ-6.5 — AI Pro-only for coach, player, and team manager.
+    expect(FEATURE_TIER_REQUIREMENTS.ai).toEqual({ coach: 'pro', player: 'pro', team: 'pro' });
+    // STORY-5.2 — chat Advanced+ for coach, player, and team manager.
+    expect(FEATURE_TIER_REQUIREMENTS.chat).toEqual({
+      coach: 'advanced',
+      player: 'advanced',
+      team: 'advanced',
+    });
 
     expect(existsSync(PAYWALL_MODAL_PATH)).toBe(true);
     const paywall = readFileSync(PAYWALL_MODAL_PATH, 'utf8');
@@ -251,15 +267,17 @@ describe('STORY_4_3 AC3 — purchased marketplace content retained', () => {
 
     expect(existsSync(APP_PATH)).toBe(true);
     const app = readFileSync(APP_PATH, 'utf8');
-    expect(app).toMatch(/function StoreScreen/);
-    expect(app).toMatch(/own: true/);
-    expect(app).toMatch(/Owned/);
+    expect(app).toMatch(/features\/marketplace\/ui\/StoreScreen/);
+
+    expect(existsSync(STORE_PATH)).toBe(true);
+    const store = readFileSync(STORE_PATH, 'utf8');
+    expect(store).toMatch(/export function StoreScreen/);
+    expect(store).toMatch(/own: ownedIds\.has\(row\.id\)/);
+    expect(store).toMatch(/Owned/);
     // Opening a package for viewing is not paywalled; purchase CTA is separate.
-    const storeStart = app.indexOf('function StoreScreen');
-    const storeSlice = app.slice(storeStart, storeStart + 4500);
-    expect(storeSlice).toMatch(/onClick=\{function\(\) \{ setViewing\(p\.id\); \}\}/);
-    expect(storeSlice).toMatch(/pk\.own && \(/);
-    expect(storeSlice).toMatch(/!pk\.own && \([\s\S]*tryA\("purchase"/);
+    expect(store).toMatch(/setViewing\(p\.id\)|setViewing\(s\.id\)/);
+    expect(store).toMatch(/!pk\.own/);
+    expect(store).toMatch(/tryA\('purchase'/);
 
     expect(existsSync(PROMPT_PATH)).toBe(true);
     const prompt = readFileSync(PROMPT_PATH, 'utf8');

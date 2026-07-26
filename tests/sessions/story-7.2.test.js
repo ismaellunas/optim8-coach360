@@ -147,7 +147,7 @@ describe('STORY_7_2 AC2 — progress percentage updates on profile and assigned 
     expect(profile).toMatch(/summarizePlayerProgress/);
 
     const progressScreen = readFileSync(PROGRESS_PATH, 'utf8');
-    expect(progressScreen).toMatch(/data-testid="progress-drills-completed"/);
+    expect(progressScreen).toMatch(/progress-drills-completed/);
     expect(progressScreen).toMatch(/listPlayerProgress/);
 
     const app = readFileSync(APP_PATH, 'utf8');

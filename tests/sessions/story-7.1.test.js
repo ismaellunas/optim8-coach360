@@ -146,7 +146,8 @@ describe('STORY_7_1 AC2 — video playback works for shared and purchased conten
     const repo = readFileSync(SESSION_CONTENT_REPO_PATH, 'utf8');
     expect(repo).toMatch(/resolveMediaUrl/);
     expect(repo).toMatch(/coach_library_items/);
-    expect(repo).toMatch(/owner-only RLS/);
+    // Owner-scoped lookup (RLS-friendly filter by coach owner_id).
+    expect(repo).toMatch(/\.eq\('owner_id', coachId\)/);
     expect(repo).toMatch(/LIBRARY_VIDEO_DEMO_URL/);
     expect(PURCHASED_PACKAGE_DEMO_VIDEO_URL).toMatch(/^https:\/\//);
     expect(LIBRARY_VIDEO_DEMO_URL).toMatch(/^https:\/\//);
@@ -155,7 +156,8 @@ describe('STORY_7_1 AC2 — video playback works for shared and purchased conten
     expect(videoPlayer).toMatch(/data-testid="session-video-player"/);
     expect(videoPlayer).toMatch(/<video/);
     expect(videoPlayer).toMatch(/controls/);
-    expect(videoPlayer).toMatch(/<source src=\{src\}/);
+    // Progressive + HLS: src is applied on the video element (hls.js attaches for HLS URLs).
+    expect(videoPlayer).toMatch(/video\.src\s*=\s*src|hls\.loadSource\(src\)/);
 
     const playerDetail = readFileSync(PLAYER_DETAIL_PATH, 'utf8');
     expect(playerDetail).toMatch(/SessionVideoPlayer/);
@@ -232,6 +234,7 @@ describe('STORY_7_1 AC4 — completion state tracked per content item', () => {
     expect(playerDetail).toMatch(/listCompletions/);
     expect(playerDetail).toMatch(/markComplete/);
     expect(playerDetail).toMatch(/Mark complete/);
-    expect(playerDetail).toMatch(/completedKeys/);
+    // Completion state keyed by content key (Map), not a legacy Set named completedKeys.
+    expect(playerDetail).toMatch(/completionByKey/);
   });
 });
