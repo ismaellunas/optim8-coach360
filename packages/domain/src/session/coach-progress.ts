@@ -16,6 +16,12 @@ export type CoachProgressFeatures = {
   canViewAiInsights: boolean;
 };
 
+/**
+ * Kill-switch for the coach "AI performance insights" panel (upsell + future UI).
+ * Off until Flow 13 AI insights is specified (OQ-13.1 / OQ-13.3) and implemented.
+ */
+export const COACH_AI_PERFORMANCE_INSIGHTS_ENABLED = false;
+
 export type CoachCompletionFilters = {
   playerId?: string;
   from?: string;

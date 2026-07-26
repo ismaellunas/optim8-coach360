@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import {
+  COACH_AI_PERFORMANCE_INSIGHTS_ENABLED,
   buildCorrectiveSessionInput,
   canViewPeerEngagement,
   coachProgressFeaturesForAccess,
@@ -262,12 +263,12 @@ export function CoachProgressReviewScreen({
         </Card>
       </div>
 
-      {features.canViewAiInsights ? null : (
+      {COACH_AI_PERFORMANCE_INSIGHTS_ENABLED && !features.canViewAiInsights ? (
         <Card className="mb-3 border border-coach-purple/20 bg-coach-purple/5" data-testid="coach-progress-ai-locked">
           <div className="font-body text-[13px] font-semibold text-coach-t1">AI performance insights</div>
           <div className="font-body text-xs text-coach-t2">Upgrade to Pro for AI-driven player insights.</div>
         </Card>
-      )}
+      ) : null}
 
       {peerEngagementAllowed && peerEngagement ? (
         <Card className="mb-3" data-testid="coach-peer-engagement">

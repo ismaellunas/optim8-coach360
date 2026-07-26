@@ -256,6 +256,7 @@ export {
   type PlayerProgressFeatures,
 } from './session/progress.js';
 export {
+  COACH_AI_PERFORMANCE_INSIGHTS_ENABLED,
   coachProgressFeaturesForAccess,
   filterCoachCompletions,
   parseSessionContentKey,
