@@ -1,5 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { normalizeTrialWarningDays, type Subscription } from '@coach360/domain';
+import {
+  normalizeTrialDurationDays,
+  normalizeTrialWarningDays,
+  parseTierCatalogOverrides,
+  type Subscription,
+  type SubscriptionTier,
+  type TierCatalogDisplayOverride,
+} from '@coach360/domain';
 import type { SubscriptionRepository, SubscriptionSummary } from '../../ports/subscription-repository.js';
 import { mapSubscriptionRow, SUBSCRIPTION_SELECT } from './mappers/subscription-mapper.js';
 
@@ -112,5 +119,54 @@ export class SupabaseSubscriptionRepository implements SubscriptionRepository {
       throw new Error(error.message);
     }
     return normalizeTrialWarningDays(data);
+  }
+
+  async getTrialDurationDays(): Promise<number> {
+    const { data, error } = await this.client.rpc('get_trial_duration_days');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeTrialDurationDays(data);
+  }
+
+  async setTrialDurationDays(days: number): Promise<number> {
+    const { data, error } = await this.client.rpc('set_trial_duration_days', {
+      p_days: days,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeTrialDurationDays(data);
+  }
+
+  async getTierCatalogOverrides(): Promise<TierCatalogDisplayOverride[]> {
+    const { data, error } = await this.client.rpc('get_tier_catalog_overrides');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return parseTierCatalogOverrides(data);
+  }
+
+  async setTierCatalogOverrides(
+    overrides: TierCatalogDisplayOverride[],
+  ): Promise<TierCatalogDisplayOverride[]> {
+    const { data, error } = await this.client.rpc('set_tier_catalog_overrides', {
+      p_overrides: overrides,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return parseTierCatalogOverrides(data);
+  }
+
+  async overrideUserTier(profileId: string, tier: SubscriptionTier): Promise<Subscription> {
+    const { data, error } = await this.client.rpc('override_user_subscription_tier', {
+      p_profile_id: profileId,
+      p_tier: tier,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return mapSubscriptionRow(data as Parameters<typeof mapSubscriptionRow>[0]);
   }
 }

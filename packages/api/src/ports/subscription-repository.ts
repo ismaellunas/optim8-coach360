@@ -1,4 +1,8 @@
-import type { Subscription } from '@coach360/domain';
+import type {
+  Subscription,
+  SubscriptionTier,
+  TierCatalogDisplayOverride,
+} from '@coach360/domain';
 
 export type SubscriptionSummary = {
   tier: string;
@@ -16,4 +20,12 @@ export interface SubscriptionRepository {
   expireEndedTrials(): Promise<Subscription[]>;
   getTrialWarningDays(): Promise<number>;
   setTrialWarningDays(days: number): Promise<number>;
+  getTrialDurationDays(): Promise<number>;
+  setTrialDurationDays(days: number): Promise<number>;
+  getTierCatalogOverrides(): Promise<TierCatalogDisplayOverride[]>;
+  setTierCatalogOverrides(
+    overrides: TierCatalogDisplayOverride[],
+  ): Promise<TierCatalogDisplayOverride[]>;
+  /** Admin complimentary/manual tier grant (STORY-12.2 AC-4). */
+  overrideUserTier(profileId: string, tier: SubscriptionTier): Promise<Subscription>;
 }

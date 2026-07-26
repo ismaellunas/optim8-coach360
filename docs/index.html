@@ -3491,35 +3491,55 @@
         {
           "id": "AC-1",
           "statement": "Admin configures subscription tier parameters and trial duration",
-          "test": null
+          "test": "tests/admin/story-12.2.test.js::test_STORY_12_2_AC1_admin_configures_tier_params_and_trial_duration"
         },
         {
           "id": "AC-2",
           "statement": "Admin sets trial expiration warning schedule",
-          "test": null
+          "test": "tests/admin/story-12.2.test.js::test_STORY_12_2_AC2_admin_sets_trial_warning_schedule"
         },
         {
           "id": "AC-3",
           "statement": "Billing and revenue summary visible on Subscriptions pillar",
-          "test": null
+          "test": "tests/admin/story-12.2.test.js::test_STORY_12_2_AC3_billing_revenue_summary_on_subscriptions"
         },
         {
           "id": "AC-4",
           "statement": "Admin can override individual user subscription tier",
-          "test": null
+          "test": "tests/admin/story-12.2.test.js::test_STORY_12_2_AC4_admin_overrides_user_subscription_tier"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "test_STORY_12_2_AC1_admin_configures_tier_params_and_trial_duration",
+          "test_STORY_12_2_AC2_admin_sets_trial_warning_schedule",
+          "test_STORY_12_2_AC3_billing_revenue_summary_on_subscriptions",
+          "test_STORY_12_2_AC4_admin_overrides_user_subscription_tier",
+          "test_STORY_12_2_structure_subscriptions_page_has_no_direct_supabase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/subscription/trial.ts",
+          "packages/domain/src/subscription/catalog.ts",
+          "packages/domain/src/subscription/billing.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/subscription-repository.ts",
+          "packages/api/src/ports/billing-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-subscription-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-billing-repository.ts",
+          "packages/api/src/adapters/rest/rest-subscription-repository.ts",
+          "packages/api/src/adapters/rest/rest-billing-repository.ts",
+          "supabase/migrations/20260726120000_admin_subscription_administration.sql",
+          "apps/admin/src/entities/subscription/api/subscription-queries.ts",
+          "apps/admin/src/pages/subscriptions/SubscriptionsPage.tsx",
+          "apps/admin/src/pages/users/UsersPage.tsx",
+          "tests/admin/story-12.2.test.js"
+        ],
+        "command": "npx vitest run tests/admin/story-12.2.test.js"
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-26T00:00:00Z",
+      "audit_notes": "Admin trial duration + tier display params, warning schedule, billing revenue summary, and user tier override; 5/5 story tests passing."
     },
     {
       "id": "STORY-12.3",

@@ -1,5 +1,5 @@
 import { NotImplementedAdapterError } from '../../client/types.js';
-import type { BillingInvoice } from '@coach360/domain';
+import type { BillingInvoice, BillingRevenueSummary } from '@coach360/domain';
 import type {
   BillingRepository,
   ChangeSubscriptionTierInput,
@@ -26,5 +26,9 @@ export class RestBillingRepository implements BillingRepository {
   ): Promise<ChangeSubscriptionTierResult> {
     void input;
     throw new NotImplementedAdapterError('rest', 'changeSubscriptionTier');
+  }
+
+  async getRevenueSummary(): Promise<BillingRevenueSummary> {
+    throw new NotImplementedAdapterError('rest', 'getRevenueSummary');
   }
 }

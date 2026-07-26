@@ -1,5 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { BillingInvoice, PaidSubscriptionTier } from '@coach360/domain';
+import type {
+  BillingInvoice,
+  BillingRevenueSummary,
+  PaidSubscriptionTier,
+} from '@coach360/domain';
 import type {
   BillingRepository,
   ChangeSubscriptionTierInput,
@@ -12,6 +16,23 @@ import {
   mapBillingInvoiceRow,
 } from './mappers/billing-invoice-mapper.js';
 import { edgeFunctionErrorDetail } from './edge-function-error.js';
+
+function mapRevenueSummary(raw: unknown): BillingRevenueSummary {
+  const row = (raw ?? {}) as Record<string, unknown>;
+  const activePaidByTier = Array.isArray(row.active_paid_by_tier)
+    ? (row.active_paid_by_tier as Array<Record<string, unknown>>).map((item) => ({
+        tier: String(item.tier ?? ''),
+        count: Number(item.count ?? 0),
+      }))
+    : [];
+
+  return {
+    paidRevenueCents: Number(row.paid_revenue_cents ?? 0),
+    paidInvoiceCount: Number(row.paid_invoice_count ?? 0),
+    currency: String(row.currency ?? 'usd'),
+    activePaidByTier,
+  };
+}
 
 export class SupabaseBillingRepository implements BillingRepository {
   constructor(private readonly client: SupabaseClient) {}
@@ -87,5 +108,13 @@ export class SupabaseBillingRepository implements BillingRepository {
       pendingTierEffectiveAt: payload.pendingTierEffectiveAt ?? null,
       profileId: payload.profileId,
     };
+  }
+
+  async getRevenueSummary(): Promise<BillingRevenueSummary> {
+    const { data, error } = await this.client.rpc('get_billing_revenue_summary');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return mapRevenueSummary(data);
   }
 }

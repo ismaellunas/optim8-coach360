@@ -1,4 +1,8 @@
-import type { BillingInvoice, PaidSubscriptionTier } from '@coach360/domain';
+import type {
+  BillingInvoice,
+  BillingRevenueSummary,
+  PaidSubscriptionTier,
+} from '@coach360/domain';
 
 export type CreateCheckoutSessionInput = {
   tier: PaidSubscriptionTier;
@@ -36,4 +40,6 @@ export interface BillingRepository {
    * immediate prorated upgrade or end-of-cycle scheduled downgrade.
    */
   changeSubscriptionTier(input: ChangeSubscriptionTierInput): Promise<ChangeSubscriptionTierResult>;
+  /** Admin Subscriptions pillar rollup (STORY-12.2 AC-3). */
+  getRevenueSummary(): Promise<BillingRevenueSummary>;
 }
