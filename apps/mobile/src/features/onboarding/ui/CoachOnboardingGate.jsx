@@ -9,6 +9,7 @@ export function CoachOnboardingGate({ children }) {
   const { session } = useAuth();
   const repos = useRepositories();
   const [profile, setProfile] = useState(null);
+  const [onboardingConfig, setOnboardingConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -43,6 +44,32 @@ export function CoachOnboardingGate({ children }) {
   useEffect(function () {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(
+    function () {
+      let active = true;
+      if (!isCoach) {
+        return undefined;
+      }
+      // Admin-editable onboarding copy/steps (STORY-12.5); falls back to defaults.
+      repos.onboardingConfig
+        .getConfig()
+        .then(function (config) {
+          if (active) {
+            setOnboardingConfig(config);
+          }
+        })
+        .catch(function () {
+          if (active) {
+            setOnboardingConfig(null);
+          }
+        });
+      return function () {
+        active = false;
+      };
+    },
+    [isCoach, repos.onboardingConfig],
+  );
 
   const navigationValue = useMemo(
     function () {
@@ -121,6 +148,7 @@ export function CoachOnboardingGate({ children }) {
         displayName={session.user.displayName}
         submitting={submitting}
         error={error}
+        config={onboardingConfig?.coach ?? null}
         onComplete={function () {
           finishOnboarding();
         }}

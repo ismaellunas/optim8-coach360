@@ -44,4 +44,20 @@ export class RestTeamRepository implements TeamRepository {
     void fileName;
     throw new NotImplementedAdapterError('rest', 'uploadTeamLogo');
   }
+
+  async listAll(): Promise<Team[]> {
+    throw new NotImplementedAdapterError('rest', 'listAllTeams');
+  }
+
+  async adminUpdate(teamId: string, input: TeamProfileInput): Promise<Team> {
+    void teamId;
+    void input;
+    throw new NotImplementedAdapterError('rest', 'adminUpdateTeam');
+  }
+
+  async setArchived(teamId: string, archived: boolean): Promise<Team> {
+    void teamId;
+    void archived;
+    throw new NotImplementedAdapterError('rest', 'setTeamArchived');
+  }
 }

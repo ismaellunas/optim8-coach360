@@ -35,6 +35,7 @@ export const teamSchema = z.object({
   createdBy: z.string().uuid(),
   createdAt: z.string().datetime({ offset: true }),
   updatedAt: z.string().datetime({ offset: true }),
+  archivedAt: z.string().datetime({ offset: true }).nullable().default(null),
 });
 
 export type Team = z.infer<typeof teamSchema>;

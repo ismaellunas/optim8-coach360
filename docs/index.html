@@ -354,7 +354,7 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-07-24",
+  "last_generated": "2026-07-27",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
@@ -3658,35 +3658,66 @@
         {
           "id": "AC-1",
           "statement": "Admin configures onboarding wizard steps and mandatory vs optional flags",
-          "test": null
+          "test": "tests/admin/story-12.5.test.js::test_STORY_12_5_AC1_admin_configures_wizard_steps_and_mandatory_flags"
         },
         {
           "id": "AC-2",
           "statement": "Welcome messaging editable without code deploy",
-          "test": null
+          "test": "tests/admin/story-12.5.test.js::test_STORY_12_5_AC2_welcome_messaging_editable_without_deploy"
         },
         {
           "id": "AC-3",
           "statement": "Admin views all teams and edits team settings",
-          "test": null
+          "test": "tests/admin/story-12.5.test.js::test_STORY_12_5_AC3_admin_views_and_edits_teams"
         },
         {
           "id": "AC-4",
           "statement": "Admin manages coach-team assignments and can archive teams",
-          "test": null
+          "test": "tests/admin/story-12.5.test.js::test_STORY_12_5_AC4_admin_manages_coach_assignments_and_archives_teams"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "test_STORY_12_5_AC1_admin_configures_wizard_steps_and_mandatory_flags",
+          "test_STORY_12_5_AC2_welcome_messaging_editable_without_deploy",
+          "test_STORY_12_5_AC3_admin_views_and_edits_teams",
+          "test_STORY_12_5_AC4_admin_manages_coach_assignments_and_archives_teams",
+          "test_STORY_12_5_structure_admin_sections_have_no_direct_supabase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/onboarding/config.ts",
+          "packages/domain/src/team/schema.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/onboarding-config-repository.ts",
+          "packages/api/src/ports/team-repository.ts",
+          "packages/api/src/ports/roster-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-onboarding-config-repository.ts",
+          "packages/api/src/adapters/rest/rest-onboarding-config-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-team-repository.ts",
+          "packages/api/src/adapters/rest/rest-team-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-roster-repository.ts",
+          "packages/api/src/adapters/rest/rest-roster-repository.ts",
+          "packages/api/src/adapters/supabase/mappers/team-mapper.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "supabase/migrations/20260726200000_admin_onboarding_and_team_oversight.sql",
+          "apps/admin/src/entities/onboarding/api/onboarding-queries.ts",
+          "apps/admin/src/entities/team/api/team-queries.ts",
+          "apps/admin/src/pages/users/OnboardingConfigSection.tsx",
+          "apps/admin/src/pages/users/TeamsOversightSection.tsx",
+          "apps/admin/src/pages/users/UsersPage.tsx",
+          "apps/mobile/src/features/onboarding/ui/CoachOnboardingWizard.jsx",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingWizard.jsx",
+          "apps/mobile/src/features/onboarding/ui/CoachOnboardingGate.jsx",
+          "apps/mobile/src/features/onboarding/ui/PlayerOnboardingGate.jsx",
+          "tests/admin/story-12.5.test.js"
+        ],
+        "command": "npx vitest run tests/admin/story-12.5.test.js"
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Admin onboarding config (wizard steps + mandatory flags, welcome copy) via platform_settings RPCs merged over code defaults and consumed by mobile onboarding gates/wizards; admin team oversight (list/edit all teams, archive/restore, coach assign/unassign) on the Users pillar tabs. 5/5 story tests passing."
     },
     {
       "id": "EPIC-13",
@@ -3707,9 +3738,9 @@
         "Coach and player exchange real-time messages",
         "Demo-ready on target mobile platform with data persistence"
       ],
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": "Prototype provides UI mock only — steel-thread requires production backend per docs."
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Absorbed/superseded by product epics — no separate steel-thread implementation. Path covered by STORY-2.1/2.2 + 3.1/3.2 (auth/invite), 6.1–6.3 + 7.1 (schedule/session), 8.1/8.2 (chat), all DONE. mobile-app-test-pack.md has no Epic 13 section; Epics 2–8 cover the demo slice. Per parallel-work-plan double-work risk #1."
     },
     {
       "id": "STORY-13.1",
@@ -3753,9 +3784,9 @@
         "command": null
       },
       "parallel_ready": true,
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Absorbed by STORY-2.1, 2.2, 3.1, 3.2 (all DONE). Manual coverage: mobile-app-test-pack.md Epics 2–3. Not implemented as a separate steel-thread story."
     },
     {
       "id": "STORY-13.2",
@@ -3798,9 +3829,9 @@
         ],
         "command": null
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Absorbed by STORY-6.1, 6.2, 6.3, 7.1 (all DONE). Manual coverage: mobile-app-test-pack.md Epics 6–7. Not implemented as a separate steel-thread story."
     },
     {
       "id": "STORY-13.3",
@@ -3842,9 +3873,9 @@
         ],
         "command": null
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Absorbed by STORY-8.1, 8.2 (both DONE). Manual coverage: mobile-app-test-pack.md Epic 8. AC-4 (background push) remains with EPIC-14 / DEP-07 if not fully covered by 8.x. Not implemented as a separate steel-thread story."
     },
     {
       "id": "EPIC-14",

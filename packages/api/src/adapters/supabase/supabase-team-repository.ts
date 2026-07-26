@@ -143,6 +143,61 @@ export class SupabaseTeamRepository implements TeamRepository {
     return mapTeamRow(data as Parameters<typeof mapTeamRow>[0]);
   }
 
+  async listAll(): Promise<Team[]> {
+    const { data, error } = await this.client.rpc('admin_list_teams');
+
+    if (error) {
+      throw mapTeamError(error, 'load');
+    }
+
+    return ((data ?? []) as unknown[]).map((row) =>
+      mapTeamRow(row as Parameters<typeof mapTeamRow>[0]),
+    );
+  }
+
+  async adminUpdate(teamId: string, input: TeamProfileInput): Promise<Team> {
+    const parsed = teamProfileInputSchema.parse(input);
+
+    const { data, error } = await this.client.rpc('admin_update_team', {
+      p_team_id: teamId,
+      p_name: parsed.name,
+      p_description: parsed.description ?? null,
+      p_age_min: parsed.ageMin ?? null,
+      p_age_max: parsed.ageMax ?? null,
+      p_grade_level: parsed.gradeLevel ?? null,
+      p_division: parsed.division ?? null,
+      p_season_start: parsed.seasonStart ?? null,
+      p_season_end: parsed.seasonEnd ?? null,
+    });
+
+    if (error) {
+      throw mapTeamError(error, 'update');
+    }
+
+    if (!data) {
+      throw mapTeamError(new Error('team_not_found'), 'update');
+    }
+
+    return mapTeamRow(data as Parameters<typeof mapTeamRow>[0]);
+  }
+
+  async setArchived(teamId: string, archived: boolean): Promise<Team> {
+    const { data, error } = await this.client.rpc('admin_set_team_archived', {
+      p_team_id: teamId,
+      p_archived: archived,
+    });
+
+    if (error) {
+      throw mapTeamError(error, 'update');
+    }
+
+    if (!data) {
+      throw mapTeamError(new Error('team_not_found'), 'update');
+    }
+
+    return mapTeamRow(data as Parameters<typeof mapTeamRow>[0]);
+  }
+
   async uploadLogo(teamId: string, userId: string, file: Blob, fileName: string): Promise<string> {
     void userId;
     const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');

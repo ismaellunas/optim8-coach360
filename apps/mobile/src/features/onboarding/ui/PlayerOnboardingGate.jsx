@@ -13,6 +13,7 @@ export function PlayerOnboardingGate({
   const { session } = useAuth();
   const repos = useRepositories();
   const [profile, setProfile] = useState(null);
+  const [onboardingConfig, setOnboardingConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
@@ -49,6 +50,32 @@ export function PlayerOnboardingGate({
   useEffect(function () {
     loadProfile();
   }, [loadProfile]);
+
+  useEffect(
+    function () {
+      let active = true;
+      if (!isPlayer) {
+        return undefined;
+      }
+      // Admin-editable onboarding copy/steps (STORY-12.5); falls back to defaults.
+      repos.onboardingConfig
+        .getConfig()
+        .then(function (config) {
+          if (active) {
+            setOnboardingConfig(config);
+          }
+        })
+        .catch(function () {
+          if (active) {
+            setOnboardingConfig(null);
+          }
+        });
+      return function () {
+        active = false;
+      };
+    },
+    [isPlayer, repos.onboardingConfig],
+  );
 
   useEffect(
     function () {
@@ -168,6 +195,7 @@ export function PlayerOnboardingGate({
         drillsCompletedCount={profile.playerDrillsCompletedCount}
         submitting={submitting}
         error={error}
+        config={onboardingConfig?.player ?? null}
         onComplete={finishOnboarding}
         onLogFirstDrill={handleLogFirstDrill}
         onAcceptInvite={handleAcceptInvite}
