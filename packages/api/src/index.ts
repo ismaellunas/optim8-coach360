@@ -9,6 +9,8 @@ export { SupabaseAppAuthRepository } from './adapters/supabase/supabase-app-auth
 export { SupabaseProfileRepository } from './adapters/supabase/supabase-profile-repository.js';
 export { SupabaseTeamRepository } from './adapters/supabase/supabase-team-repository.js';
 export { SupabaseRosterRepository } from './adapters/supabase/supabase-roster-repository.js';
+export { SupabaseOnboardingConfigRepository } from './adapters/supabase/supabase-onboarding-config-repository.js';
+export { RestOnboardingConfigRepository } from './adapters/rest/rest-onboarding-config-repository.js';
 export { SupabaseSubscriptionRepository } from './adapters/supabase/supabase-subscription-repository.js';
 export { ApiError, NotImplementedAdapterError } from './client/types.js';
 export type { PaginatedResult, ApiAdapterMode } from './client/types.js';
@@ -19,6 +21,7 @@ export type { UserRepository, UpdateUserInput, UserListParams } from './ports/us
 export type { ProfileRepository } from './ports/profile-repository.js';
 export type { TeamRepository, TeamLogoFile } from './ports/team-repository.js';
 export type { RosterRepository, CreateInviteOptions } from './ports/roster-repository.js';
+export type { OnboardingConfigRepository } from './ports/onboarding-config-repository.js';
 export type { AnalyticsRepository } from './ports/analytics-repository.js';
 export type {
   NotificationRepository,

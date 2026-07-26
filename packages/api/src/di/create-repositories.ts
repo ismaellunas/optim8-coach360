@@ -8,6 +8,7 @@ import type { ContentRepository } from '../ports/content-repository.js';
 import type { ProfileRepository } from '../ports/profile-repository.js';
 import type { TeamRepository } from '../ports/team-repository.js';
 import type { RosterRepository } from '../ports/roster-repository.js';
+import type { OnboardingConfigRepository } from '../ports/onboarding-config-repository.js';
 import type { AnalyticsRepository } from '../ports/analytics-repository.js';
 import type { NotificationRepository } from '../ports/notification-repository.js';
 import type { BillingRepository } from '../ports/billing-repository.js';
@@ -34,6 +35,7 @@ import { RestContentRepository } from '../adapters/rest/rest-content-repository.
 import { RestProfileRepository } from '../adapters/rest/rest-profile-repository.js';
 import { RestTeamRepository } from '../adapters/rest/rest-team-repository.js';
 import { RestRosterRepository } from '../adapters/rest/rest-roster-repository.js';
+import { RestOnboardingConfigRepository } from '../adapters/rest/rest-onboarding-config-repository.js';
 import { RestAnalyticsRepository } from '../adapters/rest/rest-analytics-repository.js';
 import { RestSessionRepository } from '../adapters/rest/rest-session-repository.js';
 import { RestSessionContentRepository } from '../adapters/rest/rest-session-content-repository.js';
@@ -57,6 +59,7 @@ import { SupabaseContentRepository } from '../adapters/supabase/supabase-content
 import { SupabaseProfileRepository } from '../adapters/supabase/supabase-profile-repository.js';
 import { SupabaseTeamRepository } from '../adapters/supabase/supabase-team-repository.js';
 import { SupabaseRosterRepository } from '../adapters/supabase/supabase-roster-repository.js';
+import { SupabaseOnboardingConfigRepository } from '../adapters/supabase/supabase-onboarding-config-repository.js';
 import { SupabaseSessionRepository } from '../adapters/supabase/supabase-session-repository.js';
 import { SupabaseSessionContentRepository } from '../adapters/supabase/supabase-session-content-repository.js';
 import { SupabaseLibraryRepository } from '../adapters/supabase/supabase-library-repository.js';
@@ -78,6 +81,7 @@ export type RepositoryBundle = {
   profiles: ProfileRepository;
   teams: TeamRepository;
   rosters: RosterRepository;
+  onboardingConfig: OnboardingConfigRepository;
   subscriptions: SubscriptionRepository;
   billing: BillingRepository;
   content: ContentRepository;
@@ -127,6 +131,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       profiles: new RestProfileRepository(),
       teams: new RestTeamRepository(),
       rosters: new RestRosterRepository(),
+      onboardingConfig: new RestOnboardingConfigRepository(),
       subscriptions: new RestSubscriptionRepository(),
       billing: new RestBillingRepository(),
       content: new RestContentRepository(),
@@ -166,6 +171,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     profiles: new SupabaseProfileRepository(appClient),
     teams: new SupabaseTeamRepository(appClient),
     rosters: new SupabaseRosterRepository(appClient),
+    onboardingConfig: new SupabaseOnboardingConfigRepository(appClient),
     subscriptions: new SupabaseSubscriptionRepository(appClient),
     billing: new SupabaseBillingRepository(appClient),
     content: new SupabaseContentRepository(appClient),

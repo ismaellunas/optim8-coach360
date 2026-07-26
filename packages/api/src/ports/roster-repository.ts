@@ -23,4 +23,8 @@ export type RosterRepository = {
   addPlayerByEmail(teamId: string, userId: string, email: string): Promise<RosterMember>;
   removeMember(teamId: string, userId: string, profileId: string): Promise<RosterMember>;
   assignCoachByEmail(teamId: string, userId: string, email: string): Promise<RosterMember>;
+  /** Admin oversight (STORY-12.5): assign a coach to any team by email. */
+  adminAssignCoachByEmail(teamId: string, email: string): Promise<RosterMember>;
+  /** Admin oversight (STORY-12.5): remove a coach assignment from any team. */
+  adminUnassignCoach(teamId: string, profileId: string): Promise<RosterMember>;
 };
