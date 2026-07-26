@@ -28,6 +28,7 @@ _type == "trainingPackage"
   priceCents,
   currency,
   createdByRole,
+  rejectionReason,
   "modules": modules[]._ref,
   "drills": modules[]->lessons[]->items[@->_type == "drill"]->{
     title,

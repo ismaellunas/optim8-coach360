@@ -157,7 +157,7 @@ describe('STORY_10_4 AC1 — workflow draft → pending_review → approved/reje
     }
 
     const reject = planMarketplacePackageReview(
-      { sanityDocumentId: 'pkg-1', action: 'reject' },
+      { sanityDocumentId: 'pkg-1', action: 'reject', rejectionReason: 'Incomplete outline' },
       {
         status: 'pending_review',
         published: false,
@@ -170,6 +170,7 @@ describe('STORY_10_4 AC1 — workflow draft → pending_review → approved/reje
     expect(reject.ok).toBe(true);
     if (reject.ok) {
       expect(reject.nextStatus).toBe('rejected');
+      expect(reject.metadata.rejection_reason).toBe('Incomplete outline');
     }
 
     const workflowFields = read(WORKFLOW_FIELDS);

@@ -152,7 +152,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
 13. **Epic 11** — Objectives + package suggestions + LLM re-rank + RAG: coach set goals, player rings, Store/Objectives suggestions (7 click tests; RAG is backend-only) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank/embeddings
-14. **Epic 12 Admin** — Users + subscriptions + onboarding config + team oversight (optional, needs admin login) (12 tests)
+14. **Epic 12 Admin** — Users + subscriptions + content/marketplace ops + onboarding config + team oversight (optional, needs admin login) (17 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1357,8 +1357,8 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 |---|---|---|
 | 1 | Sign in to the **Admin** dashboard. Open **Content**. | **Package review queue** section appears. |
 | 2 | Find the pending package (status badge **pending_review**). | Title shows; optional **coach** badge and **Suggested:** price chip if set in Studio. |
-| 3 | Tap **Approve**. | Package moves to **approved** (still unpublished). **Approve** / **Reject** buttons go away; publish fields appear. |
-| 4 | (Alternate) On another pending package, tap **Reject**. | Status becomes **rejected**; it leaves the approve/publish path. |
+| 3 | Tap **Approve**. | Package moves to **approved** (still unpublished). **Approve** goes away; publish fields appear. |
+| 4 | (Alternate) On another pending package, type a **Rejection reason**, then tap **Reject**. | Reject stays disabled until a reason is entered; after reject, status becomes **rejected** and it leaves the approve/publish path. |
 
 ### E10-T10: Admin publishes with Stripe price ID (STORY-10.4 AC-1 / AC-3)
 
@@ -1464,11 +1464,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 12 — Admin Dashboard: Users, Subscriptions, Onboarding & Teams (STORY-12.1, STORY-12.2, STORY-12.5)
+## Epic 12 — Admin Dashboard: Users, Subscriptions, Content & Teams (STORY-12.1, STORY-12.2, STORY-12.3, STORY-12.5)
 
 *Admin website only, plus mobile steps for E12-T3 and E12-T10. Skip this section if you were not given an Admin account or dashboard URL.*
 
-**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics. For team tests (E12-T11–T12): at least one existing team from Epic 3, plus a coach account email you can assign. For E12-T10: a Coach or Player who has **not** finished first-time onboarding yet (fresh signup), or ask the team to reset onboarding on a test account.
+**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics. For Content tests (E12-T13–T17): a coach-submitted package in **pending_review** (same setup as E10-T9), plus at least one published package for unpublish. For team tests (E12-T11–T12): at least one existing team from Epic 3, plus a coach account email you can assign. For E12-T10: a Coach or Player who has **not** finished first-time onboarding yet (fresh signup), or ask the team to reset onboarding on a test account.
 
 ### E12-T1: Admin can search the user list (STORY-12.1 AC-1)
 
@@ -1582,12 +1582,51 @@ Needs a team and a coach account email that exists in the system.
 | 3 | Tap **Archive** on the same team. | Badge changes to **Archived**; the button now reads **Restore**. |
 | 4 | Tap **Restore**. | Badge returns to **Active**. |
 
+### E12-T13: Admin review queue lists pending packages (STORY-12.3 AC-1)
+
+*Same setup as E10-T9: a Training package synced with workflow status **Pending review**.*
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Sign in to the **Admin** dashboard. Open **Content**. | Page titled **Content** with **Open Sanity Studio** and a **Package review queue** section. |
+| 2 | Look at the review queue. | Pending packages listed with title, **pending_review** badge, and optional **coach** / suggested-price chips. |
+
+### E12-T14: Admin rejects with reason, or publishes (STORY-12.3 AC-2 / AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On a **pending_review** package, try tapping **Reject** with an empty reason. | **Reject** stays disabled until you type a reason. |
+| 2 | Type a reason, then tap **Reject** (or use a second package and tap **Approve** instead). | Rejected packages leave the queue; approved ones show **Stripe price ID** + **Publish to marketplace**. |
+| 3 | On an approved unpublished package, enter a Stripe **price_…** ID and tap **Publish to marketplace**. | Package leaves the review queue and appears under **Published packages**. |
+
+### E12-T15: Admin unpublishes a marketplace package (STORY-12.3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Content**, find **Published packages**. | Listed packages with an **Unpublish** button. |
+| 2 | Tap **Unpublish** on one package. | It leaves the published list (and may return to the review/publish path as approved-unpublished). |
+
+### E12-T16: Admin configures global drip rules per tier (STORY-12.3 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Content**, find **Global drip schedule rules**. | Three interval fields: Basic / Advanced / Pro (default **7** days each). |
+| 2 | Change **Pro** to **3**, tap **Save drip rules**. | No error; values stay after refresh. |
+| 3 | **Cleanup:** Set all three back to **7** and save. | Defaults restored. |
+
+### E12-T17: Content page links to Sanity Studio (STORY-12.3 AC-5)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Content**, tap **Open Sanity Studio**. | Browser address shows `/admin/studio`; Studio loads for content authoring. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Server-side enforcement** — role/suspension changes are also blocked at the database level for non-admins (Postgres trigger). You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.
 - **Stripe Price ID / charge amount edits** — Admin tier parameters change display labels only; live Stripe prices stay in env/catalog code.
 - **New trial activations use the saved duration** — After E12-T5, a brand-new mobile trial uses the configured day count; verifying exact end dates needs a fresh unused-trial account.
 - **Mandatory-step skip blocking on mobile** — Admin can mark steps mandatory; whether the mobile wizard hard-blocks **Skip for now** on those steps may still follow the older skip path. Confirm with the team if you see skip still working on a mandatory step.
+- **Drip init using global tier rules** — When a package has no coach drip schedule, purchase seeding uses admin global intervals; verifying unlock dates needs backend/time travel, not a click path.
 
 ---
 
@@ -1727,6 +1766,11 @@ Print this page and check off results as you go.
 | E12-T10 Admin welcome copy reaches mobile | | |
 | E12-T11 Admin views and edits teams | | |
 | E12-T12 Admin coach assign and archive team | | |
+| E12-T13 Admin review queue lists packages | | |
+| E12-T14 Admin reject with reason / publish | | |
+| E12-T15 Admin unpublish marketplace package | | |
+| E12-T16 Admin global drip rules per tier | | |
+| E12-T17 Content links to Sanity Studio | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

@@ -1,4 +1,4 @@
-import type { FeatureFlagOverride, FreeContentCatalogItem } from '@coach360/domain';
+import type { DripIntervalByTier, FeatureFlagOverride, FreeContentCatalogItem } from '@coach360/domain';
 import { NotImplementedAdapterError } from '../../client/types.js';
 import type {
   ContentItem,
@@ -44,13 +44,21 @@ export class RestContentRepository implements ContentRepository {
     throw new NotImplementedAdapterError('rest', 'listMarketplaceReviewQueue');
   }
 
+  async listPublishedMarketplacePackages(): Promise<MarketplaceReviewItem[]> {
+    throw new NotImplementedAdapterError('rest', 'listPublishedMarketplacePackages');
+  }
+
   async approveMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult> {
     void sanityDocumentId;
     throw new NotImplementedAdapterError('rest', 'approveMarketplacePackage');
   }
 
-  async rejectMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult> {
+  async rejectMarketplacePackage(
+    sanityDocumentId: string,
+    rejectionReason: string,
+  ): Promise<MarketplaceReviewActionResult> {
     void sanityDocumentId;
+    void rejectionReason;
     throw new NotImplementedAdapterError('rest', 'rejectMarketplacePackage');
   }
 
@@ -59,5 +67,21 @@ export class RestContentRepository implements ContentRepository {
   ): Promise<MarketplaceReviewActionResult> {
     void input;
     throw new NotImplementedAdapterError('rest', 'publishMarketplacePackage');
+  }
+
+  async unpublishMarketplacePackage(
+    sanityDocumentId: string,
+  ): Promise<MarketplaceReviewActionResult> {
+    void sanityDocumentId;
+    throw new NotImplementedAdapterError('rest', 'unpublishMarketplacePackage');
+  }
+
+  async getDripIntervalByTier(): Promise<DripIntervalByTier> {
+    throw new NotImplementedAdapterError('rest', 'getDripIntervalByTier');
+  }
+
+  async setDripIntervalByTier(rules: DripIntervalByTier): Promise<DripIntervalByTier> {
+    void rules;
+    throw new NotImplementedAdapterError('rest', 'setDripIntervalByTier');
   }
 }

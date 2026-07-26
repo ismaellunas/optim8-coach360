@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRepositories } from '@coach360/api';
 import {
+  DEFAULT_DRIP_INTERVAL_BY_TIER,
   FEATURE_TIER_REQUIREMENTS,
   formatFeatureLabel,
   gatedFeaturesForRole,
+  normalizeDripIntervalByTier,
   resolvedTierForFeatureRole,
   tierDisplayLabel,
+  type DripIntervalByTier,
   type FeatureFlagOverride,
   type GatedRole,
 } from '@coach360/domain';
@@ -40,6 +43,7 @@ function MarketplaceReviewSection() {
   const [publishDrafts, setPublishDrafts] = useState<
     Record<string, { stripePriceId: string; priceCents: string }>
   >({});
+  const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
   const [actionError, setActionError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -49,6 +53,7 @@ function MarketplaceReviewSection() {
 
   const invalidate = async () => {
     await queryClient.invalidateQueries({ queryKey: ['admin', 'marketplace-review'] });
+    await queryClient.invalidateQueries({ queryKey: ['admin', 'marketplace-published'] });
     await queryClient.invalidateQueries({ queryKey: ['admin', 'content'] });
   };
 
@@ -64,9 +69,15 @@ function MarketplaceReviewSection() {
   });
 
   const reject = useMutation({
-    mutationFn: (id: string) => repos.content.rejectMarketplacePackage(id),
-    onSuccess: async () => {
+    mutationFn: (input: { id: string; reason: string }) =>
+      repos.content.rejectMarketplacePackage(input.id, input.reason),
+    onSuccess: async (_result, vars) => {
       setActionError(null);
+      setRejectReasons((prev) => {
+        const next = { ...prev };
+        delete next[vars.id];
+        return next;
+      });
       await invalidate();
     },
     onError: (cause: unknown) => {
@@ -103,8 +114,8 @@ function MarketplaceReviewSection() {
         Package review queue
       </p>
       <p className="mt-1 font-body text-sm text-coach-t2">
-        Coaches submit packages for review. Approve or reject from here, then publish with a Stripe
-        price ID (coach may have suggested a display price).
+        Coaches submit packages for review. Approve or reject with a reason, then publish with a
+        Stripe price ID (coach may have suggested a display price).
       </p>
 
       {isLoading ? <p className="mt-4 text-coach-t2">Loading review queue…</p> : null}
@@ -121,6 +132,7 @@ function MarketplaceReviewSection() {
                   ? String(item.suggestedPriceCents)
                   : '',
           };
+          const rejectReason = rejectReasons[item.id] ?? '';
           const canPublish = item.workflowStatus === 'approved' && !item.published;
 
           return (
@@ -148,26 +160,48 @@ function MarketplaceReviewSection() {
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {item.workflowStatus === 'pending_review' ? (
-                    <>
-                      <Button
-                        disabled={busy}
-                        data-testid="marketplace-approve"
-                        onClick={() => approve.mutate(item.id)}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        disabled={busy}
-                        data-testid="marketplace-reject"
-                        onClick={() => reject.mutate(item.id)}
-                      >
-                        Reject
-                      </Button>
-                    </>
+                    <Button
+                      disabled={busy}
+                      data-testid="marketplace-approve"
+                      onClick={() => approve.mutate(item.id)}
+                    >
+                      Approve
+                    </Button>
                   ) : null}
                 </div>
               </div>
+
+              {item.workflowStatus === 'pending_review' ? (
+                <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-coach-border pt-4">
+                  <label className="flex min-w-[240px] flex-1 flex-col gap-1 font-body text-xs text-coach-t3">
+                    Rejection reason
+                    <textarea
+                      rows={2}
+                      className="rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+                      aria-label={`Rejection reason for ${item.title}`}
+                      data-testid="marketplace-reject-reason"
+                      value={rejectReason}
+                      onChange={(event) =>
+                        setRejectReasons((prev) => ({
+                          ...prev,
+                          [item.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Required to reject…"
+                    />
+                  </label>
+                  <Button
+                    variant="ghost"
+                    disabled={busy || !rejectReason.trim()}
+                    data-testid="marketplace-reject"
+                    onClick={() =>
+                      reject.mutate({ id: item.id, reason: rejectReason.trim() })
+                    }
+                  >
+                    Reject
+                  </Button>
+                </div>
+              ) : null}
 
               {canPublish ? (
                 <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-coach-border pt-4">
@@ -229,6 +263,174 @@ function MarketplaceReviewSection() {
           No packages awaiting review or publish.
         </p>
       ) : null}
+    </Card>
+  );
+}
+
+function PublishedPackagesSection() {
+  const repos = useRepositories();
+  const queryClient = useQueryClient();
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'marketplace-published'],
+    queryFn: () => repos.content.listPublishedMarketplacePackages(),
+  });
+
+  const unpublish = useMutation({
+    mutationFn: (id: string) => repos.content.unpublishMarketplacePackage(id),
+    onSuccess: async () => {
+      setActionError(null);
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'marketplace-published'] });
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'marketplace-review'] });
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'content'] });
+    },
+    onError: (cause: unknown) => {
+      setActionError(cause instanceof Error ? cause.message : 'unpublish_failed');
+    },
+  });
+
+  return (
+    <Card className="mt-6" data-testid="marketplace-published-list">
+      <p className="text-xs uppercase text-coach-t3">Marketplace</p>
+      <p className="mt-1 font-display text-lg font-semibold text-coach-t1">Published packages</p>
+      <p className="mt-1 font-body text-sm text-coach-t2">
+        Unpublish removes a listing from the marketplace catalog without deleting the package.
+      </p>
+
+      {isLoading ? <p className="mt-4 text-coach-t2">Loading published packages…</p> : null}
+      {actionError ? <p className="mt-2 font-body text-xs text-coach-red">{actionError}</p> : null}
+
+      <div className="mt-4 space-y-3">
+        {(data ?? []).map((item) => (
+          <div
+            key={item.id}
+            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-coach-border p-4"
+            data-testid="marketplace-published-item"
+            data-package-id={item.id}
+          >
+            <div>
+              <p className="font-semibold text-coach-t1">{item.title}</p>
+              <p className="mt-1 font-body text-xs text-coach-t3">
+                {item.stripePriceId || 'No Stripe price ID'}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              disabled={unpublish.isPending}
+              data-testid="marketplace-unpublish"
+              onClick={() => unpublish.mutate(item.id)}
+            >
+              Unpublish
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {!isLoading && (data ?? []).length === 0 ? (
+        <p className="mt-3 font-body text-sm text-coach-t3">No published marketplace packages.</p>
+      ) : null}
+    </Card>
+  );
+}
+
+function GlobalDripRulesSection() {
+  const repos = useRepositories();
+  const queryClient = useQueryClient();
+  const [draft, setDraft] = useState<DripIntervalByTier>(DEFAULT_DRIP_INTERVAL_BY_TIER);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin', 'drip-interval-by-tier'],
+    queryFn: () => repos.content.getDripIntervalByTier(),
+  });
+
+  useEffect(() => {
+    if (data) {
+      setDraft(normalizeDripIntervalByTier(data));
+    }
+  }, [data]);
+
+  const save = useMutation({
+    mutationFn: () => repos.content.setDripIntervalByTier(normalizeDripIntervalByTier(draft)),
+    onSuccess: async (saved) => {
+      setSaveError(null);
+      setDraft(saved);
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'drip-interval-by-tier'] });
+    },
+    onError: (cause: unknown) => {
+      setSaveError(cause instanceof Error ? cause.message : 'save_failed');
+    },
+  });
+
+  return (
+    <Card className="mt-6" data-testid="global-drip-rules">
+      <p className="text-xs uppercase text-coach-t3">Flow 14</p>
+      <p className="mt-1 font-display text-lg font-semibold text-coach-t1">
+        Global drip schedule rules
+      </p>
+      <p className="mt-1 font-body text-sm text-coach-t2">
+        Default days between module unlocks per subscription tier when a package has no coach
+        drip schedule. Package-level schedules still win when set.
+      </p>
+
+      {isLoading ? <p className="mt-4 text-coach-t2">Loading drip rules…</p> : null}
+
+      <div className="mt-4 flex flex-wrap gap-4">
+        <label className="flex flex-col gap-1 font-body text-xs text-coach-t3">
+          {tierDisplayLabel('basic')} interval (days)
+          <input
+            type="number"
+            min={1}
+            className="w-[140px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+            aria-label="Drip interval days for basic"
+            data-testid="drip-interval-basic"
+            value={draft.basic}
+            onChange={(event) =>
+              setDraft((prev) => ({ ...prev, basic: Number(event.target.value) }))
+            }
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-body text-xs text-coach-t3">
+          {tierDisplayLabel('advanced')} interval (days)
+          <input
+            type="number"
+            min={1}
+            className="w-[140px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+            aria-label="Drip interval days for advanced"
+            data-testid="drip-interval-advanced"
+            value={draft.advanced}
+            onChange={(event) =>
+              setDraft((prev) => ({ ...prev, advanced: Number(event.target.value) }))
+            }
+          />
+        </label>
+        <label className="flex flex-col gap-1 font-body text-xs text-coach-t3">
+          {tierDisplayLabel('pro')} interval (days)
+          <input
+            type="number"
+            min={1}
+            className="w-[140px] rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 text-sm text-coach-t1"
+            aria-label="Drip interval days for pro"
+            data-testid="drip-interval-pro"
+            value={draft.pro}
+            onChange={(event) =>
+              setDraft((prev) => ({ ...prev, pro: Number(event.target.value) }))
+            }
+          />
+        </label>
+      </div>
+
+      <div className="mt-4">
+        <Button
+          disabled={save.isPending}
+          data-testid="drip-rules-save"
+          onClick={() => save.mutate()}
+        >
+          Save drip rules
+        </Button>
+      </div>
+      {saveError ? <p className="mt-2 font-body text-xs text-coach-red">{saveError}</p> : null}
     </Card>
   );
 }
@@ -495,6 +697,8 @@ export function ContentPage() {
         ) : null}
       </div>
       <MarketplaceReviewSection />
+      <PublishedPackagesSection />
+      <GlobalDripRulesSection />
       <FeatureGatingSection />
       <FreeContentCatalogSection />
     </div>

@@ -52,6 +52,13 @@ export const trainingPackage = defineType({
     workflowStatusField,
     publishedField,
     defineField({
+      name: 'rejectionReason',
+      title: 'Rejection reason',
+      type: 'text',
+      rows: 3,
+      description: 'STORY-12.3 — set by admin when rejecting a coach-submitted package.',
+    }),
+    defineField({
       name: 'createdByRole',
       title: 'Created by',
       type: 'string',

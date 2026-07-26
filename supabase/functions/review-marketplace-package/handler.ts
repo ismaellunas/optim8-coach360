@@ -1,10 +1,10 @@
 /**
- * Pure helpers for admin marketplace package review (STORY-10.4).
+ * Pure helpers for admin marketplace package review (STORY-10.4 / STORY-12.3).
  * Self-contained for Deno edge + vitest (mirrors packages/domain marketplace/workflow).
  */
 
 export type WorkflowStatus = 'draft' | 'pending_review' | 'approved' | 'rejected';
-export type ReviewAction = 'approve' | 'reject' | 'publish';
+export type ReviewAction = 'approve' | 'reject' | 'publish' | 'unpublish';
 
 export type ReviewPackageRequest = {
   sanityDocumentId?: string;
@@ -12,6 +12,8 @@ export type ReviewPackageRequest = {
   stripePriceId?: string | null;
   priceCents?: number | null;
   currency?: string | null;
+  /** Required when action is reject (STORY-12.3 AC-2). */
+  rejectionReason?: string | null;
 };
 
 export type ReviewPackageCurrent = {
@@ -41,6 +43,7 @@ export type ReviewPackagePlan =
         stripe_price_id: string | null;
         price_cents: number | null;
         currency: string | null;
+        rejection_reason: string | null;
       };
     }
   | { ok: false; error: string };
@@ -52,7 +55,9 @@ function isWorkflowStatus(value: unknown): value is WorkflowStatus {
 }
 
 function asAction(value: string | undefined): ReviewAction | null {
-  if (value === 'approve' || value === 'reject' || value === 'publish') return value;
+  if (value === 'approve' || value === 'reject' || value === 'publish' || value === 'unpublish') {
+    return value;
+  }
   return null;
 }
 
@@ -63,6 +68,12 @@ function canAdminTransition(from: WorkflowStatus, to: WorkflowStatus): boolean {
   if (from === 'rejected' && (to === 'draft' || to === 'pending_review')) return true;
   if (from === 'approved' && (to === 'rejected' || to === 'pending_review')) return true;
   return false;
+}
+
+function normalizeRejectionReason(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 /**
@@ -94,13 +105,14 @@ export function planMarketplacePackageReview(
       action,
       nextStatus: 'approved',
       published: false,
-      patch: { set: { status: 'approved', published: false } },
+      patch: { set: { status: 'approved', published: false, rejectionReason: '' } },
       metadata: {
         workflow_status: 'approved',
         published: false,
         stripe_price_id: current.stripePriceId,
         price_cents: current.priceCents,
         currency: current.currency,
+        rejection_reason: null,
       },
     };
   }
@@ -109,19 +121,49 @@ export function planMarketplacePackageReview(
     if (!canAdminTransition(currentStatus, 'rejected')) {
       return { ok: false, error: `invalid_transition:${currentStatus}->rejected` };
     }
+    const rejectionReason = normalizeRejectionReason(body.rejectionReason);
+    if (!rejectionReason) {
+      return { ok: false, error: 'rejection_reason_required' };
+    }
     return {
       ok: true,
       sanityDocumentId,
       action,
       nextStatus: 'rejected',
       published: false,
-      patch: { set: { status: 'rejected', published: false } },
+      patch: { set: { status: 'rejected', published: false, rejectionReason } },
       metadata: {
         workflow_status: 'rejected',
         published: false,
         stripe_price_id: current.stripePriceId,
         price_cents: current.priceCents,
         currency: current.currency,
+        rejection_reason: rejectionReason,
+      },
+    };
+  }
+
+  if (action === 'unpublish') {
+    if (currentStatus !== 'approved') {
+      return { ok: false, error: `unpublish_requires_approved:got_${currentStatus}` };
+    }
+    if (!current.published) {
+      return { ok: false, error: 'unpublish_requires_published' };
+    }
+    return {
+      ok: true,
+      sanityDocumentId,
+      action,
+      nextStatus: 'approved',
+      published: false,
+      patch: { set: { status: 'approved', published: false } },
+      metadata: {
+        workflow_status: 'approved',
+        published: false,
+        stripe_price_id: current.stripePriceId,
+        price_cents: current.priceCents,
+        currency: current.currency,
+        rejection_reason: null,
       },
     };
   }
@@ -164,6 +206,7 @@ export function planMarketplacePackageReview(
     published: true,
     stripePriceId,
     currency,
+    rejectionReason: '',
   };
   if (typeof priceCents === 'number') {
     set.priceCents = priceCents;
@@ -182,6 +225,7 @@ export function planMarketplacePackageReview(
       stripe_price_id: stripePriceId,
       price_cents: typeof priceCents === 'number' ? priceCents : null,
       currency,
+      rejection_reason: null,
     },
   };
 }
@@ -209,5 +253,6 @@ export const REVIEW_QUEUE_GROQ = `*[_type == "trainingPackage" && (status == "pe
   suggestedPriceCents,
   priceCents,
   currency,
-  createdByRole
+  createdByRole,
+  rejectionReason
 }`;
