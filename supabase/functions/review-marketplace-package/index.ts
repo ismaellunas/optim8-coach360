@@ -24,6 +24,7 @@ type RequestBody = {
   stripePriceId?: string | null;
   priceCents?: number | null;
   currency?: string | null;
+  rejectionReason?: string | null;
 };
 
 async function sanityQuery(options: {
@@ -245,6 +246,7 @@ Deno.serve(async (request) => {
         stripe_price_id: plan.metadata.stripe_price_id,
         price_cents: plan.metadata.price_cents,
         currency: plan.metadata.currency,
+        rejection_reason: plan.metadata.rejection_reason,
         synced_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -259,6 +261,7 @@ Deno.serve(async (request) => {
         stripe_price_id: plan.metadata.stripe_price_id,
         price_cents: plan.metadata.price_cents,
         currency: plan.metadata.currency,
+        rejection_reason: plan.metadata.rejection_reason,
         synced_at: new Date().toISOString(),
       },
       { onConflict: 'sanity_document_id' },
@@ -275,6 +278,7 @@ Deno.serve(async (request) => {
       stripePriceId: plan.metadata.stripe_price_id,
       priceCents: plan.metadata.price_cents,
       currency: plan.metadata.currency,
+      rejectionReason: plan.metadata.rejection_reason,
     },
     200,
   );

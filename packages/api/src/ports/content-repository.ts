@@ -1,4 +1,9 @@
-import type { FeatureFlagOverride, FreeContentCatalogItem, WorkflowStatus } from '@coach360/domain';
+import type {
+  DripIntervalByTier,
+  FeatureFlagOverride,
+  FreeContentCatalogItem,
+  WorkflowStatus,
+} from '@coach360/domain';
 
 export type ContentItem = {
   id: string;
@@ -21,7 +26,7 @@ export type FreeContentCatalogItemInput = {
   category?: string | null;
 };
 
-/** Admin marketplace Path B review queue item (STORY-10.4). */
+/** Admin marketplace Path B review queue item (STORY-10.4 / STORY-12.3). */
 export type MarketplaceReviewItem = {
   id: string;
   title: string;
@@ -32,6 +37,7 @@ export type MarketplaceReviewItem = {
   priceCents: number | null;
   currency: string | null;
   createdByRole: string | null;
+  rejectionReason?: string | null;
 };
 
 export type PublishMarketplacePackageInput = {
@@ -44,12 +50,13 @@ export type PublishMarketplacePackageInput = {
 export type MarketplaceReviewActionResult = {
   ok: true;
   sanityDocumentId: string;
-  action: 'approve' | 'reject' | 'publish';
+  action: 'approve' | 'reject' | 'publish' | 'unpublish';
   workflowStatus: WorkflowStatus;
   published: boolean;
   stripePriceId: string | null;
   priceCents: number | null;
   currency: string | null;
+  rejectionReason?: string | null;
 };
 
 export interface ContentRepository {
@@ -63,9 +70,18 @@ export interface ContentRepository {
   removeFreeContentCatalogItem(id: string): Promise<void>;
   /** STORY-10.4 — pending_review + approved-unpublished packages. */
   listMarketplaceReviewQueue(): Promise<MarketplaceReviewItem[]>;
+  /** STORY-12.3 — published marketplace listings (for unpublish). */
+  listPublishedMarketplacePackages(): Promise<MarketplaceReviewItem[]>;
   approveMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult>;
-  rejectMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult>;
+  rejectMarketplacePackage(
+    sanityDocumentId: string,
+    rejectionReason: string,
+  ): Promise<MarketplaceReviewActionResult>;
   publishMarketplacePackage(
     input: PublishMarketplacePackageInput,
   ): Promise<MarketplaceReviewActionResult>;
+  unpublishMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult>;
+  /** STORY-12.3 AC-4 — global drip interval days per paid tier. */
+  getDripIntervalByTier(): Promise<DripIntervalByTier>;
+  setDripIntervalByTier(rules: DripIntervalByTier): Promise<DripIntervalByTier>;
 }

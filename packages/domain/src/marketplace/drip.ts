@@ -7,9 +7,25 @@ export const DEFAULT_DRIP_INTERVAL_DAYS = 7;
 /** Flow 14 — first drip unit (e.g. lessons 1–4) unlocks on purchase. */
 export const INITIAL_UNLOCK_MODULE_COUNT = 1;
 
+/** platform_settings key for admin global drip cadence per paid tier (STORY-12.3 AC-4). */
+export const DRIP_INTERVAL_BY_TIER_SETTING_KEY = 'drip_interval_days_by_tier';
+
+export type DripIntervalByTier = {
+  basic: number;
+  advanced: number;
+  pro: number;
+};
+
+/** Defaults equal across tiers — preserves OQ-14.3 until admin differentiates. */
+export const DEFAULT_DRIP_INTERVAL_BY_TIER: DripIntervalByTier = {
+  basic: DEFAULT_DRIP_INTERVAL_DAYS,
+  advanced: DEFAULT_DRIP_INTERVAL_DAYS,
+  pro: DEFAULT_DRIP_INTERVAL_DAYS,
+};
+
 /**
  * OQ-14.1 — coach Pro configures drip per package (Sanity dripSchedule).
- * Admin global rules are out of scope for STORY-10.2.
+ * Admin global rules are STORY-12.3 (platform_settings drip_interval_days_by_tier).
  */
 export function canConfigureDripSchedule(
   role: string | null | undefined,
@@ -28,15 +44,45 @@ export function normalizeDripIntervalDays(raw: unknown): number {
   return Math.floor(value);
 }
 
+export function normalizeDripIntervalByTier(raw: unknown): DripIntervalByTier {
+  const source =
+    raw && typeof raw === 'object' && !Array.isArray(raw)
+      ? (raw as Record<string, unknown>)
+      : {};
+  return {
+    basic: normalizeDripIntervalDays(source.basic ?? DEFAULT_DRIP_INTERVAL_BY_TIER.basic),
+    advanced: normalizeDripIntervalDays(source.advanced ?? DEFAULT_DRIP_INTERVAL_BY_TIER.advanced),
+    pro: normalizeDripIntervalDays(source.pro ?? DEFAULT_DRIP_INTERVAL_BY_TIER.pro),
+  };
+}
+
+function tierKey(tier: SubscriptionTier | string | null | undefined): keyof DripIntervalByTier | null {
+  if (tier === 'basic' || tier === 'advanced' || tier === 'pro') return tier;
+  return null;
+}
+
 /**
- * OQ-14.3 — no tier acceleration; all paid tiers use the package interval as-is.
- * `tier` is accepted for call-site clarity but ignored.
+ * Resolve drip cadence for a purchase.
+ * 1. Package `dripSchedule.intervalDays` wins when set (OQ-14.1 coach Pro).
+ * 2. Else admin global rule for the buyer's paid tier (STORY-12.3 AC-4).
+ * 3. Else DEFAULT_DRIP_INTERVAL_DAYS (7).
+ *
+ * OQ-14.3 — no tier acceleration by default: DEFAULT_DRIP_INTERVAL_BY_TIER keeps
+ * all paid tiers equal until an admin deliberately differentiates them.
  */
 export function effectiveDripIntervalDays(
-  _tier: SubscriptionTier | string | null | undefined,
+  tier: SubscriptionTier | string | null | undefined,
   intervalDays: number | null | undefined,
+  globalRules?: DripIntervalByTier | null,
 ): number {
-  return normalizeDripIntervalDays(intervalDays);
+  if (intervalDays != null && Number.isFinite(Number(intervalDays)) && Number(intervalDays) >= 1) {
+    return normalizeDripIntervalDays(intervalDays);
+  }
+  const key = tierKey(tier);
+  if (key && globalRules) {
+    return normalizeDripIntervalDays(globalRules[key]);
+  }
+  return DEFAULT_DRIP_INTERVAL_DAYS;
 }
 
 export type DripModuleUnlockPlan = {
@@ -56,11 +102,16 @@ export function buildDripUnlockSchedule(options: {
   purchasedAt: Date | string;
   intervalDays: number | null | undefined;
   tier?: SubscriptionTier | string | null;
+  globalRules?: DripIntervalByTier | null;
   initialUnlockCount?: number;
 }): DripModuleUnlockPlan[] {
   const purchasedAt =
     typeof options.purchasedAt === 'string' ? new Date(options.purchasedAt) : options.purchasedAt;
-  const intervalDays = effectiveDripIntervalDays(options.tier, options.intervalDays);
+  const intervalDays = effectiveDripIntervalDays(
+    options.tier,
+    options.intervalDays,
+    options.globalRules,
+  );
   const initialCount = Math.max(
     1,
     Math.floor(options.initialUnlockCount ?? INITIAL_UNLOCK_MODULE_COUNT),
@@ -82,7 +133,7 @@ export function buildDripUnlockSchedule(options: {
 
 /**
  * OQ-14.5 — upgrade mid-drip does not change remaining unlock dates.
- * Returns the same schedule (tier ignored by effectiveDripIntervalDays).
+ * Returns the same schedule when package interval is set (tier/global ignored).
  */
 export function rebuildDripScheduleAfterUpgrade(options: {
   moduleIds: readonly string[];
@@ -90,18 +141,21 @@ export function rebuildDripScheduleAfterUpgrade(options: {
   intervalDays: number | null | undefined;
   previousTier: SubscriptionTier | string | null | undefined;
   newTier: SubscriptionTier | string | null | undefined;
+  globalRules?: DripIntervalByTier | null;
 }): { before: DripModuleUnlockPlan[]; after: DripModuleUnlockPlan[]; unchanged: boolean } {
   const before = buildDripUnlockSchedule({
     moduleIds: options.moduleIds,
     purchasedAt: options.purchasedAt,
     intervalDays: options.intervalDays,
     ...(options.previousTier !== undefined ? { tier: options.previousTier } : {}),
+    ...(options.globalRules !== undefined ? { globalRules: options.globalRules } : {}),
   });
   const after = buildDripUnlockSchedule({
     moduleIds: options.moduleIds,
     purchasedAt: options.purchasedAt,
     intervalDays: options.intervalDays,
     ...(options.newTier !== undefined ? { tier: options.newTier } : {}),
+    ...(options.globalRules !== undefined ? { globalRules: options.globalRules } : {}),
   });
   const unchanged =
     before.length === after.length &&

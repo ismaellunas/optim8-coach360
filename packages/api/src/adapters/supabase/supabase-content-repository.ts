@@ -1,8 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type {
-  FeatureFlagOverride,
-  FreeContentCatalogItem,
-  WorkflowStatus,
+import {
+  DEFAULT_DRIP_INTERVAL_BY_TIER,
+  normalizeDripIntervalByTier,
+  type DripIntervalByTier,
+  type FeatureFlagOverride,
+  type FreeContentCatalogItem,
+  type WorkflowStatus,
 } from '@coach360/domain';
 import { edgeFunctionErrorDetail } from './edge-function-error.js';
 import type {
@@ -49,6 +52,7 @@ type MetaRow = {
   price_cents: number | null;
   currency: string | null;
   created_by_role: string | null;
+  rejection_reason?: string | null;
 };
 
 function mapReviewItem(row: MetaRow): MarketplaceReviewItem {
@@ -62,6 +66,7 @@ function mapReviewItem(row: MetaRow): MarketplaceReviewItem {
     priceCents: row.price_cents,
     currency: row.currency,
     createdByRole: row.created_by_role,
+    rejectionReason: row.rejection_reason ?? null,
   };
 }
 
@@ -75,8 +80,12 @@ function mapActionResult(payload: Record<string, unknown>): MarketplaceReviewAct
     stripePriceId: (payload.stripePriceId as string | null) ?? null,
     priceCents: typeof payload.priceCents === 'number' ? payload.priceCents : null,
     currency: (payload.currency as string | null) ?? null,
+    rejectionReason: (payload.rejectionReason as string | null) ?? null,
   };
 }
+
+const META_SELECT =
+  'sanity_document_id, title, workflow_status, published, stripe_price_id, suggested_price_cents, price_cents, currency, created_by_role, rejection_reason';
 
 export class SupabaseContentRepository implements ContentRepository {
   constructor(private readonly client: SupabaseClient) {}
@@ -184,10 +193,22 @@ export class SupabaseContentRepository implements ContentRepository {
   async listMarketplaceReviewQueue(): Promise<MarketplaceReviewItem[]> {
     const { data, error } = await this.client
       .from('package_metadata')
-      .select(
-        'sanity_document_id, title, workflow_status, published, stripe_price_id, suggested_price_cents, price_cents, currency, created_by_role',
-      )
+      .select(META_SELECT)
       .or('workflow_status.eq.pending_review,and(workflow_status.eq.approved,published.eq.false)')
+      .order('title', { ascending: true });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return ((data ?? []) as MetaRow[]).map(mapReviewItem);
+  }
+
+  async listPublishedMarketplacePackages(): Promise<MarketplaceReviewItem[]> {
+    const { data, error } = await this.client
+      .from('package_metadata')
+      .select(META_SELECT)
+      .eq('published', true)
       .order('title', { ascending: true });
 
     if (error) {
@@ -223,8 +244,11 @@ export class SupabaseContentRepository implements ContentRepository {
     return this.invokeReview({ sanityDocumentId, action: 'approve' });
   }
 
-  async rejectMarketplacePackage(sanityDocumentId: string): Promise<MarketplaceReviewActionResult> {
-    return this.invokeReview({ sanityDocumentId, action: 'reject' });
+  async rejectMarketplacePackage(
+    sanityDocumentId: string,
+    rejectionReason: string,
+  ): Promise<MarketplaceReviewActionResult> {
+    return this.invokeReview({ sanityDocumentId, action: 'reject', rejectionReason });
   }
 
   async publishMarketplacePackage(
@@ -237,5 +261,30 @@ export class SupabaseContentRepository implements ContentRepository {
       priceCents: input.priceCents ?? null,
       currency: input.currency ?? null,
     });
+  }
+
+  async unpublishMarketplacePackage(
+    sanityDocumentId: string,
+  ): Promise<MarketplaceReviewActionResult> {
+    return this.invokeReview({ sanityDocumentId, action: 'unpublish' });
+  }
+
+  async getDripIntervalByTier(): Promise<DripIntervalByTier> {
+    const { data, error } = await this.client.rpc('get_drip_interval_days_by_tier');
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeDripIntervalByTier(data ?? DEFAULT_DRIP_INTERVAL_BY_TIER);
+  }
+
+  async setDripIntervalByTier(rules: DripIntervalByTier): Promise<DripIntervalByTier> {
+    const normalized = normalizeDripIntervalByTier(rules);
+    const { data, error } = await this.client.rpc('set_drip_interval_days_by_tier', {
+      p_rules: normalized,
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+    return normalizeDripIntervalByTier(data ?? normalized);
   }
 }

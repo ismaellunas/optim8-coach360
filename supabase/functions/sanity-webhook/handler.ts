@@ -18,6 +18,7 @@ export type SanityWebhookDocument = {
   priceCents?: number | null;
   currency?: string | null;
   createdByRole?: string | null;
+  rejectionReason?: string | null;
   modules?: Array<{ _ref?: string; _type?: string } | string> | null;
   /** STORY-11.4 — flattened drill metadata from GROQ projection. */
   drills?: Array<{
@@ -46,6 +47,7 @@ export type PackageMetadataUpsert = {
   price_cents: number | null;
   currency: string | null;
   created_by_role: string | null;
+  rejection_reason: string | null;
 };
 
 export type RagEmbeddingJobInsert = {
@@ -134,6 +136,7 @@ export function mapPackageMetadata(doc: SanityWebhookDocument): PackageMetadataU
     price_cents: typeof doc.priceCents === 'number' ? doc.priceCents : null,
     currency: doc.currency?.trim()?.toLowerCase() || null,
     created_by_role: doc.createdByRole?.trim() || null,
+    rejection_reason: doc.rejectionReason?.trim() || null,
   };
 }
 

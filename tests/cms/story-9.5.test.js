@@ -152,6 +152,7 @@ describe('STORY_9_5 AC2 — Edge function upserts package metadata to Supabase',
       price_cents: null,
       currency: null,
       created_by_role: null,
+      rejection_reason: null,
     });
 
     const indexSrc = read(INDEX);

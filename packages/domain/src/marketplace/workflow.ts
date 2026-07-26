@@ -141,7 +141,14 @@ export function resolvePublishPricing(
   };
 }
 
-export type ReviewAction = 'approve' | 'reject' | 'publish';
+export type ReviewAction = 'approve' | 'reject' | 'publish' | 'unpublish';
+
+/** STORY-12.3 AC-2 — reject requires a non-empty reason. */
+export function normalizeRejectionReason(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
 
 export function nextStatusForReviewAction(
   current: WorkflowStatus,
@@ -158,6 +165,13 @@ export function nextStatusForReviewAction(
       throw new Error(`invalid_transition:${current}->rejected`);
     }
     return 'rejected';
+  }
+  if (action === 'unpublish') {
+    // Unpublish keeps workflow status; package must already be approved.
+    if (current !== 'approved') {
+      throw new Error(`unpublish_requires_approved:got_${current}`);
+    }
+    return current;
   }
   // publish does not change workflow status; status must already be approved
   if (current !== 'approved') {

@@ -3557,40 +3557,60 @@
         {
           "id": "AC-1",
           "statement": "Pending review queue lists coach-submitted packages",
-          "test": null
+          "test": "tests/admin/story-12.3.test.js::test_STORY_12_3_AC1_pending_review_queue_lists_coach_packages"
         },
         {
           "id": "AC-2",
           "statement": "Admin approves, rejects with reason, or publishes to marketplace",
-          "test": null
+          "test": "tests/admin/story-12.3.test.js::test_STORY_12_3_AC2_admin_approve_reject_with_reason_or_publish"
         },
         {
           "id": "AC-3",
           "statement": "Stripe price ID assignable from admin on publish",
-          "test": null
+          "test": "tests/admin/story-12.3.test.js::test_STORY_12_3_AC3_stripe_price_id_assignable_on_publish"
         },
         {
           "id": "AC-4",
           "statement": "Global drip schedule rules configurable per tier",
-          "test": null
+          "test": "tests/admin/story-12.3.test.js::test_STORY_12_3_AC4_global_drip_rules_configurable_per_tier"
         },
         {
           "id": "AC-5",
           "statement": "Link to Sanity Studio for content authoring",
-          "test": null
+          "test": "tests/admin/story-12.3.test.js::test_STORY_12_3_AC5_link_to_sanity_studio"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)",
-          "sanity/ (inferred)"
+        "tests": [
+          "test_STORY_12_3_AC1_pending_review_queue_lists_coach_packages",
+          "test_STORY_12_3_AC2_admin_approve_reject_with_reason_or_publish",
+          "test_STORY_12_3_AC3_stripe_price_id_assignable_on_publish",
+          "test_STORY_12_3_AC4_global_drip_rules_configurable_per_tier",
+          "test_STORY_12_3_AC5_link_to_sanity_studio",
+          "test_STORY_12_3_structure_content_page_has_no_direct_supabase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/marketplace/drip.ts",
+          "packages/domain/src/marketplace/workflow.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/content-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-content-repository.ts",
+          "packages/api/src/adapters/rest/rest-content-repository.ts",
+          "apps/admin/src/pages/content/ContentPage.tsx",
+          "apps/studio/schemaTypes/trainingPackage.ts",
+          "supabase/functions/review-marketplace-package/handler.ts",
+          "supabase/functions/review-marketplace-package/index.ts",
+          "supabase/functions/sanity-webhook/handler.ts",
+          "supabase/functions/sanity-webhook/webhook-projection.groq",
+          "supabase/migrations/20260727120000_admin_content_marketplace_ops.sql",
+          "tests/admin/story-12.3.test.js",
+          "package.json"
+        ],
+        "command": "npx vitest run tests/admin/story-12.3.test.js"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Content ops: review queue + reject-with-reason + publish/unpublish + Stripe price on publish; global drip_interval_days_by_tier (defaults equal); Studio link. npm run test:story-12.3 — AC1–AC5 pass."
     },
     {
       "id": "STORY-12.4",
