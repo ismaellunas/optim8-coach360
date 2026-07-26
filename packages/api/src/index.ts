@@ -96,6 +96,9 @@ export type {
   DirectMessage,
   DirectMessageThread,
 } from './ports/messaging-repository.js';
+export type { MonitorRepository } from './ports/monitor-repository.js';
+export { SupabaseMonitorRepository } from './adapters/supabase/supabase-monitor-repository.js';
+export { RestMonitorRepository } from './adapters/rest/rest-monitor-repository.js';
 export { SupabaseBillingRepository } from './adapters/supabase/supabase-billing-repository.js';
 export { RestBillingRepository } from './adapters/rest/rest-billing-repository.js';
 export { SupabaseSessionRepository } from './adapters/supabase/supabase-session-repository.js';

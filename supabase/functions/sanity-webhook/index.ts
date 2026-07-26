@@ -88,7 +88,7 @@ Deno.serve(async (request) => {
     sanity_document_id: mapped.metadata.sanity_document_id,
   });
 
-  if (ledgerError) {
+    if (ledgerError) {
     // Unique violation → already processed
     if (ledgerError.code === '23505') {
       return new Response(
@@ -103,6 +103,12 @@ Deno.serve(async (request) => {
         },
       );
     }
+    await admin.rpc('record_system_health_event', {
+      p_kind: 'webhook_failure',
+      p_source: 'sanity-webhook',
+      p_message: ledgerError.message,
+      p_details: { stage: 'idempotency_ledger' },
+    });
     return new Response(JSON.stringify({ error: ledgerError.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -114,6 +120,12 @@ Deno.serve(async (request) => {
   });
 
   if (upsertError) {
+    await admin.rpc('record_system_health_event', {
+      p_kind: 'webhook_failure',
+      p_source: 'sanity-webhook',
+      p_message: upsertError.message,
+      p_details: { stage: 'package_metadata_upsert' },
+    });
     return new Response(JSON.stringify({ error: upsertError.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -151,6 +163,12 @@ Deno.serve(async (request) => {
 
   const { error: jobError } = await admin.from('rag_embedding_jobs').insert(mapped.ragJob);
   if (jobError) {
+    await admin.rpc('record_system_health_event', {
+      p_kind: 'webhook_failure',
+      p_source: 'sanity-webhook',
+      p_message: jobError.message,
+      p_details: { stage: 'rag_embedding_job_insert' },
+    });
     return new Response(JSON.stringify({ error: jobError.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -22,11 +22,13 @@ import type { MarketplacePurchaseRepository } from '../ports/marketplace-purchas
 import type { MarketplaceDripRepository } from '../ports/marketplace-drip-repository.js';
 import type { ObjectivesRepository } from '../ports/objectives-repository.js';
 import type { PackageRecommendationsRepository } from '../ports/package-recommendations-repository.js';
+import type { MonitorRepository } from '../ports/monitor-repository.js';
 import { RestAppAuthRepository } from '../adapters/rest/rest-app-auth-repository.js';
 import { RestObjectivesRepository } from '../adapters/rest/rest-objectives-repository.js';
 import { RestPackageRecommendationsRepository } from '../adapters/rest/rest-package-recommendations-repository.js';
 import { SupabaseObjectivesRepository } from '../adapters/supabase/supabase-objectives-repository.js';
 import { SupabasePackageRecommendationsRepository } from '../adapters/supabase/supabase-package-recommendations-repository.js';
+import { SupabaseMonitorRepository } from '../adapters/supabase/supabase-monitor-repository.js';
 import { RestAuthRepository } from '../adapters/rest/rest-auth-repository.js';
 import { RestUserRepository } from '../adapters/rest/rest-user-repository.js';
 import { RestSubscriptionRepository } from '../adapters/rest/rest-subscription-repository.js';
@@ -45,6 +47,7 @@ import { RestMessagingRepository } from '../adapters/rest/rest-messaging-reposit
 import { RestMarketplaceCatalogRepository } from '../adapters/rest/rest-marketplace-catalog-repository.js';
 import { RestMarketplacePurchaseRepository } from '../adapters/rest/rest-marketplace-purchase-repository.js';
 import { RestMarketplaceDripRepository } from '../adapters/rest/rest-marketplace-drip-repository.js';
+import { RestMonitorRepository } from '../adapters/rest/rest-monitor-repository.js';
 import {
   createSupabaseClient,
   SupabaseAppAuthRepository,
@@ -97,6 +100,7 @@ export type RepositoryBundle = {
   marketplaceDrip: MarketplaceDripRepository;
   objectives: ObjectivesRepository;
   packageRecommendations: PackageRecommendationsRepository;
+  monitor: MonitorRepository;
 };
 
 export type SupabaseClientAuthOptions = {
@@ -147,6 +151,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
       marketplaceDrip: new RestMarketplaceDripRepository(),
       objectives: new RestObjectivesRepository(),
       packageRecommendations: new RestPackageRecommendationsRepository(),
+      monitor: new RestMonitorRepository(),
     };
   }
 
@@ -187,6 +192,7 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     marketplaceDrip: new SupabaseMarketplaceDripRepository(appClient),
     objectives: new SupabaseObjectivesRepository(appClient),
     packageRecommendations: new SupabasePackageRecommendationsRepository(appClient),
+    monitor: new SupabaseMonitorRepository(appClient),
   };
 }
 
