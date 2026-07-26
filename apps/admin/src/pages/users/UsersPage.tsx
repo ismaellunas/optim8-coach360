@@ -1,30 +1,68 @@
 import { useState } from 'react';
 import { PageHeader, Card, Badge, Button } from '@coach360/ui';
-import type { AppRole } from '@coach360/domain';
+import type { AppRole, SubscriptionTier } from '@coach360/domain';
 import {
   useUserListQuery,
   useUpdateUserMutation,
   useUserTeamsQuery,
 } from '@/entities/user/api/user-queries.js';
+import {
+  useUserSubscriptionQuery,
+  useOverrideUserTierMutation,
+} from '@/entities/subscription/api/subscription-queries.js';
 
 const ROLE_OPTIONS: AppRole[] = ['coach', 'player', 'team_manager', 'admin'];
+const TIER_OPTIONS: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
 
 function UserDetail({ userId }: { userId: string }) {
   const { data: teams, isLoading } = useUserTeamsQuery(userId);
+  const { data: subscription, isLoading: subLoading } = useUserSubscriptionQuery(userId);
+  const overrideTier = useOverrideUserTierMutation();
 
   return (
-    <div className="mt-3 border-t border-coach-border pt-3">
-      <p className="text-xs uppercase text-coach-t3">Team rosters</p>
-      {isLoading ? <p className="mt-1 text-sm text-coach-t2">Loading teams…</p> : null}
-      {!isLoading && (teams ?? []).length === 0 ? (
-        <p className="mt-1 text-sm text-coach-t2">Not on any team.</p>
-      ) : null}
-      <div className="mt-2 space-y-1">
-        {(teams ?? []).map((team) => (
-          <p key={team.id} className="text-sm text-coach-t1">
-            {team.name}
-          </p>
-        ))}
+    <div className="mt-3 space-y-4 border-t border-coach-border pt-3">
+      <div>
+        <p className="text-xs uppercase text-coach-t3">Subscription tier</p>
+        {subLoading ? (
+          <p className="mt-1 text-sm text-coach-t2">Loading subscription…</p>
+        ) : (
+          <select
+            aria-label="Override subscription tier"
+            className="mt-2 rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 font-body text-sm text-coach-t1"
+            value={subscription?.tier ?? 'basic'}
+            disabled={overrideTier.isPending}
+            onChange={(event) =>
+              overrideTier.mutate({
+                profileId: userId,
+                tier: event.target.value as SubscriptionTier,
+              })
+            }
+          >
+            {TIER_OPTIONS.map((tier) => (
+              <option key={tier} value={tier}>
+                {tier}
+              </option>
+            ))}
+          </select>
+        )}
+        {overrideTier.isError ? (
+          <p className="mt-1 text-xs text-coach-red">{(overrideTier.error as Error).message}</p>
+        ) : null}
+      </div>
+
+      <div>
+        <p className="text-xs uppercase text-coach-t3">Team rosters</p>
+        {isLoading ? <p className="mt-1 text-sm text-coach-t2">Loading teams…</p> : null}
+        {!isLoading && (teams ?? []).length === 0 ? (
+          <p className="mt-1 text-sm text-coach-t2">Not on any team.</p>
+        ) : null}
+        <div className="mt-2 space-y-1">
+          {(teams ?? []).map((team) => (
+            <p key={team.id} className="text-sm text-coach-t1">
+              {team.name}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );

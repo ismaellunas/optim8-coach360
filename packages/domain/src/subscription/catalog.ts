@@ -85,3 +85,51 @@ export function resolveTierFromStripePriceMetadata(
 export function isPaidSubscriptionTier(tier: SubscriptionTier): tier is PaidSubscriptionTier {
   return paidSubscriptionTierSchema.safeParse(tier).success;
 }
+
+/** platform_settings key for admin display overrides (STORY-12.2 AC-1). */
+export const TIER_CATALOG_OVERRIDES_SETTING_KEY = 'tier_catalog_overrides';
+
+export const tierCatalogDisplayOverrideSchema = z.object({
+  tier: paidSubscriptionTierSchema,
+  label: z.string().min(1).optional(),
+  displayPrice: z.string().min(1).optional(),
+  features: z.array(z.string().min(1)).optional(),
+});
+
+export type TierCatalogDisplayOverride = z.infer<typeof tierCatalogDisplayOverrideSchema>;
+
+/**
+ * Merge admin display overrides over the code catalog.
+ * Stripe unit amounts / price ID env keys stay code-owned.
+ */
+export function mergeTierCatalogOverrides(
+  overrides: readonly TierCatalogDisplayOverride[] = [],
+): StripeProductCatalogEntry[] {
+  const byTier = new Map(overrides.map((item) => [item.tier, item]));
+  return STRIPE_PRODUCT_CATALOG.map((entry) => {
+    const override = byTier.get(entry.tier);
+    if (!override) {
+      return { ...entry, features: [...entry.features] };
+    }
+    return {
+      ...entry,
+      label: override.label ?? entry.label,
+      displayPrice: override.displayPrice ?? entry.displayPrice,
+      features: override.features ? [...override.features] : [...entry.features],
+    };
+  });
+}
+
+export function parseTierCatalogOverrides(raw: unknown): TierCatalogDisplayOverride[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const parsed: TierCatalogDisplayOverride[] = [];
+  for (const item of raw) {
+    const result = tierCatalogDisplayOverrideSchema.safeParse(item);
+    if (result.success) {
+      parsed.push(result.data);
+    }
+  }
+  return parsed;
+}

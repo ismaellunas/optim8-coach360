@@ -70,8 +70,10 @@ export {
 export {
   DEFAULT_TRIAL_WARNING_DAYS_BEFORE,
   TRIAL_WARNING_SETTING_KEY,
+  TRIAL_DURATION_SETTING_KEY,
   canActivateTrial,
   normalizeTrialWarningDays,
+  normalizeTrialDurationDays,
   shouldSendTrialExpiryWarning,
 } from './subscription/trial.js';
 export {
@@ -90,17 +92,23 @@ export {
 } from './subscription/expiry.js';
 export {
   STRIPE_PRODUCT_CATALOG,
+  TIER_CATALOG_OVERRIDES_SETTING_KEY,
   paidSubscriptionTierSchema,
   getStripeCatalogEntry,
   resolveTierFromStripePriceMetadata,
   isPaidSubscriptionTier,
+  mergeTierCatalogOverrides,
+  parseTierCatalogOverrides,
   type PaidSubscriptionTier,
   type StripeProductCatalogEntry,
+  type TierCatalogDisplayOverride,
 } from './subscription/catalog.js';
 export {
   isSubscriptionPaymentLocked,
   canViewBillingHistory,
   lockedStateMessage,
+  formatRevenueCents,
+  type BillingRevenueSummary,
 } from './subscription/billing.js';
 export {
   HISTORY_RETAINED_FEATURES,

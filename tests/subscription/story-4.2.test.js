@@ -254,9 +254,25 @@ describe('STORY_4_2 AC3 — warning notification before expiry', () => {
 
     expect(existsSync(ADMIN_SUBS_PATH)).toBe(true);
     const admin = readFileSync(ADMIN_SUBS_PATH, 'utf8');
-    expect(admin).toMatch(/getTrialWarningDays/);
-    expect(admin).toMatch(/setTrialWarningDays/);
+    expect(admin).toMatch(/useTrialWarningDaysQuery|getTrialWarningDays/);
+    expect(admin).toMatch(/useSetTrialWarningDaysMutation|setTrialWarningDays/);
     expect(admin).toMatch(/Trial expiry warning/);
+
+    const queriesPath = path.join(
+      REPO_ROOT,
+      'apps',
+      'admin',
+      'src',
+      'entities',
+      'subscription',
+      'api',
+      'subscription-queries.ts',
+    );
+    if (existsSync(queriesPath)) {
+      const queries = readFileSync(queriesPath, 'utf8');
+      expect(queries).toMatch(/getTrialWarningDays/);
+      expect(queries).toMatch(/setTrialWarningDays/);
+    }
 
     const repo = readFileSync(SUBSCRIPTION_REPO_PATH, 'utf8');
     expect(repo).toMatch(/get_trial_warning_days/);

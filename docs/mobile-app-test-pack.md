@@ -152,7 +152,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
 13. **Epic 11** — Objectives + package suggestions + LLM re-rank + RAG: coach set goals, player rings, Store/Objectives suggestions (7 click tests; RAG is backend-only) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank/embeddings
-14. **Epic 12 Admin** — User management: search, edit, suspend, rosters (optional, needs admin login) (4 tests)
+14. **Epic 12 Admin** — Users + subscriptions (trial/tier config, revenue, overrides) (optional, needs admin login) (8 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1464,11 +1464,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 12 — Admin Dashboard: Users (STORY-12.1)
+## Epic 12 — Admin Dashboard: Users & Subscriptions (STORY-12.1, STORY-12.2)
 
 *Admin website only, plus one step on mobile for E12-T3. Skip this section if you were not given an Admin account or dashboard URL.*
 
-**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit and suspend — ask the team for one, or use a throwaway account you created in earlier epics.
+**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics.
 
 ### E12-T1: Admin can search the user list (STORY-12.1 AC-1)
 
@@ -1506,9 +1506,44 @@ Best tested with a user who is on at least one team (e.g. a Player or Coach from
 | 1 | On **Users**, tap **Manage** on a user who belongs to a team. | Card expands with edit fields and a **Team rosters** section below them. |
 | 2 | Look at **Team rosters**. | The name(s) of every team that user is on. If they are on no team, it reads **Not on any team.** instead. |
 
+### E12-T5: Admin sets trial duration and tier parameters (STORY-12.2 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Navigate to **Subscriptions** in the Admin sidebar. | Page titled **Subscriptions**. Tier count cards, trial settings, and **Tier parameters** editors for Basic / Advanced / Pro. |
+| 2 | Under **Trial duration**, change **Days of Pro access** (e.g. to **21**) and tap **Save**. | No error; the number stays at the value you saved after refresh. |
+| 3 | In a **Tier parameters** card (e.g. Basic), change **Label** or **Display price**, then tap **Save basic** (or the matching Save button). | No error; your edits remain after you leave and return to **Subscriptions**. |
+| 4 | **Cleanup:** Restore trial duration to **14** and revert any label/price edits you do not want to keep. | Settings return to the previous values. |
+
+### E12-T6: Admin sets trial expiry warning days (STORY-12.2 AC-2)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Subscriptions**, find **Trial expiry warning**. | A **Days before expiry** number field (default **3**). |
+| 2 | Change it to **5** and tap **Save**. | No error; the field shows **5** after save. |
+| 3 | **Cleanup:** Set it back to **3** and save. | Value returns to **3**. |
+
+### E12-T7: Billing and revenue summary on Subscriptions (STORY-12.2 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Subscriptions**, find the **Billing & revenue** card. | A **Paid revenue** amount (currency formatted), a paid invoice count, and any **Active basic/advanced/pro** counts when paid subscribers exist. |
+| 2 | If the environment has no paid invoices yet. | Revenue shows **$0** (or equivalent) and **0 paid invoices** — still a real summary, not a blank or error page. |
+
+### E12-T8: Admin overrides a user's subscription tier (STORY-12.2 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users**, tap **Manage** on your non-admin test account. | Card expands; below the role controls there is a **Subscription tier** dropdown. |
+| 2 | Change the dropdown to a different tier (e.g. **basic** → **pro**). | No error; the dropdown keeps the new value. |
+| 3 | Open **Subscriptions** and check the tier count cards. | Counts refresh to reflect the override (may need a quick page refresh). |
+| 4 | **Cleanup:** Set the test user's tier back to what it was before. | Original tier restored. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Server-side enforcement** — role/suspension changes are also blocked at the database level for non-admins (Postgres trigger). You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.
+- **Stripe Price ID / charge amount edits** — Admin tier parameters change display labels only; live Stripe prices stay in env/catalog code.
+- **New trial activations use the saved duration** — After E12-T5, a brand-new mobile trial uses the configured day count; verifying exact end dates needs a fresh unused-trial account.
 
 ---
 
@@ -1640,6 +1675,10 @@ Print this page and check off results as you go.
 | E12-T2 Admin edits name and role | | |
 | E12-T3 Suspend blocks mobile sign-in | | |
 | E12-T4 Admin views user team rosters | | |
+| E12-T5 Admin trial duration + tier params | | |
+| E12-T6 Admin trial warning days | | |
+| E12-T7 Billing & revenue on Subscriptions | | |
+| E12-T8 Admin overrides user subscription tier | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

@@ -1,10 +1,13 @@
 import type { Subscription } from './schema.js';
-import { trialDaysRemaining } from './rules.js';
+import { TRIAL_DURATION_DAYS, trialDaysRemaining } from './rules.js';
 
 /** Default days before trial end to send expiry warning (Flow 9 / OQ-9.2). */
 export const DEFAULT_TRIAL_WARNING_DAYS_BEFORE = 3;
 
 export const TRIAL_WARNING_SETTING_KEY = 'trial_warning_days_before';
+
+/** Admin-configurable trial length (STORY-12.2); default matches TRIAL_DURATION_DAYS. */
+export const TRIAL_DURATION_SETTING_KEY = 'trial_duration_days';
 
 /**
  * One trial per account: eligible when never activated (null subscription or unused).
@@ -23,6 +26,14 @@ export function normalizeTrialWarningDays(raw: unknown): number {
   const value = typeof raw === 'number' ? raw : Number(raw);
   if (!Number.isFinite(value) || value < 1) {
     return DEFAULT_TRIAL_WARNING_DAYS_BEFORE;
+  }
+  return Math.floor(value);
+}
+
+export function normalizeTrialDurationDays(raw: unknown): number {
+  const value = typeof raw === 'number' ? raw : Number(raw);
+  if (!Number.isFinite(value) || value < 1) {
+    return TRIAL_DURATION_DAYS;
   }
   return Math.floor(value);
 }

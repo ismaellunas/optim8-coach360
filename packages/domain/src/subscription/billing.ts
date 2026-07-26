@@ -34,3 +34,24 @@ export function lockedStateMessage(status: SubscriptionStatus): string | null {
   }
   return 'Subscription incomplete — finish payment to unlock your plan.';
 }
+
+/** Admin Subscriptions pillar revenue rollup (STORY-12.2 AC-3). */
+export type BillingRevenueSummary = {
+  paidRevenueCents: number;
+  paidInvoiceCount: number;
+  currency: string;
+  activePaidByTier: Array<{ tier: string; count: number }>;
+};
+
+export function formatRevenueCents(cents: number, currency = 'usd'): string {
+  const amount = cents / 100;
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `$${(cents / 100).toFixed(0)}`;
+  }
+}

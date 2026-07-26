@@ -1,5 +1,9 @@
 import { NotImplementedAdapterError } from '../../client/types.js';
-import type { Subscription } from '@coach360/domain';
+import type {
+  Subscription,
+  SubscriptionTier,
+  TierCatalogDisplayOverride,
+} from '@coach360/domain';
 import type { SubscriptionRepository, SubscriptionSummary } from '../../ports/subscription-repository.js';
 
 export class RestSubscriptionRepository implements SubscriptionRepository {
@@ -38,5 +42,31 @@ export class RestSubscriptionRepository implements SubscriptionRepository {
   async setTrialWarningDays(days: number): Promise<number> {
     void days;
     throw new NotImplementedAdapterError('rest', 'setTrialWarningDays');
+  }
+
+  async getTrialDurationDays(): Promise<number> {
+    throw new NotImplementedAdapterError('rest', 'getTrialDurationDays');
+  }
+
+  async setTrialDurationDays(days: number): Promise<number> {
+    void days;
+    throw new NotImplementedAdapterError('rest', 'setTrialDurationDays');
+  }
+
+  async getTierCatalogOverrides(): Promise<TierCatalogDisplayOverride[]> {
+    throw new NotImplementedAdapterError('rest', 'getTierCatalogOverrides');
+  }
+
+  async setTierCatalogOverrides(
+    overrides: TierCatalogDisplayOverride[],
+  ): Promise<TierCatalogDisplayOverride[]> {
+    void overrides;
+    throw new NotImplementedAdapterError('rest', 'setTierCatalogOverrides');
+  }
+
+  async overrideUserTier(profileId: string, tier: SubscriptionTier): Promise<Subscription> {
+    void profileId;
+    void tier;
+    throw new NotImplementedAdapterError('rest', 'overrideUserTier');
   }
 }
