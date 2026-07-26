@@ -1,0 +1,61 @@
+name: Integration smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: local is not available in CI — use cloud
+        type: choice
+        options:
+          - cloud
+        default: cloud
+      suite:
+        description: Suite list (all | webhooks | comma list)
+        type: string
+        default: all
+      strict:
+        description: Fail on skipped checks
+        type: boolean
+        default: false
+  schedule:
+    # Daily 06:00 UTC
+    - cron: '0 6 * * *'
+
+concurrency:
+  group: integration-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Third-party + webhook pipelines
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration smoke
+        env:
+          SMOKE_SUPABASE_URL: ${{ secrets.SMOKE_SUPABASE_URL }}
+          SMOKE_SERVICE_ROLE_KEY: ${{ secrets.SMOKE_SERVICE_ROLE_KEY }}
+          SANITY_WEBHOOK_SECRET: ${{ secrets.SANITY_WEBHOOK_SECRET }}
+          MUX_WEBHOOK_SECRET: ${{ secrets.MUX_WEBHOOK_SECRET }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          MISTRAL_EMBEDDING_MODEL: mistral-embed
+          SMOKE_PROFILE_ID: ${{ secrets.SMOKE_PROFILE_ID }}
+        run: |
+          npm run smoke:integrations -- \
+            --target cloud \
+            --suite "${{ github.event.inputs.suite || 'all' }}" \
+            --json \
+            --cleanup \
+            --reset-failed \
+            ${{ github.event.inputs.strict == 'true' && '--strict' || '' }}
