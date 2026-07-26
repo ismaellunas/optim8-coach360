@@ -152,7 +152,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
 13. **Epic 11** — Objectives + package suggestions + LLM re-rank + RAG: coach set goals, player rings, Store/Objectives suggestions (7 click tests; RAG is backend-only) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank/embeddings
-14. **Epic 12 Admin** — Users + subscriptions (trial/tier config, revenue, overrides) (optional, needs admin login) (8 tests)
+14. **Epic 12 Admin** — Users + subscriptions + onboarding config + team oversight (optional, needs admin login) (12 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1464,18 +1464,18 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 12 — Admin Dashboard: Users & Subscriptions (STORY-12.1, STORY-12.2)
+## Epic 12 — Admin Dashboard: Users, Subscriptions, Onboarding & Teams (STORY-12.1, STORY-12.2, STORY-12.5)
 
-*Admin website only, plus one step on mobile for E12-T3. Skip this section if you were not given an Admin account or dashboard URL.*
+*Admin website only, plus mobile steps for E12-T3 and E12-T10. Skip this section if you were not given an Admin account or dashboard URL.*
 
-**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics.
+**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics. For team tests (E12-T11–T12): at least one existing team from Epic 3, plus a coach account email you can assign. For E12-T10: a Coach or Player who has **not** finished first-time onboarding yet (fresh signup), or ask the team to reset onboarding on a test account.
 
 ### E12-T1: Admin can search the user list (STORY-12.1 AC-1)
 
 | Step | Do this | You should see |
 |---|---|---|
 | 1 | Open the Admin dashboard URL in a browser. Sign in with your **Admin** account. | Dashboard loads. |
-| 2 | Navigate to **Users** (sidebar or menu). | Page titled **Users** with subtitle about profiles, roles, and account status. A list of user cards, each showing a name, role, and an **Active**/**Suspended** badge. |
+| 2 | Navigate to **Users** (sidebar or menu). | Page titled **Users**. Tabs across the top: **Users**, **Teams**, **Onboarding**. The **Users** tab is selected, with a list of user cards (name, role, **Active**/**Suspended** badge). |
 | 3 | Type part of a test user's name into the search box at the top. | The list narrows to matching names as you type. Clear the box to see everyone again. |
 
 ### E12-T2: Admin edits a user's name and role (STORY-12.1 AC-2)
@@ -1539,11 +1539,55 @@ Best tested with a user who is on at least one team (e.g. a Player or Coach from
 | 3 | Open **Subscriptions** and check the tier count cards. | Counts refresh to reflect the override (may need a quick page refresh). |
 | 4 | **Cleanup:** Set the test user's tier back to what it was before. | Original tier restored. |
 
+### E12-T9: Admin configures onboarding wizard steps and mandatory flags (STORY-12.5 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users**, tap the **Onboarding** tab. | Heading **Onboarding configuration**. Cards for **Coach onboarding** and **Player onboarding**, each with welcome fields and a list of wizard steps. |
+| 2 | In the Coach card, find a step other than **welcome** (e.g. **profile**). Check **Mandatory**. | The checkbox stays checked. |
+| 3 | Optionally change that step's **Step title** or **Step description**. | Fields accept your edits. |
+| 4 | Tap **Save onboarding config**. | Message like **Onboarding configuration saved.** (or no error). Refresh the page — your mandatory flag and text edits are still there. |
+| 5 | **Cleanup:** Uncheck **Mandatory** on any steps you changed (keep **welcome** as it was), restore titles if needed, and save again. | Config returns to the previous values. |
+
+### E12-T10: Welcome messaging editable without a code deploy (STORY-12.5 AC-2)
+
+This is a two-browser test (Admin dashboard + mobile). Needs a Coach or Player who will see first-time onboarding.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On Admin **Users** → **Onboarding**, open the **Coach onboarding** (or **Player**) card. | **Welcome message** section with **Welcome title** and **Welcome body**. |
+| 2 | Change **Welcome body** to a unique phrase you will recognize (e.g. **Hello from admin test copy**). Tap **Save onboarding config**. | Save succeeds. |
+| 3 | On the mobile app, sign in as a Coach (or Player) who still needs first-time onboarding. | The guided onboarding welcome step shows your new **Welcome body** text (not only the old default wording). |
+| 4 | **Cleanup:** In Admin, restore the original welcome body and save. | Defaults restored for the next tester. |
+
+### E12-T11: Admin views all teams and edits team settings (STORY-12.5 AC-3)
+
+Best with at least one team already created (Epic 3).
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users**, tap the **Teams** tab. | Heading **Team oversight**. A card for each team (name, division if set, **Active** or **Archived** badge). |
+| 2 | Tap **Manage** on a team. | The card expands with fields: **Team name**, **Division**, **Age min**, **Age max**, **Grade level**, **Description**, plus **Save team settings**, **Archive**, and a **Coach assignments** block. |
+| 3 | Change **Team name** or **Division**, then tap **Save team settings**. | No error. Close and reopen **Manage** (or refresh) — your edits are still there. |
+| 4 | **Cleanup:** Put the name/division back if you do not want to keep the change, and save. | Original values restored. |
+
+### E12-T12: Admin manages coach assignments and can archive a team (STORY-12.5 AC-4)
+
+Needs a team and a coach account email that exists in the system.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Users** → **Teams**, **Manage** a team. Under **Coach assignments**, type a coach's email and tap **Assign coach**. | That coach appears in the list under **Coach assignments** (name or id). |
+| 2 | Tap **Unassign** next to that coach. | They disappear from the list (or show as removed). |
+| 3 | Tap **Archive** on the same team. | Badge changes to **Archived**; the button now reads **Restore**. |
+| 4 | Tap **Restore**. | Badge returns to **Active**. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Server-side enforcement** — role/suspension changes are also blocked at the database level for non-admins (Postgres trigger). You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.
 - **Stripe Price ID / charge amount edits** — Admin tier parameters change display labels only; live Stripe prices stay in env/catalog code.
 - **New trial activations use the saved duration** — After E12-T5, a brand-new mobile trial uses the configured day count; verifying exact end dates needs a fresh unused-trial account.
+- **Mandatory-step skip blocking on mobile** — Admin can mark steps mandatory; whether the mobile wizard hard-blocks **Skip for now** on those steps may still follow the older skip path. Confirm with the team if you see skip still working on a mandatory step.
 
 ---
 
@@ -1679,6 +1723,10 @@ Print this page and check off results as you go.
 | E12-T6 Admin trial warning days | | |
 | E12-T7 Billing & revenue on Subscriptions | | |
 | E12-T8 Admin overrides user subscription tier | | |
+| E12-T9 Admin onboarding steps + mandatory flags | | |
+| E12-T10 Admin welcome copy reaches mobile | | |
+| E12-T11 Admin views and edits teams | | |
+| E12-T12 Admin coach assign and archive team | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

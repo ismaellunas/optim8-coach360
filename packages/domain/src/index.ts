@@ -48,6 +48,23 @@ export {
   needsPlayerOnboarding,
 } from './onboarding/rules.js';
 export {
+  ONBOARDING_CONFIG_SETTING_KEY,
+  DEFAULT_ONBOARDING_CONFIG,
+  onboardingRoleSchema,
+  onboardingStepConfigSchema,
+  onboardingWelcomeCopySchema,
+  onboardingRoleConfigSchema,
+  onboardingConfigSchema,
+  mergeOnboardingConfig,
+  parseOnboardingConfig,
+  normalizeOnboardingConfigInput,
+  type OnboardingRole,
+  type OnboardingStepConfig,
+  type OnboardingWelcomeCopy,
+  type OnboardingRoleConfig,
+  type OnboardingConfig,
+} from './onboarding/config.js';
+export {
   subscriptionTierSchema,
   subscriptionStatusSchema,
   subscriptionSchema,

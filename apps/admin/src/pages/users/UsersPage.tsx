@@ -10,6 +10,16 @@ import {
   useUserSubscriptionQuery,
   useOverrideUserTierMutation,
 } from '@/entities/subscription/api/subscription-queries.js';
+import { TeamsOversightSection } from '@/pages/users/TeamsOversightSection.js';
+import { OnboardingConfigSection } from '@/pages/users/OnboardingConfigSection.js';
+
+type UsersTab = 'users' | 'teams' | 'onboarding';
+
+const USERS_TABS: { id: UsersTab; label: string }[] = [
+  { id: 'users', label: 'Users' },
+  { id: 'teams', label: 'Teams' },
+  { id: 'onboarding', label: 'Onboarding' },
+];
 
 const ROLE_OPTIONS: AppRole[] = ['coach', 'player', 'team_manager', 'admin'];
 const TIER_OPTIONS: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
@@ -68,7 +78,7 @@ function UserDetail({ userId }: { userId: string }) {
   );
 }
 
-export function UsersPage() {
+function UsersDirectory() {
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { data, isLoading, error } = useUserListQuery(search);
@@ -76,7 +86,6 @@ export function UsersPage() {
 
   return (
     <div>
-      <PageHeader title="Users" subtitle="Profiles, roles, and account status." />
       <input
         type="text"
         placeholder="Search by name…"
@@ -168,6 +177,30 @@ export function UsersPage() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+export function UsersPage() {
+  const [tab, setTab] = useState<UsersTab>('users');
+
+  return (
+    <div>
+      <PageHeader title="Users" subtitle="Profiles, roles, teams, and onboarding." />
+      <div className="mb-6 flex gap-2">
+        {USERS_TABS.map((item) => (
+          <Button
+            key={item.id}
+            variant={tab === item.id ? 'primary' : 'ghost'}
+            onClick={() => setTab(item.id)}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </div>
+      {tab === 'users' ? <UsersDirectory /> : null}
+      {tab === 'teams' ? <TeamsOversightSection /> : null}
+      {tab === 'onboarding' ? <OnboardingConfigSection /> : null}
     </div>
   );
 }

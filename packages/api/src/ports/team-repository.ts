@@ -16,4 +16,10 @@ export type TeamRepository = {
     logoFile?: TeamLogoFile,
   ): Promise<Team>;
   uploadLogo(teamId: string, userId: string, file: Blob, fileName: string): Promise<string>;
+  /** Admin oversight (STORY-12.5): list every team including archived. */
+  listAll(): Promise<Team[]>;
+  /** Admin oversight (STORY-12.5): edit any team's settings. */
+  adminUpdate(teamId: string, input: TeamProfileInput): Promise<Team>;
+  /** Admin oversight (STORY-12.5): archive or restore a team. */
+  setArchived(teamId: string, archived: boolean): Promise<Team>;
 };

@@ -60,4 +60,16 @@ export class RestRosterRepository implements RosterRepository {
     void email;
     throw new NotImplementedAdapterError('rest', 'addPlayerByEmail');
   }
+
+  async adminAssignCoachByEmail(teamId: string, email: string): Promise<RosterMember> {
+    void teamId;
+    void email;
+    throw new NotImplementedAdapterError('rest', 'adminAssignCoachByEmail');
+  }
+
+  async adminUnassignCoach(teamId: string, profileId: string): Promise<RosterMember> {
+    void teamId;
+    void profileId;
+    throw new NotImplementedAdapterError('rest', 'adminUnassignCoach');
+  }
 }

@@ -37,12 +37,15 @@ export function PlayerOnboardingWizard({
   inviteError = null,
   pendingInviteCode = '',
   inviteAccepted = false,
+  config = null,
 }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [inviteCode, setInviteCode] = useState('');
   const [inviteNotice, setInviteNotice] = useState(null);
-  const step = PLAYER_ONBOARDING_STEPS[stepIndex];
-  const isLastStep = stepIndex === PLAYER_ONBOARDING_STEPS.length - 1;
+  // Admin-configured steps/copy (STORY-12.5) with the code defaults as fallback.
+  const steps = config?.steps ?? PLAYER_ONBOARDING_STEPS;
+  const step = steps[stepIndex];
+  const isLastStep = stepIndex === steps.length - 1;
   const resolvedInviteCode = pendingInviteCode || inviteCode;
 
   function goNext() {
@@ -55,15 +58,14 @@ export function PlayerOnboardingWizard({
 
   return (
     <div className="px-6 py-10 text-center">
-      <CoachOnboardingProgress
-        stepIndex={stepIndex}
-        stepCount={PLAYER_ONBOARDING_STEPS.length}
-      />
+      <CoachOnboardingProgress stepIndex={stepIndex} stepCount={steps.length} />
 
       <div className="mb-3 font-display text-2xl font-bold text-coach-t1">{step.title}</div>
       <p className="mb-8 font-body text-sm leading-relaxed text-coach-t2">
         {step.id === 'welcome'
-          ? `Welcome to Coach360${displayName ? `, ${displayName}` : ''}! This quick guide shows you how to browse training content, complete your first drill, and track progress.`
+          ? config?.welcome?.body
+            ? `${config.welcome.body}${displayName ? ` (${displayName})` : ''}`
+            : `Welcome to Coach360${displayName ? `, ${displayName}` : ''}! This quick guide shows you how to browse training content, complete your first drill, and track progress.`
           : step.description}
       </p>
 

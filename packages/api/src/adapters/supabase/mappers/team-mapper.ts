@@ -14,6 +14,7 @@ type TeamRow = {
   created_by: string;
   created_at: string;
   updated_at: string;
+  archived_at?: string | null;
 };
 
 export function mapTeamRow(row: TeamRow): Team {
@@ -31,8 +32,9 @@ export function mapTeamRow(row: TeamRow): Team {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    archivedAt: row.archived_at ?? null,
   });
 }
 
 export const TEAM_SELECT =
-  'id, name, description, logo_url, age_min, age_max, grade_level, division, season_start, season_end, created_by, created_at, updated_at';
+  'id, name, description, logo_url, age_min, age_max, grade_level, division, season_start, season_end, created_by, created_at, updated_at, archived_at';

@@ -231,4 +231,68 @@ export class SupabaseRosterRepository implements RosterRepository {
 
     return mapRosterMemberRow(memberRow as Parameters<typeof mapRosterMemberRow>[0]);
   }
+
+  async adminAssignCoachByEmail(teamId: string, email: string) {
+    const { data: profileId, error } = await this.client.rpc('admin_assign_coach_to_team', {
+      p_team_id: teamId,
+      p_email: email.trim(),
+    });
+
+    if (error) {
+      throw mapRosterError(error, 'assign');
+    }
+
+    if (!profileId) {
+      throw mapRosterError(new Error('coach_not_found'), 'assign');
+    }
+
+    const { data: memberRow, error: loadError } = await this.client
+      .from('rosters')
+      .select(ROSTER_MEMBER_SELECT)
+      .eq('team_id', teamId)
+      .eq('profile_id', profileId)
+      .maybeSingle();
+
+    if (loadError) {
+      throw mapRosterError(loadError, 'load');
+    }
+
+    if (!memberRow) {
+      throw mapRosterError(new Error('roster_member_not_found'), 'assign');
+    }
+
+    return mapRosterMemberRow(memberRow as Parameters<typeof mapRosterMemberRow>[0]);
+  }
+
+  async adminUnassignCoach(teamId: string, profileId: string) {
+    const { data, error } = await this.client.rpc('admin_unassign_coach', {
+      p_team_id: teamId,
+      p_profile_id: profileId,
+    });
+
+    if (error) {
+      throw mapRosterError(error, 'remove');
+    }
+
+    if (!data) {
+      throw mapRosterError(new Error('roster_member_not_found'), 'remove');
+    }
+
+    const { data: memberRow, error: loadError } = await this.client
+      .from('rosters')
+      .select(ROSTER_MEMBER_SELECT)
+      .eq('team_id', teamId)
+      .eq('profile_id', profileId)
+      .maybeSingle();
+
+    if (loadError) {
+      throw mapRosterError(loadError, 'load');
+    }
+
+    if (!memberRow) {
+      throw mapRosterError(new Error('roster_member_not_found'), 'remove');
+    }
+
+    return mapRosterMemberRow(memberRow as Parameters<typeof mapRosterMemberRow>[0]);
+  }
 }
