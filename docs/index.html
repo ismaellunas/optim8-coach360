@@ -3628,39 +3628,72 @@
         {
           "id": "AC-1",
           "statement": "Dashboard shows DAU, revenue, content completion, onboarding funnel",
-          "test": null
+          "test": "tests/admin/story-12.4.test.js::test_STORY_12_4_AC1_dashboard_shows_dau_revenue_completion_and_funnel"
         },
         {
           "id": "AC-2",
           "statement": "Admin monitors and moderates chat channels",
-          "test": null
+          "test": "tests/admin/story-12.4.test.js::test_STORY_12_4_AC2_admin_monitors_and_moderates_chat_channels"
         },
         {
           "id": "AC-3",
           "statement": "Admin configures AI recommendation parameters",
-          "test": null
+          "test": "tests/admin/story-12.4.test.js::test_STORY_12_4_AC3_admin_configures_ai_recommendation_parameters"
         },
         {
           "id": "AC-4",
           "statement": "Export reports to CSV for revenue and usage",
-          "test": null
+          "test": "tests/admin/story-12.4.test.js::test_STORY_12_4_AC4_export_revenue_and_usage_reports_to_csv"
         },
         {
           "id": "AC-5",
           "statement": "App health indicators surfaced (API errors, webhook failures)",
-          "test": null
+          "test": "tests/admin/story-12.4.test.js::test_STORY_12_4_AC5_app_health_indicators_surfaced"
         }
       ],
       "verify": {
-        "tests": [],
-        "files": [
-          "src/features/admin/ (inferred)"
+        "tests": [
+          "test_STORY_12_4_AC1_dashboard_shows_dau_revenue_completion_and_funnel",
+          "test_STORY_12_4_AC2_admin_monitors_and_moderates_chat_channels",
+          "test_STORY_12_4_AC3_admin_configures_ai_recommendation_parameters",
+          "test_STORY_12_4_AC4_export_revenue_and_usage_reports_to_csv",
+          "test_STORY_12_4_AC5_app_health_indicators_surfaced",
+          "test_STORY_12_4_structure_monitor_sections_have_no_direct_supabase"
         ],
-        "command": null
+        "files": [
+          "packages/domain/src/analytics/platform.ts",
+          "packages/domain/src/analytics/csv.ts",
+          "packages/domain/src/analytics/health.ts",
+          "packages/domain/src/chat/moderation.ts",
+          "packages/domain/src/recommendations/config.ts",
+          "packages/domain/src/index.ts",
+          "packages/api/src/ports/monitor-repository.ts",
+          "packages/api/src/ports/messaging-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-monitor-repository.ts",
+          "packages/api/src/adapters/rest/rest-monitor-repository.ts",
+          "packages/api/src/adapters/supabase/supabase-messaging-repository.ts",
+          "packages/api/src/adapters/rest/rest-messaging-repository.ts",
+          "packages/api/src/di/create-repositories.ts",
+          "packages/api/src/index.ts",
+          "supabase/migrations/20260727180000_admin_monitor_analytics.sql",
+          "supabase/functions/recommend-packages/handler.ts",
+          "supabase/functions/recommend-packages/index.ts",
+          "supabase/functions/sanity-webhook/index.ts",
+          "supabase/functions/stripe-webhook/index.ts",
+          "apps/admin/src/entities/monitor/api/monitor-queries.ts",
+          "apps/admin/src/pages/monitor/MonitorPage.tsx",
+          "apps/admin/src/pages/monitor/ChatModerationSection.tsx",
+          "apps/admin/src/pages/monitor/AiConfigSection.tsx",
+          "apps/admin/src/pages/monitor/HealthSection.tsx",
+          "apps/admin/src/pages/monitor/download-csv.ts",
+          "tests/admin/story-12.4.test.js",
+          "package.json"
+        ],
+        "command": "npx vitest run tests/admin/story-12.4.test.js"
       },
-      "status": "TODO",
-      "last_updated": "2026-06-26T00:00:00Z",
-      "audit_notes": ""
+      "status": "DONE",
+      "last_updated": "2026-07-27T00:00:00Z",
+      "audit_notes": "Monitor pillar: derived DAU + revenue + completion + onboarding funnel; chat soft-hide moderation; AI recommendation config wired into recommend-packages; CSV revenue/usage export; system_health_events + webhook failure recording. npm run test:story-12.4 — AC1–AC5 pass."
     },
     {
       "id": "STORY-12.5",

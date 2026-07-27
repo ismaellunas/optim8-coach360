@@ -6,6 +6,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
 };
 
+async function recordWebhookFailure(
+  supabase: ReturnType<typeof createClient>,
+  message: string,
+  details: Record<string, unknown>,
+) {
+  try {
+    await supabase.rpc('record_system_health_event', {
+      p_kind: 'webhook_failure',
+      p_source: 'stripe-webhook',
+      p_message: message,
+      p_details: details,
+    });
+  } catch {
+    // Best-effort health recording — never mask the original failure.
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -61,6 +78,7 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
+      await recordWebhookFailure(supabase, error.message, { stage: 'subscription_upsert' });
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -82,6 +100,7 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
+      await recordWebhookFailure(supabase, error.message, { stage: 'payment_failed' });
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -119,6 +138,7 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
+      await recordWebhookFailure(supabase, error.message, { stage: 'invoice_upsert' });
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -145,6 +165,7 @@ Deno.serve(async (request) => {
     });
 
     if (error) {
+      await recordWebhookFailure(supabase, error.message, { stage: 'purchase_upsert' });
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -163,6 +184,7 @@ Deno.serve(async (request) => {
         { p_purchase_id: purchaseId },
       );
       if (dripError) {
+        await recordWebhookFailure(supabase, dripError.message, { stage: 'drip_init' });
         return new Response(JSON.stringify({ error: dripError.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

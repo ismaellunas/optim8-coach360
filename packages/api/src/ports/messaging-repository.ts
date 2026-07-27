@@ -1,4 +1,9 @@
-import type { ChatChannelType, MvpChatMessageType } from '@coach360/domain';
+import type {
+  AdminChatChannel,
+  AdminChatMessage,
+  ChatChannelType,
+  MvpChatMessageType,
+} from '@coach360/domain';
 import type {
   ChatAchievementAttachment,
   ChatContentLinkAttachment,
@@ -82,4 +87,13 @@ export type MessagingRepository = {
     body: string;
   }): Promise<DirectMessage>;
   listDirectThreads(coachId: string): Promise<DirectMessageThread[]>;
+
+  /** STORY-12.4 — admin chat moderation. */
+  adminListChannels(): Promise<AdminChatChannel[]>;
+  adminListChannelMessages(channelId: string): Promise<AdminChatMessage[]>;
+  adminSetMessageHidden(
+    messageId: string,
+    hidden: boolean,
+    reason?: string | null,
+  ): Promise<AdminChatMessage>;
 };

@@ -516,3 +516,38 @@ export {
   type PackageEmbeddingIngestInput,
   type SimilarityMatchRow,
 } from './recommendations/rag.js';
+export {
+  AI_RECOMMENDATION_CONFIG_SETTING_KEY,
+  DEFAULT_AI_RECOMMENDATION_CONFIG,
+  normalizeAiRecommendationConfigInput,
+  parseAiRecommendationConfig,
+  type AiRecommendationConfig,
+} from './recommendations/config.js';
+export {
+  buildOnboardingFunnelStages,
+  parsePlatformAnalytics,
+  type ContentCompletionSummary,
+  type DailyActiveUsersPoint,
+  type OnboardingFunnelStage,
+  type PlatformAnalytics,
+} from './analytics/platform.js';
+export {
+  buildRevenueCsv,
+  buildUsageCsv,
+  escapeCsvCell,
+  toCsv,
+  type CsvColumn,
+} from './analytics/csv.js';
+export {
+  healthStatusFor,
+  parseHealthSummary,
+  type HealthStatus,
+  type HealthSummary,
+  type SystemHealthEventKind,
+} from './analytics/health.js';
+export {
+  moderatedMessageBody,
+  normalizeModerationReason,
+  type AdminChatChannel,
+  type AdminChatMessage,
+} from './chat/moderation.js';

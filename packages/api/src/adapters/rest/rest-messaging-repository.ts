@@ -7,7 +7,7 @@ import type {
   MessagingRepository,
   SendChannelMessageInput,
 } from '../../ports/messaging-repository.js';
-import type { ChatVideoAttachment } from '@coach360/domain';
+import type { AdminChatChannel, AdminChatMessage, ChatVideoAttachment } from '@coach360/domain';
 
 export class RestMessagingRepository implements MessagingRepository {
   async listConversations(userId: string): Promise<ChatConversation[]> {
@@ -90,5 +90,25 @@ export class RestMessagingRepository implements MessagingRepository {
   async listDirectThreads(coachId: string): Promise<DirectMessageThread[]> {
     void coachId;
     throw new NotImplementedAdapterError('rest', 'listDirectThreads');
+  }
+
+  async adminListChannels(): Promise<AdminChatChannel[]> {
+    throw new NotImplementedAdapterError('rest', 'adminListChannels');
+  }
+
+  async adminListChannelMessages(channelId: string): Promise<AdminChatMessage[]> {
+    void channelId;
+    throw new NotImplementedAdapterError('rest', 'adminListChannelMessages');
+  }
+
+  async adminSetMessageHidden(
+    messageId: string,
+    hidden: boolean,
+    reason?: string | null,
+  ): Promise<AdminChatMessage> {
+    void messageId;
+    void hidden;
+    void reason;
+    throw new NotImplementedAdapterError('rest', 'adminSetMessageHidden');
   }
 }

@@ -152,7 +152,7 @@ Run tests **in epic order**. Later epics reuse accounts from earlier ones.
 11. **Epic 9 Admin** — Sanity Studio content schemas (optional, needs admin login) (4 tests)
 12. **Epic 10** — Marketplace browse + purchase + drip progress + admin supply approval (11 click tests; cadence unlock cron is backend) — needs paid plan + Stripe test card; team purchase needs Coach Advanced+; E10-T9–T11 need Admin + `review-marketplace-package`
 13. **Epic 11** — Objectives + package suggestions + LLM re-rank + RAG: coach set goals, player rings, Store/Objectives suggestions (7 click tests; RAG is backend-only) — needs Coach Pro + Player Pro, roster, Edge Functions + synced packages + `MISTRAL_API_KEY` for live re-rank/embeddings
-14. **Epic 12 Admin** — Users + subscriptions + content/marketplace ops + onboarding config + team oversight (optional, needs admin login) (17 tests)
+14. **Epic 12 Admin** — Users + subscriptions + content/marketplace ops + Monitor + onboarding config + team oversight (optional, needs admin login) (22 tests)
 
 **Estimated time:** 4–6 hours for a full first pass, longer if you hit payment sync delays.
 
@@ -1464,11 +1464,11 @@ Player must be on **Advanced+** (or trial) and belong to at least one team.
 
 ---
 
-## Epic 12 — Admin Dashboard: Users, Subscriptions, Content & Teams (STORY-12.1, STORY-12.2, STORY-12.3, STORY-12.5)
+## Epic 12 — Admin Dashboard: Users, Subscriptions, Content, Monitor & Teams (STORY-12.1–STORY-12.5)
 
-*Admin website only, plus mobile steps for E12-T3 and E12-T10. Skip this section if you were not given an Admin account or dashboard URL.*
+*Admin website only, plus mobile steps for E12-T3, E12-T10, and E12-T19. Skip this section if you were not given an Admin account or dashboard URL.*
 
-**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics. For Content tests (E12-T13–T17): a coach-submitted package in **pending_review** (same setup as E10-T9), plus at least one published package for unpublish. For team tests (E12-T11–T12): at least one existing team from Epic 3, plus a coach account email you can assign. For E12-T10: a Coach or Player who has **not** finished first-time onboarding yet (fresh signup), or ask the team to reset onboarding on a test account.
+**Accounts needed:** Admin account + Admin dashboard URL. A second, non-admin test account (any role) that you can safely edit, suspend, and change subscription tier — ask the team for one, or use a throwaway account you created in earlier epics. For Content tests (E12-T13–T17): a coach-submitted package in **pending_review** (same setup as E10-T9), plus at least one published package for unpublish. For team tests (E12-T11–T12): at least one existing team from Epic 3, plus a coach account email you can assign. For E12-T10: a Coach or Player who has **not** finished first-time onboarding yet (fresh signup), or ask the team to reset onboarding on a test account. For Monitor chat moderation (E12-T19): a channel with at least one message (send a message from mobile first if needed).
 
 ### E12-T1: Admin can search the user list (STORY-12.1 AC-1)
 
@@ -1620,6 +1620,48 @@ Needs a team and a coach account email that exists in the system.
 |---|---|---|
 | 1 | On **Content**, tap **Open Sanity Studio**. | Browser address shows `/admin/studio`; Studio loads for content authoring. |
 
+### E12-T18: Monitor shows DAU, revenue, completion, and onboarding funnel (STORY-12.4 AC-1)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | Navigate to **Monitor** in the Admin sidebar. | Page titled **Monitor**. Metric cards for **DAU**, **Revenue**, **Content completion**, and **First drill**. |
+| 2 | Scroll to **Onboarding funnel**. | Four stages (Signed up → Profile completed → Onboarding completed → First drill completed) with counts and conversion percentages. |
+| 3 | Check **Content completion** badges. | Session, drip, and first-drill counts (may be **0** on a fresh environment — still real numbers, not an error). |
+
+### E12-T19: Admin hides a chat message (STORY-12.4 AC-2)
+
+Needs at least one chat channel with a message. Send a short test message from mobile first if the list is empty.
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Monitor**, find **Chat moderation**. | Channel cards (team / DM). |
+| 2 | Tap a channel that has messages. | **Channel messages** list appears with sender and body text. |
+| 3 | Optionally type a hide reason, then tap **Hide** on a message. | Message shows a **Hidden** badge; body reads **[Message removed by moderator]**. |
+| 4 | On mobile, open the same chat as a member (not admin). | The hidden message no longer appears in the conversation. |
+| 5 | **Cleanup:** In Admin, tap **Restore** on that message. | Badge clears; mobile members see the original body again after refresh. |
+
+### E12-T20: Admin configures AI recommendation parameters (STORY-12.4 AC-3)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Monitor**, find **AI recommendation parameters**. | Fields for **LLM top K**, **Candidate pool**, **RAG top K**, and **Enable LLM re-rank**. |
+| 2 | Change **RAG top K** within **5–10** (e.g. to **7**) and tap **Save AI config**. | Message like **AI recommendation config saved.** Refresh — value stays **7**. |
+| 3 | **Cleanup:** Restore previous values (defaults are often **3** / **8** / **8** with re-rank on) and save. | Prior config restored. |
+
+### E12-T21: Export revenue and usage CSV (STORY-12.4 AC-4)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Monitor**, tap **Export revenue CSV**. | Browser downloads `revenue-report.csv` (or similar). Open it — rows for paid revenue and invoice count. |
+| 2 | Tap **Export usage CSV**. | Downloads `usage-report.csv` with date / DAU / completion columns. |
+
+### E12-T22: App health indicators on Monitor (STORY-12.4 AC-5)
+
+| Step | Do this | You should see |
+|---|---|---|
+| 1 | On **Monitor**, scroll to **App health**. | Status (**Healthy** / **Degraded** / **Critical**) plus counts for **API errors**, **Webhook failures**, and **RAG job failures**. |
+| 2 | If counts are all zero. | Status is **Healthy** — still a real health panel, not a blank page. |
+
 ### Not testable by clicking (for awareness only)
 
 - **Server-side enforcement** — role/suspension changes are also blocked at the database level for non-admins (Postgres trigger). You cannot verify this without developer tools; do not mark mobile PASS/FAIL based on it.
@@ -1627,6 +1669,8 @@ Needs a team and a coach account email that exists in the system.
 - **New trial activations use the saved duration** — After E12-T5, a brand-new mobile trial uses the configured day count; verifying exact end dates needs a fresh unused-trial account.
 - **Mandatory-step skip blocking on mobile** — Admin can mark steps mandatory; whether the mobile wizard hard-blocks **Skip for now** on those steps may still follow the older skip path. Confirm with the team if you see skip still working on a mandatory step.
 - **Drip init using global tier rules** — When a package has no coach drip schedule, purchase seeding uses admin global intervals; verifying unlock dates needs backend/time travel, not a click path.
+- **Derived DAU math** — Daily active users are counted from chat, completions, and session activity that day; verifying exact SQL unions needs a developer query, not a click path.
+- **Webhook failure recording** — Health events are written when Sanity/Stripe webhooks fail; forcing a real failure needs a broken secret or DB fault.
 
 ---
 
@@ -1771,6 +1815,11 @@ Print this page and check off results as you go.
 | E12-T15 Admin unpublish marketplace package | | |
 | E12-T16 Admin global drip rules per tier | | |
 | E12-T17 Content links to Sanity Studio | | |
+| E12-T18 Monitor DAU / revenue / funnel | | |
+| E12-T19 Admin hide chat message | | |
+| E12-T20 Admin AI recommendation config | | |
+| E12-T21 Export revenue and usage CSV | | |
+| E12-T22 Monitor app health indicators | | |
 
 **Tester name:** ______________________ **Date completed:** ______________________
 

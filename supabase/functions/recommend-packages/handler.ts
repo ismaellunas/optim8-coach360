@@ -92,6 +92,21 @@ export const RAG_TOP_K_MIN = 5;
 export const RAG_TOP_K_MAX = 10;
 export const RAG_TOP_K_DEFAULT = 8;
 
+/** STORY-12.4 — admin-configurable AI recommendation parameters. */
+export type AiRecommendationConfig = {
+  llmTopK: number;
+  candidatePool: number;
+  ragTopK: number;
+  llmRerankEnabled: boolean;
+};
+
+export const DEFAULT_AI_RECOMMENDATION_CONFIG: AiRecommendationConfig = {
+  llmTopK: LLM_TOP_K,
+  candidatePool: LLM_CANDIDATE_POOL,
+  ragTopK: RAG_TOP_K_DEFAULT,
+  llmRerankEnabled: true,
+};
+
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];
 const DEFAULT_MIN_TIER: SubscriptionTier = 'basic';
 const TOP_K = 3;
@@ -426,6 +441,48 @@ export function clampRagTopK(requested?: number | null): number {
   if (n < RAG_TOP_K_MIN) return RAG_TOP_K_MIN;
   if (n > RAG_TOP_K_MAX) return RAG_TOP_K_MAX;
   return n;
+}
+
+function asConfigInt(value: unknown, fallback: number): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.trunc(value);
+  if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) {
+    return Math.trunc(Number(value));
+  }
+  return fallback;
+}
+
+function clampPositive(n: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, n));
+}
+
+/** Deno-safe mirror of packages/domain parseAiRecommendationConfig (STORY-12.4). */
+export function parseAiRecommendationConfig(raw: unknown): AiRecommendationConfig {
+  if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return { ...DEFAULT_AI_RECOMMENDATION_CONFIG };
+  }
+  const row = raw as Record<string, unknown>;
+  const llmTopK = clampPositive(
+    asConfigInt(row.llmTopK ?? row.llm_top_k, DEFAULT_AI_RECOMMENDATION_CONFIG.llmTopK),
+    1,
+    20,
+  );
+  let candidatePool = clampPositive(
+    asConfigInt(
+      row.candidatePool ?? row.candidate_pool,
+      DEFAULT_AI_RECOMMENDATION_CONFIG.candidatePool,
+    ),
+    1,
+    50,
+  );
+  if (candidatePool < llmTopK) candidatePool = llmTopK;
+  const ragTopK = clampRagTopK(
+    asConfigInt(row.ragTopK ?? row.rag_top_k, DEFAULT_AI_RECOMMENDATION_CONFIG.ragTopK),
+  );
+  const llmRerankEnabled =
+    typeof (row.llmRerankEnabled ?? row.llm_rerank_enabled) === 'boolean'
+      ? Boolean(row.llmRerankEnabled ?? row.llm_rerank_enabled)
+      : DEFAULT_AI_RECOMMENDATION_CONFIG.llmRerankEnabled;
+  return { llmTopK, candidatePool, ragTopK, llmRerankEnabled };
 }
 
 /** Build query text embedded for pgvector similarity search. */
