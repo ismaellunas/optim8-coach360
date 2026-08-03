@@ -62,6 +62,11 @@ export function CoachProgressReviewScreen({
     ? featureAccessLevel(user.role, user.tier, 'viewProgress')
     : 'none';
   const features = coachProgressFeaturesForAccess(accessLevel);
+  const aiAccessLevel = user
+    ? featureAccessLevel(user.role, user.tier, 'ai')
+    : 'none';
+  const canViewAiInsights =
+    COACH_AI_PERFORMANCE_INSIGHTS_ENABLED && aiAccessLevel === 'full';
   const peerEngagementAllowed = user
     ? canViewPeerEngagement(user.role, user.tier)
     : false;
@@ -263,10 +268,19 @@ export function CoachProgressReviewScreen({
         </Card>
       </div>
 
-      {COACH_AI_PERFORMANCE_INSIGHTS_ENABLED && !features.canViewAiInsights ? (
+      {COACH_AI_PERFORMANCE_INSIGHTS_ENABLED && !canViewAiInsights ? (
         <Card className="mb-3 border border-coach-purple/20 bg-coach-purple/5" data-testid="coach-progress-ai-locked">
           <div className="font-body text-[13px] font-semibold text-coach-t1">AI performance insights</div>
           <div className="font-body text-xs text-coach-t2">Upgrade to Pro for AI-driven player insights.</div>
+        </Card>
+      ) : null}
+
+      {canViewAiInsights ? (
+        <Card className="mb-3 border border-coach-orange/20 bg-coach-orange-glow/40" data-testid="coach-progress-ai-insights">
+          <div className="font-body text-[13px] font-semibold text-coach-t1">AI performance insights</div>
+          <div className="font-body text-xs text-coach-t2">
+            3 players in U14 haven't logged drills this week. Focus feedback on recent drop-offs.
+          </div>
         </Card>
       ) : null}
 

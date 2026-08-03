@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import {
+  PUBLISHED_LIST_GROQ,
   REVIEW_QUEUE_GROQ,
   buildSanityPatchMutation,
   planMarketplacePackageReview,
@@ -140,15 +141,15 @@ Deno.serve(async (request) => {
     return jsonResponse({ error: 'invalid_json' }, 400);
   }
 
-  // List review queue
-  if (body.action === 'list') {
+  // List review queue or published packages (live Sanity; E10-T9 / E12-T14 / E12-T15)
+  if (body.action === 'list' || body.action === 'list_published') {
     try {
       const result = await sanityQuery({
         projectId,
         dataset,
         token: sanityToken,
         apiVersion,
-        query: REVIEW_QUEUE_GROQ,
+        query: body.action === 'list_published' ? PUBLISHED_LIST_GROQ : REVIEW_QUEUE_GROQ,
       });
       const items = Array.isArray(result) ? result : [];
       return jsonResponse({ items }, 200);
@@ -236,9 +237,11 @@ Deno.serve(async (request) => {
     );
   }
 
-  // Optimistic mirror of workflow fields (webhook corrects full document sync)
+  // Optimistic mirror of workflow fields (webhook corrects full document sync).
+  // Surface errors — silent ignore left Published/review lists stale (E12-T14/T15).
+  let metadataSyncError: string | null = null;
   if (metaRow) {
-    await admin
+    const { error: metaError } = await admin
       .from('package_metadata')
       .update({
         workflow_status: plan.metadata.workflow_status,
@@ -251,8 +254,9 @@ Deno.serve(async (request) => {
         updated_at: new Date().toISOString(),
       })
       .eq('sanity_document_id', plan.sanityDocumentId);
+    if (metaError) metadataSyncError = metaError.message;
   } else {
-    await admin.from('package_metadata').upsert(
+    const { error: metaError } = await admin.from('package_metadata').upsert(
       {
         sanity_document_id: plan.sanityDocumentId,
         title: plan.sanityDocumentId,
@@ -265,6 +269,21 @@ Deno.serve(async (request) => {
         synced_at: new Date().toISOString(),
       },
       { onConflict: 'sanity_document_id' },
+    );
+    if (metaError) metadataSyncError = metaError.message;
+  }
+
+  if (metadataSyncError) {
+    return jsonResponse(
+      {
+        error: `package_metadata_sync_failed:${metadataSyncError}`,
+        hint: 'Sanity was updated; refresh lists or re-sync via webhook',
+        sanityDocumentId: plan.sanityDocumentId,
+        action: plan.action,
+        workflowStatus: plan.metadata.workflow_status,
+        published: plan.metadata.published,
+      },
+      500,
     );
   }
 

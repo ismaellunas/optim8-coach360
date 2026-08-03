@@ -166,33 +166,33 @@ export function createRepositories(options: CreateRepositoriesOptions): Reposito
     clientAuthOptions.storage = options.supabaseClientAuth.storage;
   }
 
-  const adminClient = createSupabaseClient(options.supabase, clientAuthOptions);
-  const appClient = createSupabaseClient(options.supabase, clientAuthOptions);
+  // One client for auth + data so sign-in session is shared with RPCs (e.g. set_trial_warning_days).
+  const client = createSupabaseClient(options.supabase, clientAuthOptions);
 
   return {
-    auth: new SupabaseAuthRepository(adminClient),
-    appAuth: new SupabaseAppAuthRepository(appClient),
-    users: new SupabaseUserRepository(appClient),
-    profiles: new SupabaseProfileRepository(appClient),
-    teams: new SupabaseTeamRepository(appClient),
-    rosters: new SupabaseRosterRepository(appClient),
-    onboardingConfig: new SupabaseOnboardingConfigRepository(appClient),
-    subscriptions: new SupabaseSubscriptionRepository(appClient),
-    billing: new SupabaseBillingRepository(appClient),
-    content: new SupabaseContentRepository(appClient),
-    library: new SupabaseLibraryRepository(appClient),
-    contentAssignments: new SupabaseContentAssignmentRepository(appClient),
+    auth: new SupabaseAuthRepository(client),
+    appAuth: new SupabaseAppAuthRepository(client),
+    users: new SupabaseUserRepository(client),
+    profiles: new SupabaseProfileRepository(client),
+    teams: new SupabaseTeamRepository(client),
+    rosters: new SupabaseRosterRepository(client),
+    onboardingConfig: new SupabaseOnboardingConfigRepository(client),
+    subscriptions: new SupabaseSubscriptionRepository(client),
+    billing: new SupabaseBillingRepository(client),
+    content: new SupabaseContentRepository(client),
+    library: new SupabaseLibraryRepository(client),
+    contentAssignments: new SupabaseContentAssignmentRepository(client),
     analytics: new ConsoleAnalyticsRepository(),
     notifications: new ConsoleNotificationRepository(),
-    sessions: new SupabaseSessionRepository(appClient),
-    sessionContent: new SupabaseSessionContentRepository(appClient),
-    messaging: new SupabaseMessagingRepository(appClient),
+    sessions: new SupabaseSessionRepository(client),
+    sessionContent: new SupabaseSessionContentRepository(client),
+    messaging: new SupabaseMessagingRepository(client),
     marketplaceCatalog: createMarketplaceCatalog(options.sanity),
-    marketplacePurchases: new SupabaseMarketplacePurchaseRepository(appClient),
-    marketplaceDrip: new SupabaseMarketplaceDripRepository(appClient),
-    objectives: new SupabaseObjectivesRepository(appClient),
-    packageRecommendations: new SupabasePackageRecommendationsRepository(appClient),
-    monitor: new SupabaseMonitorRepository(appClient),
+    marketplacePurchases: new SupabaseMarketplacePurchaseRepository(client),
+    marketplaceDrip: new SupabaseMarketplaceDripRepository(client),
+    objectives: new SupabaseObjectivesRepository(client),
+    packageRecommendations: new SupabasePackageRecommendationsRepository(client),
+    monitor: new SupabaseMonitorRepository(client),
   };
 }
 

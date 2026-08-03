@@ -67,6 +67,10 @@ export function ProgressScreen({ user, tryA }) {
     ? featureAccessLevel(user.role, user.tier, 'viewProgress')
     : 'none';
   const features = playerProgressFeaturesForAccess(accessLevel);
+  const aiAccessLevel = user
+    ? featureAccessLevel(user.role, user.tier, 'ai')
+    : 'none';
+  const canViewAiInsights = aiAccessLevel === 'full';
   const peerShareAllowed = user
     ? canSharePeerKnowledge(user.role, user.tier)
     : false;
@@ -139,6 +143,14 @@ export function ProgressScreen({ user, tryA }) {
       <ScreenContainer>
         <PageHeader title="MY PROGRESS" user={user} />
         {shareActions}
+        {canViewAiInsights ? (
+          <Card className="mb-4 border border-coach-orange/20 bg-coach-orange-glow/40" data-testid="progress-ai-insights">
+            <div className="font-body text-[13px] font-semibold text-coach-t1">AI Insights</div>
+            <div className="font-body text-xs text-coach-t2">
+              Your shooting accuracy improved 12% this week. Keep logging drills to refine tips.
+            </div>
+          </Card>
+        ) : null}
         <div
           className="rounded-xl border border-coach-border bg-coach-card px-4 py-8 text-center"
           data-testid="progress-tier-locked"
@@ -184,6 +196,15 @@ export function ProgressScreen({ user, tryA }) {
       <PageHeader title="MY PROGRESS" user={user} />
 
       {shareActions}
+
+      {canViewAiInsights ? (
+        <Card className="mb-4 border border-coach-orange/20 bg-coach-orange-glow/40" data-testid="progress-ai-insights">
+          <div className="font-body text-[13px] font-semibold text-coach-t1">AI Insights</div>
+          <div className="font-body text-xs text-coach-t2">
+            Your shooting accuracy improved 12% this week. Keep logging drills to refine tips.
+          </div>
+        </Card>
+      ) : null}
 
       {accessLevel === 'readonly' ? (
         <Card

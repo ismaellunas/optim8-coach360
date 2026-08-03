@@ -31,8 +31,8 @@ export function useSetTrialWarningDaysMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (days: number) => repos.subscriptions.setTrialWarningDays(days),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: trialWarningDaysQueryKey });
+    onSuccess: (days) => {
+      queryClient.setQueryData(trialWarningDaysQueryKey, days);
     },
   });
 }

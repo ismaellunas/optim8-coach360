@@ -23,6 +23,48 @@ async function recordWebhookFailure(
   }
 }
 
+/**
+ * Resolve profile_id for invoice events when Stripe invoice metadata lacks it
+ * (Checkout does not set invoice metadata.profile_id). Prefer subscription id,
+ * then customer id — same pattern as mark_subscription_past_due_by_customer.
+ */
+async function resolveInvoiceProfileId(
+  supabase: ReturnType<typeof createClient>,
+  opts: {
+    profileId: string | null;
+    stripeSubscriptionId: string | null;
+    stripeCustomerId: string | null;
+  },
+): Promise<string | null> {
+  if (opts.profileId) {
+    return opts.profileId;
+  }
+
+  if (opts.stripeSubscriptionId) {
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('profile_id')
+      .eq('stripe_subscription_id', opts.stripeSubscriptionId)
+      .maybeSingle();
+    if (data?.profile_id) {
+      return data.profile_id as string;
+    }
+  }
+
+  if (opts.stripeCustomerId) {
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('profile_id')
+      .eq('stripe_customer_id', opts.stripeCustomerId)
+      .maybeSingle();
+    if (data?.profile_id) {
+      return data.profile_id as string;
+    }
+  }
+
+  return null;
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -122,8 +164,21 @@ Deno.serve(async (request) => {
   }
 
   if (result.kind === 'invoice_upsert') {
+    const profileId = await resolveInvoiceProfileId(supabase, {
+      profileId: result.profileId,
+      stripeSubscriptionId: result.stripeSubscriptionId,
+      stripeCustomerId: result.stripeCustomerId,
+    });
+
+    if (!profileId) {
+      return new Response(JSON.stringify({ received: true, skipped: 'missing_profile_id' }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { error } = await supabase.rpc('sync_billing_invoice_from_stripe', {
-      p_profile_id: result.invoice.profile_id,
+      p_profile_id: profileId,
       p_stripe_invoice_id: result.invoice.stripe_invoice_id,
       p_amount_cents: result.invoice.amount_cents,
       p_currency: result.invoice.currency,

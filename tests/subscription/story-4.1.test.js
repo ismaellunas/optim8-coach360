@@ -214,6 +214,33 @@ describe('STORY_4_1 AC2 — webhook updates subscription tier and status', () =>
     expect(result.upsert.status).toBe('active');
     expect(result.upsert.stripe_subscription_id).toBe('sub_story_4_1_ac2');
     expect(result.upsert.stripe_customer_id).toBe('cus_story_4_1_ac2');
+
+    // Subscription Checkout also syncs (does not return ignored_checkout_kind).
+    const checkoutSync = handleStripeWebhookEvent({
+      id: 'evt_story_4_1_ac2_checkout',
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_story_4_1_ac2',
+          mode: 'subscription',
+          payment_status: 'paid',
+          customer: 'cus_story_4_1_ac2',
+          subscription: 'sub_story_4_1_ac2',
+          metadata: {
+            profile_id: profileId,
+            tier: 'pro',
+          },
+        },
+      },
+    });
+    expect(checkoutSync.handled).toBe(true);
+    if (!checkoutSync.handled || checkoutSync.kind !== 'subscription_upsert') {
+      throw new Error('expected subscription_upsert from subscription checkout');
+    }
+    expect(checkoutSync.upsert.profile_id).toBe(profileId);
+    expect(checkoutSync.upsert.tier).toBe('pro');
+    expect(checkoutSync.upsert.status).toBe('active');
+    expect(checkoutSync.upsert.stripe_subscription_id).toBe('sub_story_4_1_ac2');
   });
 });
 
@@ -339,6 +366,7 @@ describe('STORY_4_1 AC4 — billing history viewable at Basic+', () => {
 
     expect(canViewBillingHistory(null)).toBe(false);
 
+    const profileId = '00000000-0000-4000-8000-000000000054';
     const invoiceResult = handleStripeWebhookEvent({
       id: 'evt_story_4_1_ac4_invoice',
       type: 'invoice.paid',
@@ -355,7 +383,7 @@ describe('STORY_4_1 AC4 — billing history viewable at Basic+', () => {
           period_end: 1_702_592_000,
           status_transitions: { paid_at: 1_700_000_100 },
           metadata: {
-            profile_id: '00000000-0000-4000-8000-000000000054',
+            profile_id: profileId,
           },
         },
       },
@@ -365,8 +393,57 @@ describe('STORY_4_1 AC4 — billing history viewable at Basic+', () => {
     if (!invoiceResult.handled || invoiceResult.kind !== 'invoice_upsert') {
       throw new Error('expected invoice_upsert webhook result');
     }
+    expect(invoiceResult.profileId).toBe(profileId);
     expect(invoiceResult.invoice.amount_cents).toBe(2900);
     expect(invoiceResult.invoice.status).toBe('paid');
     expect(invoiceResult.invoice.stripe_invoice_id).toBe('in_story_4_1_paid');
+
+    // Checkout invoices lack metadata.profile_id — still handled with lookup keys for index.
+    const noMetaInvoice = handleStripeWebhookEvent({
+      id: 'evt_story_4_1_ac4_invoice_no_meta',
+      type: 'invoice.paid',
+      data: {
+        object: {
+          id: 'in_story_4_1_no_meta',
+          customer: 'cus_story_4_1',
+          subscription: 'sub_story_4_1',
+          amount_paid: 4900,
+          currency: 'usd',
+          status: 'paid',
+        },
+      },
+    });
+    expect(noMetaInvoice.handled).toBe(true);
+    if (!noMetaInvoice.handled || noMetaInvoice.kind !== 'invoice_upsert') {
+      throw new Error('expected invoice_upsert when profile_id missing but customer/sub present');
+    }
+    expect(noMetaInvoice.profileId).toBeNull();
+    expect(noMetaInvoice.stripeCustomerId).toBe('cus_story_4_1');
+    expect(noMetaInvoice.stripeSubscriptionId).toBe('sub_story_4_1');
+    expect(noMetaInvoice.invoice.stripe_invoice_id).toBe('in_story_4_1_no_meta');
+
+    const indexSrc = readFileSync(WEBHOOK_INDEX_PATH, 'utf8');
+    expect(indexSrc).toMatch(/resolveInvoiceProfileId/);
+    expect(indexSrc).toMatch(/stripe_subscription_id/);
+    expect(indexSrc).toMatch(/stripe_customer_id/);
+    expect(indexSrc).toMatch(/sync_billing_invoice_from_stripe/);
+
+    const missingAll = handleStripeWebhookEvent({
+      id: 'evt_story_4_1_ac4_invoice_orphan',
+      type: 'invoice.finalized',
+      data: {
+        object: {
+          id: 'in_orphan',
+          customer: null,
+          subscription: null,
+          status: 'open',
+        },
+      },
+    });
+    expect(missingAll.handled).toBe(false);
+    if (missingAll.handled) {
+      throw new Error('expected skip when no profile/customer/subscription');
+    }
+    expect(missingAll.reason).toBe('missing_profile_id');
   });
 });

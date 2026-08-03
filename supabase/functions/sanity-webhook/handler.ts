@@ -158,9 +158,22 @@ export function mapSanityWebhookPayload(
     return { kind: 'skip', reason: 'missing_id' };
   }
 
+  // Include workflow + pricing fields so draft→pending_review (same title/pub-bit)
+  // is not skipped as a duplicate (E10-T9 / E12-T14).
   const idempotencyKey =
     options?.idempotencyKey?.trim() ||
-    `sanity:${metadata.sanity_document_id}:${metadata.published ? 'pub' : 'unpub'}:${metadata.title}`;
+    [
+      'sanity',
+      metadata.sanity_document_id,
+      metadata.published ? 'pub' : 'unpub',
+      metadata.title,
+      metadata.workflow_status ?? '',
+      metadata.suggested_price_cents ?? '',
+      metadata.price_cents ?? '',
+      metadata.currency ?? '',
+      metadata.created_by_role ?? '',
+      metadata.rejection_reason ?? '',
+    ].join(':');
 
   if (!metadata.published) {
     return {

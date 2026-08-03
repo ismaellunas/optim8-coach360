@@ -49,16 +49,24 @@ describe('STORY_12_3 AC1 — pending review queue lists coach-submitted packages
     const supabase = read(SUPABASE_PATH);
     expect(supabase).toMatch(/pending_review/);
     expect(supabase).toMatch(/created_by_role/);
+    // Live Sanity list via edge function (E10-T9 / E12-T14); metadata is fallback.
+    expect(supabase).toMatch(/listFromSanity/);
+    expect(supabase).toMatch(/body:\s*\{\s*action\s*\}/);
+    expect(supabase).toMatch(/'list'/);
+    expect(supabase).toMatch(/list_published/);
 
     const page = read(CONTENT_PAGE);
     expect(page).toMatch(/marketplace-review-queue/);
     expect(page).toMatch(/listMarketplaceReviewQueue/);
     expect(page).toMatch(/Package review queue/);
     expect(page).toMatch(/createdByRole/);
+    expect(page).toMatch(/Pending review/);
+    expect(page).toMatch(/SANITY_API_TOKEN/);
 
     const handler = read(REVIEW_HANDLER);
     expect(handler).toMatch(/pending_review/);
     expect(handler).toMatch(/createdByRole/);
+    expect(handler).toMatch(/PUBLISHED_LIST_GROQ/);
   });
 });
 

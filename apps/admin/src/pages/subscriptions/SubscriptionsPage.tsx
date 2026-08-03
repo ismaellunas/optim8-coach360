@@ -115,6 +115,7 @@ export function SubscriptionsPage() {
   const [draftWarningDays, setDraftWarningDays] = useState('');
   const [draftDurationDays, setDraftDurationDays] = useState('');
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [warningSaveError, setWarningSaveError] = useState<string | null>(null);
 
   const currentWarningDays = warningQuery.data ?? DEFAULT_TRIAL_WARNING_DAYS_BEFORE;
   const currentDurationDays = durationQuery.data ?? TRIAL_DURATION_DAYS;
@@ -231,10 +232,13 @@ export function SubscriptionsPage() {
             disabled={saveWarning.isPending}
             onClick={() => {
               const next = Number(draftWarningDays === '' ? currentWarningDays : draftWarningDays);
-              setSaveError(null);
+              setWarningSaveError(null);
               saveWarning.mutate(next, {
+                onSuccess: () => {
+                  setDraftWarningDays('');
+                },
                 onError: (cause: unknown) => {
-                  setSaveError(cause instanceof Error ? cause.message : 'save_failed');
+                  setWarningSaveError(cause instanceof Error ? cause.message : 'save_failed');
                 },
               });
             }}
@@ -244,6 +248,11 @@ export function SubscriptionsPage() {
         </div>
         {warningQuery.isLoading ? (
           <p className="mt-2 font-body text-xs text-coach-t3">Loading setting…</p>
+        ) : null}
+        {warningSaveError ? (
+          <p className="mt-2 font-body text-xs text-coach-red" role="alert">
+            {warningSaveError}
+          </p>
         ) : null}
       </Card>
 

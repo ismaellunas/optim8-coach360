@@ -70,6 +70,37 @@ function mapReviewItem(row: MetaRow): MarketplaceReviewItem {
   };
 }
 
+type SanityListRow = {
+  _id?: string;
+  title?: string;
+  status?: string | null;
+  published?: boolean | null;
+  stripePriceId?: string | null;
+  suggestedPriceCents?: number | null;
+  priceCents?: number | null;
+  currency?: string | null;
+  createdByRole?: string | null;
+  rejectionReason?: string | null;
+};
+
+function mapSanityListItem(row: SanityListRow): MarketplaceReviewItem | null {
+  const id = typeof row._id === 'string' ? row._id.trim() : '';
+  if (!id) return null;
+  return {
+    id,
+    title: (typeof row.title === 'string' && row.title.trim()) || 'Untitled package',
+    workflowStatus: (row.status as WorkflowStatus | null) ?? null,
+    published: Boolean(row.published),
+    stripePriceId: typeof row.stripePriceId === 'string' ? row.stripePriceId : null,
+    suggestedPriceCents:
+      typeof row.suggestedPriceCents === 'number' ? row.suggestedPriceCents : null,
+    priceCents: typeof row.priceCents === 'number' ? row.priceCents : null,
+    currency: typeof row.currency === 'string' ? row.currency : null,
+    createdByRole: typeof row.createdByRole === 'string' ? row.createdByRole : null,
+    rejectionReason: typeof row.rejectionReason === 'string' ? row.rejectionReason : null,
+  };
+}
+
 function mapActionResult(payload: Record<string, unknown>): MarketplaceReviewActionResult {
   return {
     ok: true,
@@ -191,6 +222,37 @@ export class SupabaseContentRepository implements ContentRepository {
   }
 
   async listMarketplaceReviewQueue(): Promise<MarketplaceReviewItem[]> {
+    const live = await this.listFromSanity('list');
+    if (live) return live;
+    return this.listMarketplaceReviewQueueFromMetadata();
+  }
+
+  async listPublishedMarketplacePackages(): Promise<MarketplaceReviewItem[]> {
+    const live = await this.listFromSanity('list_published');
+    if (live) return live;
+    return this.listPublishedMarketplacePackagesFromMetadata();
+  }
+
+  /** Prefer live Sanity via review-marketplace-package; null = fall back to metadata. */
+  private async listFromSanity(
+    action: 'list' | 'list_published',
+  ): Promise<MarketplaceReviewItem[] | null> {
+    try {
+      const { data, error } = await this.client.functions.invoke('review-marketplace-package', {
+        body: { action },
+      });
+      if (error) return null;
+      const payload = data as { items?: SanityListRow[]; error?: string } | null;
+      if (!payload || payload.error || !Array.isArray(payload.items)) return null;
+      return payload.items
+        .map(mapSanityListItem)
+        .filter((item): item is MarketplaceReviewItem => item != null);
+    } catch {
+      return null;
+    }
+  }
+
+  private async listMarketplaceReviewQueueFromMetadata(): Promise<MarketplaceReviewItem[]> {
     const { data, error } = await this.client
       .from('package_metadata')
       .select(META_SELECT)
@@ -204,7 +266,7 @@ export class SupabaseContentRepository implements ContentRepository {
     return ((data ?? []) as MetaRow[]).map(mapReviewItem);
   }
 
-  async listPublishedMarketplacePackages(): Promise<MarketplaceReviewItem[]> {
+  private async listPublishedMarketplacePackagesFromMetadata(): Promise<MarketplaceReviewItem[]> {
     const { data, error } = await this.client
       .from('package_metadata')
       .select(META_SELECT)
