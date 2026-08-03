@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-26T16:57:05.749Z",
+  "generated": "2026-08-03T07:15:58.302Z",
   "root": "docs",
   "tree": [
     {
@@ -116,6 +116,11 @@
           "path": "prototype/README.md"
         }
       ]
+    },
+    {
+      "type": "file",
+      "name": "bug-investigations.md",
+      "path": "bug-investigations.md"
     },
     {
       "type": "file",

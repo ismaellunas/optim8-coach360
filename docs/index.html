@@ -18,6 +18,8 @@
       --in-review: #a371f7;
       --done: #3fb950;
       --blocked: #f85149;
+      --bug-bg: #3d1214;
+      --bug-border: #da3633;
       --warning-bg: #3d2e00;
       --warning-border: #9e6a03;
       --radius: 8px;
@@ -140,6 +142,75 @@
       margin-right: 0.35rem;
       vertical-align: middle;
     }
+    .bugs {
+      background: var(--bug-bg);
+      border: 1px solid var(--bug-border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .bugs h2 {
+      font-size: 0.9375rem;
+      color: var(--blocked);
+      margin-bottom: 0.35rem;
+    }
+    .bugs .subtitle {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .bugs table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+    }
+    .bugs th, .bugs td {
+      text-align: left;
+      padding: 0.5rem 0.6rem;
+      border-bottom: 1px solid rgba(218, 54, 51, 0.35);
+      vertical-align: top;
+    }
+    .bugs th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .bugs tr:last-child td { border-bottom: none; }
+    .bugs .bug-id {
+      font-family: var(--mono);
+      color: var(--blocked);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .bugs .bug-status {
+      font-family: var(--mono);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      padding: 0.125rem 0.4rem;
+      border-radius: 999px;
+      border: 1px solid;
+      white-space: nowrap;
+    }
+    .bugs .bug-status.OPEN {
+      color: var(--blocked);
+      border-color: var(--bug-border);
+      background: rgba(248, 81, 73, 0.15);
+    }
+    .bugs .bug-status.RESOLVED {
+      color: var(--done);
+      border-color: #238636;
+      background: rgba(63, 185, 80, 0.12);
+    }
+    .bugs .bug-title { font-weight: 600; margin-bottom: 0.2rem; }
+    .bugs .bug-notes { color: var(--muted); font-size: 0.75rem; }
+    .bugs .ref {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .bugs.hidden, .open-questions.hidden { display: none; }
     .open-questions {
       background: var(--warning-bg);
       border: 1px solid var(--warning-border);
@@ -341,6 +412,7 @@
     <div class="progress-wrap" id="progress"></div>
   </header>
   <main>
+    <section class="bugs" id="bugs"></section>
     <section class="burndown" id="burndown"></section>
     <section class="open-questions" id="open-questions"></section>
     <div class="filters" id="filters"></div>
@@ -354,7 +426,7 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-07-27",
+  "last_generated": "2026-08-03",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
@@ -362,9 +434,152 @@
     "App UI in src/App.jsx; backend SaaS per docs/architecture/tech-stack.md (Supabase, Sanity, Stripe, etc.).",
     "OQ-2.1 / OQ-2.3 resolved 2026-07-23: Basic progress = log + completion count; Advanced = full coaching tools without AI; Pro = +AI/objectives/full analytics; ○ = higher tier.",
     "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+).",
-    "OQ-2.2 resolved 2026-07-24: Pro Full MVP access = Advanced + AI + objectives + full analytics; unblocks STORY-11.3. Also OQ-6.2 Mistral; OQ-6.6 why-UI not required MVP; OQ-6.7 listed context/PII allowed to provider; STORY-11.3 MVP scope = LLM re-rank only (no AI chat Q&A)."
+    "OQ-2.2 resolved 2026-07-24: Pro Full MVP access = Advanced + AI + objectives + full analytics; unblocks STORY-11.3. Also OQ-6.2 Mistral; OQ-6.6 why-UI not required MVP; OQ-6.7 listed context/PII allowed to provider; STORY-11.3 MVP scope = LLM re-rank only (no AI chat Q&A).",
+    "Manual QA bugs 2026-08-03: recorded FAIL outcomes from docs/Coach 360 - Testing.xlsx with notes from docs/Coach 360 - Testing.docx; bugs panel is the first view on docs/index.html."
   ],
   "open_questions": [],
+  "bugs": [
+    {
+      "id": "BUG-E3-T1",
+      "test_id": "E3-T1",
+      "title": "Team Manager creates a team — logo missing on edit",
+      "notes": "No logo appears when editing a team with a logo.",
+      "status": "RESOLVED",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-3.1"]
+    },
+    {
+      "id": "BUG-E4-T4",
+      "test_id": "E4-T4",
+      "title": "Basic paywall doors — unable to upgrade to Pro",
+      "notes": "NOT ABLE UPGRADE TO PRO. Tester could not complete Basic paywall / upgrade path.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-4.1", "STORY-4.2"]
+    },
+    {
+      "id": "BUG-E4-T6",
+      "test_id": "E4-T6",
+      "title": "Stripe upgrade to Advanced failed",
+      "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Test-card checkout did not leave the account on Advanced.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-4.1", "STORY-4.2"]
+    },
+    {
+      "id": "BUG-E4-T7",
+      "test_id": "E4-T7",
+      "title": "Billing history blocked by failed Advanced upgrade",
+      "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Dependent on E4-T6 — no paid invoice to show in billing history.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-4.1"]
+    },
+    {
+      "id": "BUG-E4-T8",
+      "test_id": "E4-T8",
+      "title": "Immediate Advanced → Pro upgrade did not work",
+      "notes": "UPGRADE DID NOT WORKED. Second upgrade to Pro did not apply immediately.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-4.2"]
+    },
+    {
+      "id": "BUG-E4-T9",
+      "test_id": "E4-T9",
+      "title": "Registered Pro shows as Basic in Manage Subscription",
+      "notes": "REGISTER WITH PRO BUT FOUND BASIC IN MANAGE SUBCRIPTION. Downgrade / plan display incorrect after Pro registration.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-4.2"]
+    },
+    {
+      "id": "BUG-E5-T6",
+      "test_id": "E5-T6",
+      "title": "Chat unlock after Advanced upgrade failed",
+      "notes": "UPGRADE BUG. Chat stayed locked / upgrade path failed for Advanced unlock across roles.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-5.1", "STORY-5.2"]
+    },
+    {
+      "id": "BUG-E5-T7",
+      "test_id": "E5-T7",
+      "title": "AI Insights did not open on Pro/trial",
+      "notes": "IT DID NOT OPEN AI INSIGHTS. Pro/trial account could not open AI Insights.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-5.2"]
+    },
+    {
+      "id": "BUG-E5-T8",
+      "test_id": "E5-T8",
+      "title": "Objectives cannot open on Pro/trial",
+      "notes": "THE OBJECTIVES CANNOT OPEN. Coach on Pro/trial could not open Objectives.",
+      "status": "OPEN",
+      "failed_on": "2026-07-20",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-5.2", "STORY-11.1"]
+    },
+    {
+      "id": "BUG-E8-T8",
+      "test_id": "E8-T8",
+      "title": "Cannot post achievement to team chat",
+      "notes": "CANNOT POST TO A TEAM CHAT. Share achievement from Progress did not post an Achievement card to the team thread.",
+      "status": "OPEN",
+      "failed_on": "2026-07-23",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-8.3"]
+    },
+    {
+      "id": "BUG-E10-T9",
+      "test_id": "E10-T9",
+      "title": "Admin approve/reject coach submission failed",
+      "notes": "Admin approves or rejects a coach submission (STORY-10.4 AC-2 / AC-4). Needs Admin dashboard access and a Training package in Sanity set to Pending review, synced into package_metadata. E10-T10 / E10-T11 noted as dependent.",
+      "status": "OPEN",
+      "failed_on": "2026-07-27",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-10.4"]
+    },
+    {
+      "id": "BUG-E12-T6",
+      "test_id": "E12-T6",
+      "title": "Trial expiry warning days do not persist after save",
+      "notes": "The field shows the same after save; the default did not change.",
+      "status": "OPEN",
+      "failed_on": "2026-07-28",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-12.2"]
+    },
+    {
+      "id": "BUG-E12-T14",
+      "test_id": "E12-T14",
+      "title": "Publish does not leave review queue / Published list",
+      "notes": "The package cannot leave the review queue and did not appear under Published packages.",
+      "status": "OPEN",
+      "failed_on": "2026-07-28",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-12.3"]
+    },
+    {
+      "id": "BUG-E12-T15",
+      "test_id": "E12-T15",
+      "title": "Unpublish does not remove from Published list",
+      "notes": "It does not remove the item from the Published list and may return it to the Review/Published path as Approved-Unpublished.",
+      "status": "OPEN",
+      "failed_on": "2026-07-28",
+      "source": "docs/Coach 360 - Testing.docx",
+      "blocks": ["STORY-12.3"]
+    }
+  ],
   "tickets": [
     {
       "id": "EPIC-1",
@@ -4024,12 +4239,15 @@
         STATUSES.forEach(s => counts[s] = 0);
         stories.forEach(s => counts[s.status] = (counts[s.status] || 0) + 1);
         const epics = data.tickets.filter(t => t.type === 'EPIC').length;
+        const bugs = data.bugs || [];
+        const openBugs = bugs.filter(b => b.status === 'OPEN').length;
         document.getElementById('stats').innerHTML = [
           { label: 'Epics', value: epics },
           { label: 'Stories', value: stories.length },
           { label: 'Done', value: counts.DONE },
           { label: 'In Progress', value: counts.IN_PROGRESS },
           { label: 'Blocked', value: counts.BLOCKED },
+          { label: 'Open Bugs', value: openBugs },
           { label: 'Stakeholder Questions', value: data.open_questions.length }
         ].map(s => `<div class="stat"><strong>${s.value}</strong>${s.label}</div>`).join('');
       }
@@ -4125,8 +4343,58 @@
         `;
       }
 
+      function renderBugs() {
+        const el = document.getElementById('bugs');
+        const bugs = data.bugs || [];
+        if (!bugs.length) {
+          el.classList.add('hidden');
+          el.innerHTML = '';
+          return;
+        }
+        el.classList.remove('hidden');
+        const open = bugs.filter(b => b.status === 'OPEN');
+        const resolved = bugs.filter(b => b.status === 'RESOLVED');
+        // Open bugs first so the landing view prioritizes work still outstanding.
+        const ordered = [...open, ...resolved];
+        el.innerHTML = `
+          <h2>Bugs from manual QA (${open.length} open · ${resolved.length} resolved)</h2>
+          <div class="subtitle">Source: docs/Coach 360 - Testing.xlsx outcomes · notes from docs/Coach 360 - Testing.docx · test defs in mobile-app-test-pack</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Test</th>
+                <th>Status</th>
+                <th>Bug</th>
+                <th>Failed</th>
+                <th>Blocks</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${ordered.map(b => `
+                <tr>
+                  <td><span class="bug-id">${b.test_id || b.id}</span></td>
+                  <td><span class="bug-status ${b.status}">${b.status}</span></td>
+                  <td>
+                    <div class="bug-title">${b.title}</div>
+                    <div class="bug-notes">${b.notes || ''}</div>
+                  </td>
+                  <td class="ref">${b.failed_on || '—'}</td>
+                  <td class="ref">${(b.blocks || []).join(', ') || '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
       function renderOpenQuestions() {
         const el = document.getElementById('open-questions');
+        if (!data.open_questions.length) {
+          el.classList.add('hidden');
+          el.innerHTML = '';
+          return;
+        }
+        el.classList.remove('hidden');
         el.innerHTML = `
           <h2>⚠ Stakeholder questions (${data.open_questions.length}) — sent to client, pending response</h2>
           <ol>
@@ -4231,6 +4499,7 @@
 
       renderStats();
       renderProgress();
+      renderBugs();
       renderBurndown();
       renderOpenQuestions();
       renderFilters();
