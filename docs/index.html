@@ -198,6 +198,11 @@
       border-color: var(--bug-border);
       background: rgba(248, 81, 73, 0.15);
     }
+    .bugs .bug-status.READY_FOR_TESTING {
+      color: var(--in-progress);
+      border-color: #9e6a03;
+      background: rgba(210, 153, 34, 0.15);
+    }
     .bugs .bug-status.RESOLVED {
       color: var(--done);
       border-color: #238636;
@@ -454,7 +459,7 @@
       "test_id": "E4-T4",
       "title": "Basic paywall doors — unable to upgrade to Pro",
       "notes": "NOT ABLE UPGRADE TO PRO. Tester could not complete Basic paywall / upgrade path.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1", "STORY-4.2"]
@@ -464,7 +469,7 @@
       "test_id": "E4-T6",
       "title": "Stripe upgrade to Advanced failed",
       "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Test-card checkout did not leave the account on Advanced.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1", "STORY-4.2"]
@@ -474,7 +479,7 @@
       "test_id": "E4-T7",
       "title": "Billing history blocked by failed Advanced upgrade",
       "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Dependent on E4-T6 — no paid invoice to show in billing history.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1"]
@@ -484,7 +489,7 @@
       "test_id": "E4-T8",
       "title": "Immediate Advanced → Pro upgrade did not work",
       "notes": "UPGRADE DID NOT WORKED. Second upgrade to Pro did not apply immediately.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.2"]
@@ -494,7 +499,7 @@
       "test_id": "E4-T9",
       "title": "Registered Pro shows as Basic in Manage Subscription",
       "notes": "REGISTER WITH PRO BUT FOUND BASIC IN MANAGE SUBCRIPTION. Downgrade / plan display incorrect after Pro registration.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.2"]
@@ -504,7 +509,7 @@
       "test_id": "E5-T6",
       "title": "Chat unlock after Advanced upgrade failed",
       "notes": "UPGRADE BUG. Chat stayed locked / upgrade path failed for Advanced unlock across roles.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.1", "STORY-5.2"]
@@ -514,7 +519,7 @@
       "test_id": "E5-T7",
       "title": "AI Insights did not open on Pro/trial",
       "notes": "IT DID NOT OPEN AI INSIGHTS. Pro/trial account could not open AI Insights.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.2"]
@@ -524,7 +529,7 @@
       "test_id": "E5-T8",
       "title": "Objectives cannot open on Pro/trial",
       "notes": "THE OBJECTIVES CANNOT OPEN. Coach on Pro/trial could not open Objectives.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.2", "STORY-11.1"]
@@ -534,7 +539,7 @@
       "test_id": "E8-T8",
       "title": "Cannot post achievement to team chat",
       "notes": "CANNOT POST TO A TEAM CHAT. Share achievement from Progress did not post an Achievement card to the team thread.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-23",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-8.3"]
@@ -544,7 +549,7 @@
       "test_id": "E10-T9",
       "title": "Admin approve/reject coach submission failed",
       "notes": "Admin approves or rejects a coach submission (STORY-10.4 AC-2 / AC-4). Needs Admin dashboard access and a Training package in Sanity set to Pending review, synced into package_metadata. E10-T10 / E10-T11 noted as dependent.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-27",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-10.4"]
@@ -554,7 +559,7 @@
       "test_id": "E12-T6",
       "title": "Trial expiry warning days do not persist after save",
       "notes": "The field shows the same after save; the default did not change.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.2"]
@@ -564,7 +569,7 @@
       "test_id": "E12-T14",
       "title": "Publish does not leave review queue / Published list",
       "notes": "The package cannot leave the review queue and did not appear under Published packages.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.3"]
@@ -574,7 +579,7 @@
       "test_id": "E12-T15",
       "title": "Unpublish does not remove from Published list",
       "notes": "It does not remove the item from the Published list and may return it to the Review/Published path as Approved-Unpublished.",
-      "status": "OPEN",
+      "status": "READY_FOR_TESTING",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.3"]
@@ -4240,6 +4245,7 @@
         stories.forEach(s => counts[s.status] = (counts[s.status] || 0) + 1);
         const epics = data.tickets.filter(t => t.type === 'EPIC').length;
         const bugs = data.bugs || [];
+        const readyBugs = bugs.filter(b => b.status === 'READY_FOR_TESTING').length;
         const openBugs = bugs.filter(b => b.status === 'OPEN').length;
         document.getElementById('stats').innerHTML = [
           { label: 'Epics', value: epics },
@@ -4247,6 +4253,7 @@
           { label: 'Done', value: counts.DONE },
           { label: 'In Progress', value: counts.IN_PROGRESS },
           { label: 'Blocked', value: counts.BLOCKED },
+          { label: 'Bugs Ready for Testing', value: readyBugs },
           { label: 'Open Bugs', value: openBugs },
           { label: 'Stakeholder Questions', value: data.open_questions.length }
         ].map(s => `<div class="stat"><strong>${s.value}</strong>${s.label}</div>`).join('');
@@ -4352,12 +4359,14 @@
           return;
         }
         el.classList.remove('hidden');
+        const ready = bugs.filter(b => b.status === 'READY_FOR_TESTING');
         const open = bugs.filter(b => b.status === 'OPEN');
         const resolved = bugs.filter(b => b.status === 'RESOLVED');
-        // Open bugs first so the landing view prioritizes work still outstanding.
-        const ordered = [...open, ...resolved];
+        // Ready-for-testing first so retest work is visible on landing.
+        const ordered = [...ready, ...open, ...resolved];
+        const statusLabel = (s) => (s || '').replace(/_/g, ' ');
         el.innerHTML = `
-          <h2>Bugs from manual QA (${open.length} open · ${resolved.length} resolved)</h2>
+          <h2>Bugs from manual QA (${ready.length} ready for testing · ${open.length} open · ${resolved.length} resolved)</h2>
           <div class="subtitle">Source: docs/Coach 360 - Testing.xlsx outcomes · notes from docs/Coach 360 - Testing.docx · test defs in mobile-app-test-pack</div>
           <table>
             <thead>
@@ -4373,7 +4382,7 @@
               ${ordered.map(b => `
                 <tr>
                   <td><span class="bug-id">${b.test_id || b.id}</span></td>
-                  <td><span class="bug-status ${b.status}">${b.status}</span></td>
+                  <td><span class="bug-status ${b.status}">${statusLabel(b.status)}</span></td>
                   <td>
                     <div class="bug-title">${b.title}</div>
                     <div class="bug-notes">${b.notes || ''}</div>
