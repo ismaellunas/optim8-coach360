@@ -17,10 +17,10 @@ export type CoachProgressFeatures = {
 };
 
 /**
- * Kill-switch for the coach "AI performance insights" panel (upsell + future UI).
- * Off until Flow 13 AI insights is specified (OQ-13.1 / OQ-13.3) and implemented.
+ * Kill-switch for the coach "AI performance insights" panel (upsell + MVP stub UI).
+ * On so Home → Progress has a real AI Insights destination (E5-T7); full Flow 13 later.
  */
-export const COACH_AI_PERFORMANCE_INSIGHTS_ENABLED = false;
+export const COACH_AI_PERFORMANCE_INSIGHTS_ENABLED = true;
 
 export type CoachCompletionFilters = {
   playerId?: string;

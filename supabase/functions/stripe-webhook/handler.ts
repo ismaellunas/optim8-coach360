@@ -72,10 +72,13 @@ export type StripeCheckoutSessionPayload = {
   payment_status?: string | null;
   amount_total?: number | null;
   currency?: string | null;
+  customer?: string | { id: string } | null;
+  subscription?: string | { id: string } | null;
   payment_intent?: string | { id: string } | null;
   metadata?: {
     kind?: string;
     profile_id?: string;
+    tier?: string;
     sanity_document_id?: string;
     scope?: string;
     team_id?: string;
@@ -208,7 +211,8 @@ export function buildSubscriptionUpsert(sub: StripeSubscriptionPayload, profileI
   };
 }
 
-export function buildBillingInvoiceUpsert(invoice: StripeInvoicePayload, profileId: string) {
+/** Invoice fields ready for sync RPC — profile_id resolved separately (metadata or DB lookup). */
+export function buildBillingInvoiceFields(invoice: StripeInvoicePayload) {
   const rawStatus = invoice.status ?? 'open';
   const status = STRIPE_INVOICE_STATUS_MAP[rawStatus] ?? 'open';
   const amount =
@@ -217,7 +221,6 @@ export function buildBillingInvoiceUpsert(invoice: StripeInvoicePayload, profile
       : (invoice.amount_due ?? 0);
 
   return {
-    profile_id: profileId,
     stripe_invoice_id: invoice.id,
     amount_cents: amount,
     currency: invoice.currency ?? 'usd',
@@ -231,6 +234,13 @@ export function buildBillingInvoiceUpsert(invoice: StripeInvoicePayload, profile
     paid_at: invoice.status_transitions?.paid_at
       ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
       : null,
+  };
+}
+
+export function buildBillingInvoiceUpsert(invoice: StripeInvoicePayload, profileId: string) {
+  return {
+    profile_id: profileId,
+    ...buildBillingInvoiceFields(invoice),
   };
 }
 
@@ -270,7 +280,11 @@ export type StripeWebhookHandleResult =
       kind: 'invoice_upsert';
       idempotencyKey: string;
       eventType: string;
-      invoice: ReturnType<typeof buildBillingInvoiceUpsert>;
+      /** From invoice/line metadata; null when caller must look up via subscription/customer. */
+      profileId: string | null;
+      stripeCustomerId: string | null;
+      stripeSubscriptionId: string | null;
+      invoice: ReturnType<typeof buildBillingInvoiceFields>;
     }
   | {
       handled: true;
@@ -292,23 +306,61 @@ export type StripeWebhookHandleResult =
 export function handleStripeWebhookEvent(event: StripeWebhookEvent): StripeWebhookHandleResult {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as StripeCheckoutSessionPayload;
-    if (session.metadata?.kind !== 'marketplace_purchase') {
-      return { handled: false, reason: 'ignored_checkout_kind' };
-    }
-    if (!session.metadata.profile_id || !session.metadata.sanity_document_id) {
-      return { handled: false, reason: 'missing_purchase_metadata' };
-    }
-    if (session.payment_status && session.payment_status !== 'paid') {
-      return { handled: false, reason: 'checkout_not_paid' };
+
+    if (session.metadata?.kind === 'marketplace_purchase') {
+      if (!session.metadata.profile_id || !session.metadata.sanity_document_id) {
+        return { handled: false, reason: 'missing_purchase_metadata' };
+      }
+      if (session.payment_status && session.payment_status !== 'paid') {
+        return { handled: false, reason: 'checkout_not_paid' };
+      }
+
+      return {
+        handled: true,
+        kind: 'purchase_upsert',
+        idempotencyKey: event.id,
+        eventType: event.type,
+        purchase: buildPurchaseUpsert(session),
+      };
     }
 
-    return {
-      handled: true,
-      kind: 'purchase_upsert',
-      idempotencyKey: event.id,
-      eventType: event.type,
-      purchase: buildPurchaseUpsert(session),
-    };
+    // Subscription Checkout: sync from session metadata when customer.subscription.* is delayed.
+    if (session.mode === 'subscription') {
+      const profileId = session.metadata?.profile_id;
+      if (!profileId) {
+        return { handled: false, reason: 'missing_profile_id' };
+      }
+      const subscriptionId = resolveStripeSubscriptionId(session.subscription);
+      if (!subscriptionId) {
+        return { handled: false, reason: 'missing_subscription_id' };
+      }
+      const customerId = resolveStripeCustomerId(session.customer);
+      if (!customerId) {
+        return { handled: false, reason: 'missing_customer_id' };
+      }
+
+      const status =
+        !session.payment_status || session.payment_status === 'paid' ? 'active' : 'incomplete';
+      const sub: StripeSubscriptionPayload = {
+        id: subscriptionId,
+        customer: customerId,
+        status,
+        metadata: {
+          profile_id: profileId,
+          tier: session.metadata?.tier,
+        },
+      };
+
+      return {
+        handled: true,
+        kind: 'subscription_upsert',
+        idempotencyKey: event.id,
+        eventType: event.type,
+        upsert: buildSubscriptionUpsert(sub, profileId),
+      };
+    }
+
+    return { handled: false, reason: 'ignored_checkout_kind' };
   }
 
   if (event.type.startsWith('customer.subscription.')) {
@@ -343,7 +395,11 @@ export function handleStripeWebhookEvent(event: StripeWebhookEvent): StripeWebho
   if (event.type === 'invoice.paid' || event.type === 'invoice.finalized') {
     const invoice = event.data.object as StripeInvoicePayload;
     const profileId = resolveProfileIdFromInvoice(invoice);
-    if (!profileId) {
+    const stripeCustomerId = resolveStripeCustomerId(invoice.customer);
+    const stripeSubscriptionId = resolveStripeSubscriptionId(invoice.subscription);
+
+    // Metadata may be absent on Checkout-created invoices; index looks up via subscriptions.
+    if (!profileId && !stripeCustomerId && !stripeSubscriptionId) {
       return { handled: false, reason: 'missing_profile_id' };
     }
 
@@ -352,7 +408,10 @@ export function handleStripeWebhookEvent(event: StripeWebhookEvent): StripeWebho
       kind: 'invoice_upsert',
       idempotencyKey: event.id,
       eventType: event.type,
-      invoice: buildBillingInvoiceUpsert(invoice, profileId),
+      profileId,
+      stripeCustomerId,
+      stripeSubscriptionId,
+      invoice: buildBillingInvoiceFields(invoice),
     };
   }
 

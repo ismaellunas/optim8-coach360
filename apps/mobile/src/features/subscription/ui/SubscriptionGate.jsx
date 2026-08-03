@@ -160,11 +160,25 @@ export function SubscriptionGate({ children }) {
     setSubmitting(true);
     setError(null);
     try {
+      // Persist a Basic row so the gate clears, then open Stripe Checkout for the
+      // chosen paid tier (same path as paywall / Manage Subscription upgrades).
       const nextSubscription = await repos.subscriptions.deferToBasic(userId);
       setSubscription(nextSubscription);
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+      const result = await repos.billing.createCheckoutSession({
+        tier: tierId,
+        successUrl: origin + '/?checkout=success',
+        cancelUrl: origin + '/?checkout=cancel',
+      });
+      if (typeof window !== 'undefined' && result.url) {
+        window.location.assign(result.url);
+        return;
+      }
       setRedirectToSubscription(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'subscription_choice_failed');
+      setRedirectToSubscription(true);
     } finally {
       setSubmitting(false);
     }

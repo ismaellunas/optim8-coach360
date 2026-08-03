@@ -319,7 +319,15 @@ function HomeScreen({ user, go, tryA }) {
 
       {canAccess(user, "ai") ? (
         <div className="py-2">
-          <Card>
+          <Card
+            onClick={function () {
+              tryA("ai", function () {
+                go("progress");
+              });
+            }}
+            className="cursor-pointer"
+            data-testid="home-ai-insights"
+          >
             <div className="mb-2.5 flex items-center gap-2">
               <div className="text-coach-orange"><IconSpark /></div>
               <span className="font-display text-[13px] font-semibold uppercase tracking-widest text-coach-orange">AI Insights</span>

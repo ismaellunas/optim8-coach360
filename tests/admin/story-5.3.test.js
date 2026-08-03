@@ -73,7 +73,7 @@ describe('STORY_5_3 AC1 — admin can configure which tier unlocks each feature 
     expect(restRepo).toMatch(/NotImplementedAdapterError/);
 
     const di = read(DI_PATH);
-    expect(di).toMatch(/new SupabaseContentRepository\(appClient\)/);
+    expect(di).toMatch(/new SupabaseContentRepository\(client\)/);
 
     const admin = read(ADMIN_CONTENT_PATH);
     expect(admin).toMatch(/listFeatureFlags/);

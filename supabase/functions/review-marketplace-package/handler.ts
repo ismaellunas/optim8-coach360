@@ -243,8 +243,8 @@ export function buildSanityPatchMutation(
   };
 }
 
-/** GROQ for admin review queue (pending + approved-unpublished). */
-export const REVIEW_QUEUE_GROQ = `*[_type == "trainingPackage" && (status == "pending_review" || (status == "approved" && published != true))]|order(title asc){
+/** Shared projection fields for admin marketplace lists. */
+const LIST_PROJECTION = `{
   _id,
   title,
   status,
@@ -256,3 +256,9 @@ export const REVIEW_QUEUE_GROQ = `*[_type == "trainingPackage" && (status == "pe
   createdByRole,
   rejectionReason
 }`;
+
+/** GROQ for admin review queue (pending + approved-unpublished). */
+export const REVIEW_QUEUE_GROQ = `*[_type == "trainingPackage" && (status == "pending_review" || (status == "approved" && published != true))]|order(title asc)${LIST_PROJECTION}`;
+
+/** GROQ for admin published marketplace listings (E12-T15). */
+export const PUBLISHED_LIST_GROQ = `*[_type == "trainingPackage" && published == true]|order(title asc)${LIST_PROJECTION}`;

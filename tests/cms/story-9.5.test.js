@@ -225,3 +225,31 @@ describe('STORY_9_5 AC4 — Mobile app reads published content via Sanity CDN/AP
     expect(dripLabelFromSchedule({ intervalDays: 7 })).toBe('1 week');
   });
 });
+
+describe('STORY_9_5 E10-T9 — idempotency key differs for workflow-only changes', () => {
+  it('test_STORY_9_5_idempotency_key_differs_draft_vs_pending_review', () => {
+    const base = {
+      _id: 'pkg-coach-1',
+      _type: 'trainingPackage',
+      title: 'Coach Package',
+      published: false,
+      modules: [],
+    };
+
+    const draft = mapSanityWebhookPayload({ ...base, status: 'draft' });
+    const pending = mapSanityWebhookPayload({ ...base, status: 'pending_review' });
+
+    expect(draft.kind).not.toBe('skip');
+    expect(pending.kind).not.toBe('skip');
+    if (draft.kind === 'skip' || pending.kind === 'skip') return;
+
+    expect(draft.idempotencyKey).not.toBe(pending.idempotencyKey);
+    expect(draft.idempotencyKey).toMatch(/:draft:/);
+    expect(pending.idempotencyKey).toMatch(/:pending_review:/);
+    // Same pub-bit + title alone would collide under the old key.
+    expect(draft.idempotencyKey).toContain('unpub');
+    expect(pending.idempotencyKey).toContain('unpub');
+    expect(draft.idempotencyKey).toContain('Coach Package');
+    expect(pending.idempotencyKey).toContain('Coach Package');
+  });
+});

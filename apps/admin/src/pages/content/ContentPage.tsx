@@ -259,8 +259,12 @@ function MarketplaceReviewSection() {
       </div>
 
       {!isLoading && (data ?? []).length === 0 ? (
-        <p className="mt-3 font-body text-sm text-coach-t3">
-          No packages awaiting review or publish.
+        <p className="mt-3 font-body text-sm text-coach-t3" data-testid="marketplace-review-empty">
+          No packages awaiting review or publish. In Sanity Studio set status to{' '}
+          <span className="text-coach-t2">Pending review</span>, then click{' '}
+          <span className="text-coach-t2">Publish</span> (Save alone does not sync). Edge function
+          needs <span className="text-coach-t2">SANITY_API_TOKEN</span> for live queue and approve /
+          reject / publish.
         </p>
       ) : null}
     </Card>

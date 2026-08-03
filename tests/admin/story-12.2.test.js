@@ -101,11 +101,24 @@ describe('STORY_12_2 AC2 — admin sets trial expiration warning schedule', () =
     const queries = read(QUERIES_PATH);
     expect(queries).toMatch(/useTrialWarningDaysQuery/);
     expect(queries).toMatch(/useSetTrialWarningDaysMutation/);
+    // Persist path writes cache immediately so UI does not fall back to default 3 after save.
+    expect(queries).toMatch(
+      /onSuccess:\s*\(days\)\s*=>\s*\{[\s\S]*setQueryData\(trialWarningDaysQueryKey,\s*days\)/,
+    );
 
     const page = read(SUBS_PAGE_PATH);
     expect(page).toMatch(/Trial expiry warning/);
     expect(page).toMatch(/Trial warning days before expiry/);
     expect(page).toMatch(/useSetTrialWarningDaysMutation/);
+    expect(page).toMatch(/setDraftWarningDays\(''\)/);
+    expect(page).toMatch(/warningSaveError/);
+
+    // Auth + subscription RPCs must share one Supabase client (dual clients desync sessions).
+    const di = read('packages/api/src/di/create-repositories.ts');
+    const clientCreates = di.match(/createSupabaseClient\(/g) ?? [];
+    expect(clientCreates).toHaveLength(1);
+    expect(di).toMatch(/new SupabaseAuthRepository\(client\)/);
+    expect(di).toMatch(/new SupabaseSubscriptionRepository\(client\)/);
   });
 });
 
