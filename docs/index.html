@@ -431,7 +431,7 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-08-03",
+  "last_generated": "2026-08-11",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
@@ -440,7 +440,8 @@
     "OQ-2.1 / OQ-2.3 resolved 2026-07-23: Basic progress = log + completion count; Advanced = full coaching tools without AI; Pro = +AI/objectives/full analytics; ○ = higher tier.",
     "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+).",
     "OQ-2.2 resolved 2026-07-24: Pro Full MVP access = Advanced + AI + objectives + full analytics; unblocks STORY-11.3. Also OQ-6.2 Mistral; OQ-6.6 why-UI not required MVP; OQ-6.7 listed context/PII allowed to provider; STORY-11.3 MVP scope = LLM re-rank only (no AI chat Q&A).",
-    "Manual QA bugs 2026-08-03: recorded FAIL outcomes from docs/Coach 360 - Testing.xlsx with notes from docs/Coach 360 - Testing.docx; bugs panel is the first view on docs/index.html."
+    "Manual QA bugs 2026-08-03: recorded FAIL outcomes from docs/Coach 360 - Testing.xlsx with notes from docs/Coach 360 - Testing.docx; bugs panel is the first view on docs/index.html.",
+    "Manual QA bugs 2026-08-11: all remaining READY_FOR_TESTING bugs marked RESOLVED after shipped fixes (f181dcb)."
   ],
   "open_questions": [],
   "bugs": [
@@ -459,7 +460,7 @@
       "test_id": "E4-T4",
       "title": "Basic paywall doors — unable to upgrade to Pro",
       "notes": "NOT ABLE UPGRADE TO PRO. Tester could not complete Basic paywall / upgrade path.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1", "STORY-4.2"]
@@ -469,7 +470,7 @@
       "test_id": "E4-T6",
       "title": "Stripe upgrade to Advanced failed",
       "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Test-card checkout did not leave the account on Advanced.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1", "STORY-4.2"]
@@ -479,7 +480,7 @@
       "test_id": "E4-T7",
       "title": "Billing history blocked by failed Advanced upgrade",
       "notes": "NOT ABLE TO UPGRADE TO ADVANCED. Dependent on E4-T6 — no paid invoice to show in billing history.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.1"]
@@ -489,7 +490,7 @@
       "test_id": "E4-T8",
       "title": "Immediate Advanced → Pro upgrade did not work",
       "notes": "UPGRADE DID NOT WORKED. Second upgrade to Pro did not apply immediately.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.2"]
@@ -499,7 +500,7 @@
       "test_id": "E4-T9",
       "title": "Registered Pro shows as Basic in Manage Subscription",
       "notes": "REGISTER WITH PRO BUT FOUND BASIC IN MANAGE SUBCRIPTION. Downgrade / plan display incorrect after Pro registration.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-4.2"]
@@ -509,7 +510,7 @@
       "test_id": "E5-T6",
       "title": "Chat unlock after Advanced upgrade failed",
       "notes": "UPGRADE BUG. Chat stayed locked / upgrade path failed for Advanced unlock across roles.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.1", "STORY-5.2"]
@@ -519,7 +520,7 @@
       "test_id": "E5-T7",
       "title": "AI Insights did not open on Pro/trial",
       "notes": "IT DID NOT OPEN AI INSIGHTS. Pro/trial account could not open AI Insights.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.2"]
@@ -529,7 +530,7 @@
       "test_id": "E5-T8",
       "title": "Objectives cannot open on Pro/trial",
       "notes": "THE OBJECTIVES CANNOT OPEN. Coach on Pro/trial could not open Objectives.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-20",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-5.2", "STORY-11.1"]
@@ -539,7 +540,7 @@
       "test_id": "E8-T8",
       "title": "Cannot post achievement to team chat",
       "notes": "CANNOT POST TO A TEAM CHAT. Share achievement from Progress did not post an Achievement card to the team thread.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-23",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-8.3"]
@@ -549,7 +550,7 @@
       "test_id": "E10-T9",
       "title": "Admin approve/reject coach submission failed",
       "notes": "Admin approves or rejects a coach submission (STORY-10.4 AC-2 / AC-4). Needs Admin dashboard access and a Training package in Sanity set to Pending review, synced into package_metadata. E10-T10 / E10-T11 noted as dependent.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-27",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-10.4"]
@@ -559,7 +560,7 @@
       "test_id": "E12-T6",
       "title": "Trial expiry warning days do not persist after save",
       "notes": "The field shows the same after save; the default did not change.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.2"]
@@ -569,7 +570,7 @@
       "test_id": "E12-T14",
       "title": "Publish does not leave review queue / Published list",
       "notes": "The package cannot leave the review queue and did not appear under Published packages.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.3"]
@@ -579,7 +580,7 @@
       "test_id": "E12-T15",
       "title": "Unpublish does not remove from Published list",
       "notes": "It does not remove the item from the Published list and may return it to the Review/Published path as Approved-Unpublished.",
-      "status": "READY_FOR_TESTING",
+      "status": "RESOLVED",
       "failed_on": "2026-07-28",
       "source": "docs/Coach 360 - Testing.docx",
       "blocks": ["STORY-12.3"]
