@@ -35,7 +35,7 @@ Grant the new owner **owner or admin** access on each account below (or transfer
 | **Sanity** | CMS schemas + Studio login | [sanity.io/manage](https://www.sanity.io/manage) | Project ID `wv7uz07u`, dataset `production` (also defaults in code) |
 | **Stripe** | Subscriptions, Checkout, webhooks | [dashboard.stripe.com](https://dashboard.stripe.com) | Test mode prices wired via `STRIPE_PRICE_*` env |
 | **Mux** | Direct video uploads (coach library) | [dashboard.mux.com](https://dashboard.mux.com) | Token ID/secret → Edge Function `create-mux-upload` only |
-| **Apple Developer** | iOS / TestFlight (when shipping native) | [developer.apple.com](https://developer.apple.com) | Bundle ID `com.coach360.app` — see [native-release.md](../architecture/native-release.md) |
+| **Apple Developer** | iOS / TestFlight (when shipping native) | [developer.apple.com](https://developer.apple.com) | Bundle ID `com.optim8.coach360.app` — see [native-release.md](../architecture/native-release.md) |
 | **Google Play Console** | Android store / internal track | [play.google.com/console](https://play.google.com/console) | Same package — see native-release |
 | **Mistral** *(planned)* | AI / RAG | [console.mistral.ai](https://console.mistral.ai) | Not required until AI stories land |
 | **Resend / email** *(planned)* | Transactional email | — | Optional; listed in tech stack |
@@ -120,7 +120,7 @@ These steps were performed in dashboards / CLI. Re-do them only when creating a 
 
 ### 8. Native (not fully production-shipped)
 
-- Bundle ID / package: `com.coach360.app`.
+- Bundle ID / package: `com.optim8.coach360.app`.
 - Release keystore and Apple certs live **outside** git — see [native-release.md](../architecture/native-release.md).
 
 ---

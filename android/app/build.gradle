@@ -3,10 +3,10 @@ apply plugin: 'com.android.application'
 def isCiBuild = System.getenv("GITHUB_ACTIONS") == "true"
 
 android {
-    namespace "com.coach360.app"
+    namespace "com.optim8.coach360.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.coach360.app"
+        applicationId "com.optim8.coach360.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

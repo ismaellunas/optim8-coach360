@@ -1,5 +1,5 @@
 {
-  "appId": "com.coach360.app",
+  "appId": "com.optim8.coach360.app",
   "appName": "Coach360",
   "webDir": "apps/mobile/dist",
   "includePlugins": [

@@ -129,7 +129,7 @@ CI validates `assembleRelease` on every PR and `main` push (debug-signed APK for
 
 1. Create Supabase projects for staging and production.
 2. Create Vercel projects for `apps/admin` and `apps/mobile`; connect GitHub repo with Production branch `main`.
-3. Register `com.coach360.app` in Apple Developer and Google Play Console.
+3. Register `com.optim8.coach360.app` in Apple Developer and Google Play Console.
 4. Generate Android release keystore; configure signing in `android/app/build.gradle` for local/store builds (not CI).
 
 ---

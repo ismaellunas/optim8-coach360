@@ -1,7 +1,7 @@
 # Native release — Capacitor iOS & Android
 
 > **Stack:** Vite + React + Capacitor 8  
-> **App ID:** `com.coach360.app`  
+> **App ID:** `com.optim8.coach360.app`  
 > **Related:** [`tech-stack.md`](./tech-stack.md), [`best-practices.md`](./best-practices.md)
 
 ---
@@ -67,7 +67,7 @@ Keep versions aligned across three places:
 - **iOS 15.0+** deployment target (required by Capacitor 8; set in `ios/App/Podfile` and Xcode project).
 - Apple Developer Program membership ($99/year).
 - Xcode installed (macOS only).
-- Bundle ID `com.coach360.app` registered in [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list).
+- Bundle ID `com.optim8.coach360.app` registered in [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list).
 
 ### Signing (Xcode)
 
@@ -101,7 +101,7 @@ Confirm the Coach360 UI loads and the status bar matches the dark theme (`#0C0C1
 
 - [Google Play Console](https://play.google.com/console) developer account ($25 one-time).
 - Android Studio installed.
-- Application ID `com.coach360.app` matches `capacitor.config.json` `appId`.
+- Application ID `com.optim8.coach360.app` matches `capacitor.config.json` `appId`.
 
 ### Debug builds (emulator)
 

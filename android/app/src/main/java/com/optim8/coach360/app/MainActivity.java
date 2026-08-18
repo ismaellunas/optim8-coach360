@@ -1,4 +1,4 @@
-package com.coach360.app;
+package com.optim8.coach360.app;
 
 import com.getcapacitor.BridgeActivity;
 
