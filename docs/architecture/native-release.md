@@ -158,6 +158,23 @@ Configured in `capacitor.config.json` and initialized in `src/lib/capacitor.js` 
 
 ---
 
+## Store catalogue on device (Sanity CORS)
+
+The Store calls Sanity from the WebView (`SanityMarketplaceCatalogRepository`). If CORS lists only Vercel/Studio hosts, the **web app loads packages and the APK does not**. Allowlist:
+
+| Platform | Origin to add in Sanity → API → CORS |
+|----------|--------------------------------------|
+| Android (Capacitor 5+ default `https` scheme) | `https://localhost` |
+| iOS | `capacitor://localhost` |
+
+Turn **Allow credentials** on when the app sends `VITE_SANITY_READ_TOKEN`. Native APK env is baked at `npm run build:cap` — Vercel `VITE_SANITY_*` does not appear in the device build unless those vars were present locally.
+
+Checkout still uses `window.location.origin` for Stripe success/cancel (`https://localhost` on Android). Catalogue load and checkout return are separate issues.
+
+See [`handover.md`](../delivery/handover.md) (Sanity CORS) and [`bug-investigations-archive.md`](../bug-investigations-archive.md) (QA2-07).
+
+---
+
 ## CI/CD
 
 Pipelines live in [`.github/workflows/`](../../.github/workflows/):

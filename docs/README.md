@@ -23,6 +23,9 @@ When docs conflict, resolve in this order:
 ```
 docs/
 ├── README.md                 ← you are here
+├── index.html                ← development tracker (open bugs on landing; archive collapsed)
+├── bug-investigations.md     ← current open QA bugs
+├── bug-investigations-archive.md  ← resolved QA write-ups
 ├── product/
 │   ├── flows.md              # 18 journeys, access matrix (canonical)
 │   └── stakeholder-questions.md
@@ -67,6 +70,8 @@ docs/
 | --- | --- |
 | [`delivery/handover.md`](./delivery/handover.md) | Engineering handover: third-party logins, manual dashboard setup, deploy pitfalls |
 | [`delivery/environment-promotion.md`](./delivery/environment-promotion.md) | Dev → staging → production runbook |
+| [`bug-investigations.md`](./bug-investigations.md) | Open QA bugs (Fold7 pass and later) |
+| [`bug-investigations-archive.md`](./bug-investigations-archive.md) | Resolved QA investigations |
 | [`prototype/README.md`](./prototype/README.md) | UI mock (`src/App.jsx`) — slice-first workflow, hardens into production |
 
 **Active planning baseline:** **172 hours** (~22 working days, solo). See [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md).
@@ -86,6 +91,8 @@ docs/
 | Backend SaaS & integrations | `architecture/tech-stack.md` + `architecture/best-practices.md` |
 | Effort & phases | `delivery/delivery-estimate.md` |
 | Handover / accounts / manual setup | `delivery/handover.md` |
+| Open QA bugs | `bug-investigations.md` |
+| Resolved QA history | `bug-investigations-archive.md` |
 | Application UI & components | `prototype/README.md` + `design/ui-reference.md` |
 
 ---
