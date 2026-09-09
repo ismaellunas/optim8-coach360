@@ -71,6 +71,9 @@ Recommended hostname: `app.coach360.com` (staging: `app-staging.coach360.com`)
 | `VITE_SUPABASE_ANON_KEY` | Yes | Public anon key (RLS enforced) |
 | `VITE_API_ADAPTER` | No | `supabase` (default) or `rest` |
 | `VITE_REST_API_BASE_URL` | When `rest` | Future REST API base URL |
+| `VITE_SANITY_PROJECT_ID` | Yes for Store | Same project as Studio (`wv7uz07u`) |
+| `VITE_SANITY_DATASET` | No | Default `production` |
+| `VITE_SANITY_READ_TOKEN` | When dataset is private | Viewer token; enable Sanity CORS **Allow credentials** |
 
 Copy from [`.env.example`](../../.env.example). Never set `SUPABASE_SERVICE_ROLE_KEY` on the mobile static deploy.
 
@@ -94,6 +97,7 @@ In Supabase Dashboard → **Authentication** → **URL Configuration**:
 | Capability | Vercel (browser) | Capacitor (device) |
 |---|---|---|
 | Auth, profile, subscription UI | Yes | Yes |
+| Store catalogue (Sanity fetch) | Yes, if this origin is in Sanity CORS | Yes only if `https://localhost` / `capacitor://localhost` are in Sanity CORS — see [`native-release.md`](./native-release.md) |
 | Status bar / keyboard plugins | No-op | Native behavior |
 | App Store / Play Store | N/A | [`native-release.md`](./native-release.md) |
 
@@ -109,6 +113,7 @@ Capacitor plugins are skipped when not on a native platform (`src/lib/capacitor.
 | `Missing VITE_SUPABASE_* at build time` | Env vars missing or Runtime-only in Vercel | Enable **Build** on Production env vars in Vercel; redeploy |
 | Auth redirect fails after login | Mobile origin not in Supabase redirect URLs | Add Vercel production + preview URLs in Supabase Auth settings |
 | `Invalid login credentials` | Wrong email/password | Reset credentials in Supabase Auth |
+| Store empty on device, populated on this URL | Sanity CORS allowlists the Vercel origin but not Capacitor | Add `https://localhost` (Android) and `capacitor://localhost` (iOS) in Sanity → API → CORS |
 
 ---
 

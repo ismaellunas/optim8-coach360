@@ -216,6 +216,18 @@
       color: var(--muted);
     }
     .bugs.hidden, .open-questions.hidden { display: none; }
+    .bugs-archive {
+      margin-top: 1rem;
+      border-top: 1px solid rgba(218, 54, 51, 0.25);
+      padding-top: 0.75rem;
+    }
+    .bugs-archive summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+    .bugs-archive table { margin-top: 0.75rem; opacity: 0.88; }
     .open-questions {
       background: var(--warning-bg);
       border: 1px solid var(--warning-border);
@@ -431,7 +443,7 @@
 {
   "project": "Coach360",
   "version": "1.0.0",
-  "last_generated": "2026-08-11",
+  "last_generated": "2026-09-09",
   "planning_baseline_hours": 172,
   "migration_notes": [
     "Schema v2 migration 2026-06-26: acceptance_criteria structured; verify added to all stories.",
@@ -441,10 +453,83 @@
     "OQ-2.1 clarification 2026-07-23: player viewProgress = Basic ◎ (log + count) → Advanced ○ (locked, Upgrade-to-Pro) → Pro ✓; matches shipped LAUNCH_ACCESS_BANDS.viewProgress and ProgressScreen paywall (peer share on Progress stays Advanced+).",
     "OQ-2.2 resolved 2026-07-24: Pro Full MVP access = Advanced + AI + objectives + full analytics; unblocks STORY-11.3. Also OQ-6.2 Mistral; OQ-6.6 why-UI not required MVP; OQ-6.7 listed context/PII allowed to provider; STORY-11.3 MVP scope = LLM re-rank only (no AI chat Q&A).",
     "Manual QA bugs 2026-08-03: recorded FAIL outcomes from docs/Coach 360 - Testing.xlsx with notes from docs/Coach 360 - Testing.docx; bugs panel is the first view on docs/index.html.",
-    "Manual QA bugs 2026-08-11: all remaining READY_FOR_TESTING bugs marked RESOLVED after shipped fixes (f181dcb)."
+    "Manual QA bugs 2026-08-11: all remaining READY_FOR_TESTING bugs marked RESOLVED after shipped fixes (f181dcb).",
+    "Manual QA 2026-09-09: Fold7 device pass — active bugs in `bugs`; August 2026 cluster + Store CORS moved to `bugs_archive`."
   ],
   "open_questions": [],
   "bugs": [
+    {
+      "id": "BUG-QA2-01",
+      "test_id": "QA2-01",
+      "title": "Muted text is hard to read on the dark background",
+      "notes": "Fold7 / coach trial. Token coach-t3 (#5a6278) on coach-bg (#0b0e14) fails WCAG AA for body/labels.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": []
+    },
+    {
+      "id": "BUG-QA2-02",
+      "test_id": "QA2-02",
+      "title": "Android back / gesture exits the app instead of going back",
+      "notes": "In-app chevrons work. Hardware/gesture back is not wired (no Capacitor backButton listener), so the WebView closes.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": ["STORY-1.4"]
+    },
+    {
+      "id": "BUG-QA2-03",
+      "test_id": "QA2-03",
+      "title": "Dashboard Create Content sits under the bottom tab bar",
+      "notes": "Home + Create Content is the last control; ScreenContainer pb-24 is short of TabBar + Fold gesture inset.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": []
+    },
+    {
+      "id": "BUG-QA2-04",
+      "test_id": "QA2-04",
+      "title": "Coach dashboard stats, upcoming, and objectives preview do not update",
+      "notes": "Coach Home still uses hardcoded mock stats, sessions, objectives cards, and AI copy. Player home progress/schedule is live.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": ["STORY-7.3", "STORY-7.4"]
+    },
+    {
+      "id": "BUG-QA2-05",
+      "test_id": "QA2-05",
+      "title": "No persistent place to manage created content",
+      "notes": "My Library exists but is only reachable from Home → Create Content → Open my library / View library. No Library tab.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": ["STORY-9.2"]
+    },
+    {
+      "id": "BUG-QA2-06",
+      "test_id": "QA2-06",
+      "title": "Forgot password is missing from sign-in",
+      "notes": "Sign-in is email + password only. No resetPasswordForEmail flow in the mobile app.",
+      "status": "OPEN",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": ["STORY-2.1"]
+    }
+  ],
+  "bugs_archive": [
+    {
+      "id": "BUG-QA2-07",
+      "test_id": "QA2-07",
+      "title": "Store catalogue empty in the native app (web app worked)",
+      "notes": "Sanity CORS listed Vercel/Studio hosts only. Capacitor Android origin is https://localhost. Catalogue loads after those origins are allowlisted. Stripe return-to-app is a separate native follow-up.",
+      "status": "RESOLVED",
+      "failed_on": "2026-09-09",
+      "source": "Fold7 device QA (SM-F966B, Android 16)",
+      "blocks": ["STORY-9.5", "STORY-10.1"]
+    },
     {
       "id": "BUG-E3-T1",
       "test_id": "E3-T1",
@@ -4354,21 +4439,18 @@
       function renderBugs() {
         const el = document.getElementById('bugs');
         const bugs = data.bugs || [];
-        if (!bugs.length) {
+        const archive = data.bugs_archive || [];
+        const ready = bugs.filter(b => b.status === 'READY_FOR_TESTING');
+        const open = bugs.filter(b => b.status === 'OPEN');
+        const active = [...ready, ...open];
+        if (!active.length && !archive.length) {
           el.classList.add('hidden');
           el.innerHTML = '';
           return;
         }
         el.classList.remove('hidden');
-        const ready = bugs.filter(b => b.status === 'READY_FOR_TESTING');
-        const open = bugs.filter(b => b.status === 'OPEN');
-        const resolved = bugs.filter(b => b.status === 'RESOLVED');
-        // Ready-for-testing first so retest work is visible on landing.
-        const ordered = [...ready, ...open, ...resolved];
         const statusLabel = (s) => (s || '').replace(/_/g, ' ');
-        el.innerHTML = `
-          <h2>Bugs from manual QA (${ready.length} ready for testing · ${open.length} open · ${resolved.length} resolved)</h2>
-          <div class="subtitle">Source: docs/Coach 360 - Testing.xlsx outcomes · notes from docs/Coach 360 - Testing.docx · test defs in mobile-app-test-pack</div>
+        const bugTable = (rows) => `
           <table>
             <thead>
               <tr>
@@ -4380,7 +4462,7 @@
               </tr>
             </thead>
             <tbody>
-              ${ordered.map(b => `
+              ${rows.map(b => `
                 <tr>
                   <td><span class="bug-id">${b.test_id || b.id}</span></td>
                   <td><span class="bug-status ${b.status}">${statusLabel(b.status)}</span></td>
@@ -4394,6 +4476,21 @@
               `).join('')}
             </tbody>
           </table>
+        `;
+        const headingParts = [];
+        if (ready.length) headingParts.push(`${ready.length} ready for testing`);
+        if (open.length) headingParts.push(`${open.length} open`);
+        const heading = headingParts.length
+          ? `Open bugs from manual QA (${headingParts.join(' · ')})`
+          : 'Manual QA';
+        const archiveBlock = archive.length
+          ? `<details class="bugs-archive"><summary>Archived resolved bugs (${archive.length})</summary>${bugTable(archive)}</details>`
+          : '';
+        el.innerHTML = `
+          <h2>${heading}</h2>
+          <div class="subtitle">Live investigations: docs/bug-investigations.md · archive: docs/bug-investigations-archive.md</div>
+          ${active.length ? bugTable(active) : '<p class="subtitle">No open bugs.</p>'}
+          ${archiveBlock}
         `;
       }
 

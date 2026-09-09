@@ -72,10 +72,13 @@ These steps were performed in dashboards / CLI. Re-do them only when creating a 
 - [x] Sanity project created: **`wv7uz07u`**, dataset **`production`**.
 - [x] Schemas live in `apps/studio` (drill, video, strategy, module, lesson, trainingPackage) and are embedded in admin at `/admin/studio`.
 - [x] Local/env vars set: `SANITY_STUDIO_PROJECT_ID`, `SANITY_STUDIO_DATASET`, `VITE_SANITY_PROJECT_ID`, `VITE_SANITY_DATASET`, `VITE_SANITY_STUDIO_URL`.
-- [x] **CORS origins** (Sanity → Project → API → CORS origins): add every Studio host that loads the client, e.g.:
-  - `http://localhost:5174`
-  - `https://coach360-admin-blond.vercel.app` (and any custom `admin.*` domain)
-  - Allow credentials if prompted for authenticated Studio
+- [x] **CORS origins** (Sanity → Project → API → CORS origins). The Store catalogue is fetched **from the client** (browser and Capacitor WebView). Add every host that loads the app:
+  - `http://localhost:5173` (mobile web)
+  - `http://localhost:5174` (admin Studio)
+  - Vercel mobile + admin production/preview origins (e.g. `https://coach360-admin-blond.vercel.app`)
+  - `https://localhost` (Capacitor Android WebView — required or Store is empty on device while web still works)
+  - `capacitor://localhost` (Capacitor iOS WebView)
+  - Allow credentials if `VITE_SANITY_READ_TOKEN` is set / Studio uses authenticated requests
 - [x] **Project members** invited for anyone who authors content in Studio.
 - [ ] Seed marketplace packages (STORY-9.5 prerequisite): add `SANITY_API_TOKEN` (Editor) to `.env`, then `npm run seed:sanity`.
 
@@ -177,7 +180,7 @@ Canonical template: [`.env.example`](../../.env.example).
 2. Confirm access to the password manager vault for `.env` / Vercel / Supabase secrets.
 3. Clone repo, run local bootstrap, open admin Studio and mobile login.
 4. In Vercel admin project, verify Root Directory + SPA rewrite (hit `/admin/studio` cold).
-5. In Sanity, confirm you are a project member and CORS lists the admin origin.
+5. In Sanity, confirm you are a project member and CORS lists admin, mobile web, and Capacitor origins (`https://localhost`, `capacitor://localhost`).
 6. Read [tech-stack.md](../architecture/tech-stack.md) and the tracker at `docs/index.html`.
 
 ---
@@ -197,4 +200,4 @@ When you change a **dashboard-only** setting (CORS origin, new Vercel hostname, 
 
 ---
 
-*Handover version: 1.0 · July 2026*
+*Handover version: 1.1 · September 2026*
