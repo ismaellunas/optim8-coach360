@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-09T08:10:34.310Z",
+  "generated": "2026-10-20T03:31:43.004Z",
   "root": "docs",
   "tree": [
     {
@@ -73,6 +73,71 @@
           "type": "file",
           "name": "parallel-work-plan.md",
           "path": "delivery/parallel-work-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-11.1-fix-plan.md",
+          "path": "delivery/story-11.1-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-11.2-fix-plan.md",
+          "path": "delivery/story-11.2-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-12.1-fix-plan.md",
+          "path": "delivery/story-12.1-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-12.2-fix-plan.md",
+          "path": "delivery/story-12.2-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-12.4-fix-plan.md",
+          "path": "delivery/story-12.4-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-5.2-fix-plan.md",
+          "path": "delivery/story-5.2-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-5.4-fix-plan.md",
+          "path": "delivery/story-5.4-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-6.3-fix-plan.md",
+          "path": "delivery/story-6.3-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-7.1-fix-plan.md",
+          "path": "delivery/story-7.1-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-7.3-fix-plan.md",
+          "path": "delivery/story-7.3-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-7.4-fix-plan.md",
+          "path": "delivery/story-7.4-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-8.1-fix-plan.md",
+          "path": "delivery/story-8.1-fix-plan.md"
+        },
+        {
+          "type": "file",
+          "name": "story-8.3-fix-plan.md",
+          "path": "delivery/story-8.3-fix-plan.md"
         }
       ]
     },
