@@ -4,6 +4,7 @@ import {
   loadAccessContext,
   requireFeatureAccess,
 } from '../_shared/rbac.ts';
+import { recordApiError } from '../_shared/health.ts';
 import {
   buildProviderContextPayload,
   buildRecommendationQueryText,
@@ -60,6 +61,7 @@ Deno.serve(async (request) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY');
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+    // Can't record a health event here — no credentials yet to call the RPC with.
     return new Response(JSON.stringify({ error: 'supabase_env_missing' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -90,79 +92,88 @@ Deno.serve(async (request) => {
   }
 
   const admin = createClient(supabaseUrl, serviceRoleKey);
-  let access;
+
+  // STORY-12.4 (resolved) — instrument this function's API error paths end to end,
+  // including a catch-all for anything not already handled explicitly below
+  // (notably the uninstrumented embedTextWithMistral/rerankPackagesWithMistral calls).
   try {
-    access = await loadAccessContext(admin, user.id);
-  } catch (cause) {
-    return new Response(
-      JSON.stringify({
-        error: cause instanceof Error ? cause.message : 'access_context_failed',
-      }),
-      {
+    let access;
+    try {
+      access = await loadAccessContext(admin, user.id);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : 'access_context_failed';
+      await recordApiError(admin, 'recommend-packages', message, { stage: 'access_context' });
+      return new Response(JSON.stringify({ error: message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
-    );
-  }
+      });
+    }
 
-  // OQ-6.5 — AI package suggestions are Pro-only. Gate BEFORE any Mistral call (AC-3).
-  const gate = requireFeatureAccess({
-    role: access.role,
-    tier: access.tier,
-    feature: 'ai',
-  });
-  if (!gate.ok) {
-    return featureAccessDeniedResponse(gate, corsHeaders);
-  }
-
-  let body: RecommendPackagesRequestBody = {};
-  try {
-    body = (await request.json()) as RecommendPackagesRequestBody;
-  } catch {
-    return new Response(JSON.stringify({ error: 'invalid_json' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    // OQ-6.5 — AI package suggestions are Pro-only. Gate BEFORE any Mistral call (AC-3).
+    const gate = requireFeatureAccess({
+      role: access.role,
+      tier: access.tier,
+      feature: 'ai',
     });
-  }
+    if (!gate.ok) {
+      return featureAccessDeniedResponse(gate, corsHeaders);
+    }
 
-  const { data: purchaseRows, error: purchaseError } = await admin
-    .from('purchases')
-    .select('sanity_document_id')
-    .eq('buyer_id', user.id);
+    let body: RecommendPackagesRequestBody = {};
+    try {
+      body = (await request.json()) as RecommendPackagesRequestBody;
+    } catch {
+      return new Response(JSON.stringify({ error: 'invalid_json' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  if (purchaseError) {
-    return new Response(JSON.stringify({ error: purchaseError.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+    const { data: purchaseRows, error: purchaseError } = await admin
+      .from('purchases')
+      .select('sanity_document_id')
+      .eq('buyer_id', user.id);
 
-  const serverPurchaseHistory = (purchaseRows ?? [])
-    .map((row: { sanity_document_id: string }) => row.sanity_document_id)
-    .filter(Boolean);
+    if (purchaseError) {
+      await recordApiError(admin, 'recommend-packages', purchaseError.message, {
+        stage: 'purchases_lookup',
+      });
+      return new Response(JSON.stringify({ error: purchaseError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-  const context = parseRecommendationContext(body, access.tier, serverPurchaseHistory);
+    const serverPurchaseHistory = (purchaseRows ?? [])
+      .map((row: { sanity_document_id: string }) => row.sanity_document_id)
+      .filter(Boolean);
 
-  // STORY-12.4 — load admin-configured AI recommendation parameters.
-  const { data: aiConfigRaw } = await admin.rpc('get_ai_recommendation_config');
-  const aiConfig = parseAiRecommendationConfig(aiConfigRaw);
+    const context = parseRecommendationContext(body, access.tier, serverPurchaseHistory);
 
-  const { data: packageRows, error: packageError } = await admin
-    .from('package_metadata')
-    .select(
-      'sanity_document_id, title, description, skills, objectives, age_min, age_max, published',
-    )
-    .eq('published', true);
+    // STORY-12.4 — load admin-configured AI recommendation parameters.
+    const { data: aiConfigRaw } = await admin.rpc('get_ai_recommendation_config');
+    const aiConfig = parseAiRecommendationConfig(aiConfigRaw);
 
-  if (packageError) {
-    return new Response(JSON.stringify({ error: packageError.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
+    const { data: packageRows, error: packageError } = await admin
+      .from('package_metadata')
+      .select(
+        'sanity_document_id, title, description, skills, objectives, age_min, age_max, published',
+      )
+      .eq('published', true);
 
-  const candidates: RecommendationCandidate[] = ((packageRows ?? []) as PackageMetadataRow[]).map(
-    (row) => ({
+    if (packageError) {
+      await recordApiError(admin, 'recommend-packages', packageError.message, {
+        stage: 'package_metadata_lookup',
+      });
+      return new Response(JSON.stringify({ error: packageError.message }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const candidates: RecommendationCandidate[] = (
+      (packageRows ?? []) as PackageMetadataRow[]
+    ).map((row) => ({
       id: row.sanity_document_id,
       title: row.title,
       description: row.description,
@@ -171,95 +182,95 @@ Deno.serve(async (request) => {
       ageMin: row.age_min,
       ageMax: row.age_max,
       published: row.published,
-    }),
-  );
+    }));
 
-  const byId = new Map(candidates.map((c) => [c.id, c]));
+    const byId = new Map(candidates.map((c) => [c.id, c]));
 
-  // STORY-11.4 — RAG retrieval (top 5–10) before LLM re-rank; metadata fallback.
-  let candidatePool: PackageRecommendation[] = [];
-  let retrieval: 'rag' | 'metadata' = 'metadata';
+    // STORY-11.4 — RAG retrieval (top 5–10) before LLM re-rank; metadata fallback.
+    let candidatePool: PackageRecommendation[] = [];
+    let retrieval: 'rag' | 'metadata' = 'metadata';
 
-  const queryText = buildRecommendationQueryText(context);
-  const queryEmbedding = queryText ? await embedTextWithMistral(queryText) : null;
+    const queryText = buildRecommendationQueryText(context);
+    const queryEmbedding = queryText ? await embedTextWithMistral(queryText) : null;
 
-  if (queryEmbedding) {
-    const { data: matchRows, error: matchError } = await admin.rpc('match_package_embeddings', {
-      query_embedding: queryEmbedding,
-      match_count: aiConfig.ragTopK,
-      match_threshold: 0,
-    });
+    if (queryEmbedding) {
+      const { data: matchRows, error: matchError } = await admin.rpc('match_package_embeddings', {
+        query_embedding: queryEmbedding,
+        match_count: aiConfig.ragTopK,
+        match_threshold: 0,
+      });
 
-    if (!matchError && Array.isArray(matchRows) && matchRows.length > 0) {
-      const similarityRows: SimilarityMatchRow[] = [];
-      for (const row of matchRows as MatchPackageEmbeddingRow[]) {
-        const cand = byId.get(row.sanity_document_id);
-        if (!cand) continue;
-        if (!passesHardFilters(cand, context)) continue;
-        similarityRows.push({
-          sanityDocumentId: cand.id,
-          title: cand.title,
-          similarity: row.similarity,
-          skills: cand.skills ?? [],
-          objectives: cand.objectives ?? [],
-        });
-      }
-      const ragRanked = mapSimilarityRowsToRecommendations(
-        similarityRows,
-        aiConfig.ragTopK,
-      );
-      if (ragRanked.length > 0) {
-        candidatePool = ragRanked;
-        retrieval = 'rag';
+      if (!matchError && Array.isArray(matchRows) && matchRows.length > 0) {
+        const similarityRows: SimilarityMatchRow[] = [];
+        for (const row of matchRows as MatchPackageEmbeddingRow[]) {
+          const cand = byId.get(row.sanity_document_id);
+          if (!cand) continue;
+          if (!passesHardFilters(cand, context)) continue;
+          similarityRows.push({
+            sanityDocumentId: cand.id,
+            title: cand.title,
+            similarity: row.similarity,
+            skills: cand.skills ?? [],
+            objectives: cand.objectives ?? [],
+          });
+        }
+        const ragRanked = mapSimilarityRowsToRecommendations(similarityRows, aiConfig.ragTopK);
+        if (ragRanked.length > 0) {
+          candidatePool = ragRanked;
+          retrieval = 'rag';
+        }
       }
     }
-  }
 
-  if (retrieval === 'metadata') {
-    candidatePool = rankPackageRecommendations(candidates, context, aiConfig.candidatePool);
-  }
+    if (retrieval === 'metadata') {
+      candidatePool = rankPackageRecommendations(candidates, context, aiConfig.candidatePool);
+    }
 
-  const { data: profileRow } = await admin
-    .from('profiles')
-    .select('display_name')
-    .eq('id', user.id)
-    .maybeSingle();
+    const { data: profileRow } = await admin
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .maybeSingle();
 
-  const providerPayload = buildProviderContextPayload(context, candidatePool, {
-    userId: user.id,
-    email: user.email ?? null,
-    displayName:
-      profileRow && typeof (profileRow as { display_name?: unknown }).display_name === 'string'
-        ? (profileRow as { display_name: string }).display_name
-        : null,
-  });
+    const providerPayload = buildProviderContextPayload(context, candidatePool, {
+      userId: user.id,
+      email: user.email ?? null,
+      displayName:
+        profileRow && typeof (profileRow as { display_name?: unknown }).display_name === 'string'
+          ? (profileRow as { display_name: string }).display_name
+          : null,
+    });
 
-  // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata/RAG pool on failure.
-  // STORY-12.4 — skip LLM re-rank when admin disables it.
-  const llmResult = aiConfig.llmRerankEnabled
-    ? await rerankPackagesWithMistral(providerPayload)
-    : null;
-  const recommendations = finalizeRecommendations(
-    candidatePool,
-    llmResult,
-    aiConfig.llmTopK,
-  );
+    // AC-1 / AC-2 — Mistral via Vercel AI SDK; fallback to metadata/RAG pool on failure.
+    // STORY-12.4 — skip LLM re-rank when admin disables it.
+    const llmResult = aiConfig.llmRerankEnabled
+      ? await rerankPackagesWithMistral(providerPayload)
+      : null;
+    const recommendations = finalizeRecommendations(candidatePool, llmResult, aiConfig.llmTopK);
 
-  return new Response(
-    JSON.stringify({
-      recommendations,
-      context: {
-        objectives: context.objectives,
-        age: context.age ?? null,
-        tier: context.tier,
-        purchaseHistory: context.purchaseHistory,
+    return new Response(
+      JSON.stringify({
+        recommendations,
+        context: {
+          objectives: context.objectives,
+          age: context.age ?? null,
+          tier: context.tier,
+          purchaseHistory: context.purchaseHistory,
+        },
+        retrieval,
+        llm: llmResult ? 'mistral' : 'metadata_fallback',
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
-      retrieval,
-      llm: llmResult ? 'mistral' : 'metadata_fallback',
-    }),
-    {
-      status: 200,
+    );
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : 'recommend_packages_failed';
+    await recordApiError(admin, 'recommend-packages', message, { stage: 'unhandled' });
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    },
-  );
+    });
+  }
 });

@@ -1,6 +1,6 @@
 # STORY-6.3 fix plan — Share schedule and notify recipients
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-04
+> **Status today:** DONE (tracker) — week navigation and exact-date filtering implemented and tested. No design spec existed for the nav controls; shipped a conservative engineering default (prev/next arrows) rather than blocking, flagged for design review.
 > **QA evidence:** docs/Coach_Feedback.docx (coach-account "Schedule" section; player-account "Progress" section — see Open Questions)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md
 
@@ -54,24 +54,33 @@ Player-account section, under "Progress" (see Open Questions for why this is gro
 
 ## Fix plan
 
-1. Replace the render-time `new Date()` anchor with a `weekAnchorDate` piece of state (defaulting to the current week), and add prev/next-week controls to the day-strip header.
-2. Change `dayData` filtering to match on the exact calendar date of each visible day cell (year/month/date triple), not just `getDay()`. Compute each day cell to a concrete `Date` once per render and compare against `entry.scheduledAt`'s calendar date.
-3. Re-derive "today" (for highlighting and for `selectedDay` defaults) on screen focus / app-resume rather than only at mount, so a long-lived session doesn't show a stale "today."
-4. Leave `filterUpcomingSessions` behavior for players unchanged pending the product decision in Open Questions — if "past" needs to become visible to players, this will need a mode switch (e.g. "Upcoming" vs "History" tab), not just a filter tweak, since the current AC and test both codify "upcoming only."
+1. **Week navigation (resolved, implemented):** `weekAnchorDate` state (defaulting to the current week via a new `startOfWeek()` helper) replaces the render-time `new Date()` anchor. Prev/next-week arrow buttons added to a new header row above the day-strip, plus a week-range label (e.g. "Oct 19 – Oct 25") and a "Today" shortcut that appears only when viewing a different week.
+2. **Exact-date filtering (resolved, implemented):** `dayData` now matches the exact calendar date of the selected day cell (via a new `isSameCalendarDate()` helper), not just `getDay()`. Each of the 7 visible day cells is a concrete `Date` derived from `weekAnchorDate`, computed once per render. The same exact-date fix applies to `daysWithSessions` (the per-day orange-dot indicator), which had the identical weekday-collision bug.
+3. **Stale "today" (resolved, implemented):** a `visibilitychange` listener re-derives `selectedDay` to the current weekday whenever the app becomes visible again — but only when the viewed week is still "this week," so it doesn't yank the user back to today while they're deliberately browsing a different week.
+4. **`filterUpcomingSessions` for players (resolved): left unchanged.** Confirmed as intentional per AC-3 and the existing test — no "History" mode built.
+5. **Week navigation bounds (resolved): unbounded.** No season-start/end check added — `goToPreviousWeek`/`goToNextWeek` always shift by exactly 7 days.
+6. **Week navigation design (resolved, with a caveat):** no design spec exists in `docs/design/ui-reference.md`. Shipped the lowest-risk engineering default — simple prev/next arrow buttons, not swipe gestures or a calendar/month view — rather than blocking the whole story on a design review. Flagged as a new open question for an actual design pass.
+7. **"Cannot add my own sessions" (resolved): out of scope, not built.** Logged as a new backlog item, not folded into this fix.
+8. **Ambiguous "Progress" complaint source (resolved):** treated as a mislabeled Schedule complaint; no separate Progress-tab work done.
 
 ## Verification plan
 
-- Existing tests to re-run: `tests/sessions/story-6.3.test.js` (must keep the `filterUpcomingSessions` unit assertions passing — specifically the `past`/`today`/`soon`/`gone` fixture at lines 129–138) and `tests/sessions/story-6.1.test.js`.
-- New test cases needed:
-  - Two sessions on the same weekday in different weeks must not both appear when one specific week is selected.
-  - Navigating to next/previous week changes the visible date range and `dayData` accordingly.
-  - "Today" highlight updates after a simulated date change (app resume) without requiring a tap.
-- Manual re-test: coach account, create one session 2 weeks in the future and one 2 weeks in the past; confirm both are reachable via the new week navigation and are not conflated with the current week's same-weekday sessions. Repeat for a player account viewing a shared team schedule.
+- `tests/sessions/story-6.3.test.js`: 6/6 passing (4 original, including the `filterUpcomingSessions` unit assertions unchanged, + 2 new: week navigation/exact-date-filtering source assertions, unbounded-navigation assertion).
+- `tests/sessions/story-6.1.test.js` and `tests/sessions/story-7.1.test.js`: re-ran, unaffected (9/9 and 4/4 passing).
+- Full suite (`npx vitest run`): 258/268 non-skipped passing, same 7 pre-existing unrelated failures as before this change.
+- `eslint` on changed files: 0 errors.
+- Manual re-test (not done — no live device/account in this session): coach account — create one session 2 weeks in the future and one 2 weeks in the past, confirm both are reachable via the new week navigation and not conflated with the current week's same-weekday sessions; confirm the "Today" shortcut returns to the current week; confirm a long-lived session (backgrounded past midnight, then resumed) refreshes the "today" highlight.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Ambiguous source of the "Progress" complaint.** The exact phrase "Not updating to todays date / Cannot view future/past" appears under the **"Progress"** heading in the player-account section of `Coach_Feedback.docx`, but `apps/mobile/src/features/progress/ui/ProgressScreen.jsx` has no date, calendar, or future/past concept at all (see `docs/delivery/story-7.1-fix-plan.md` for that screen's actual content). I'm assuming the tester meant the Schedule tab and mislabeled it under "Progress" in the doc, because the identical phrasing is attributed to "Schedule" in the coach-account section. **This needs confirmation from whoever ran the Fold7 pass** — if the tester really meant the Progress screen, there's a different (currently unscoped) feature gap, not this bug.
-- **Is "players can't view past sessions" actually unwanted behavior, or is QA flagging intended scope as a defect?** Current code + AC-3 wording + an existing unit test all agree players should only see upcoming sessions. If product wants a player-facing history view, that's a scope addition (new "History" mode), not a bug fix — needs a decision before implementation sizing.
-- **Is "Cannot add my own sessions" (player) in scope for this story at all?** STORY-6.1 AC-1 explicitly scopes session creation to coaches (and AC-2 to Team Managers at Advanced+); there is no player-initiated session creation anywhere in the codebase. This reads as a feature request outside STORY-6.3/6.1's current scope, not a regression — confirm whether it should be tracked as a new story or dropped as out-of-scope.
-- **Should week navigation be unbounded**, or capped to a team's season start/end (tracked only as metadata per STORY-3.1, with no enforcement today)? Affects whether the fix needs to read team season dates at all.
-- **No design spec exists** for week navigation controls (arrows vs. swipe vs. separate calendar/month view) in `docs/design/ui-reference.md` — needs design input before implementation, not an engineering-only call.
+- **Ambiguous "Progress" complaint source:** mislabeled Schedule complaint (same reasoning as the identical STORY-7.1 question). No separate Progress-tab gap.
+- **Past-sessions visibility for players:** keep "upcoming only," matches AC-3 + existing test. Log a backlog item for a future history view if demand is confirmed.
+- **Player-initiated session creation:** out of scope for STORY-6.3/6.1. Logged as a new backlog story.
+- **Week navigation bounds:** unbounded for MVP.
+- **Week navigation design:** no spec exists — shipped simple prev/next arrows as an engineering default, flagged for design review rather than blocking.
+
+## Open questions — new, discovered during implementation
+
+- **Should the prev/next-arrow week navigation be reviewed by design**, now that it's shipped as an engineering default with no spec to follow? Easy to swap for a different pattern (swipe, calendar/month view) later since it's isolated to the day-strip header.
+- **Should a player-facing session history view be built** (separate "Upcoming"/"History" mode)? Not built — logged per the resolved decision above, pending confirmed demand.
+- **Should player-initiated session creation be built as a new story?** Not built — STORY-6.1's ACs explicitly scope creation to coaches/team managers; this is new scope, not a regression.

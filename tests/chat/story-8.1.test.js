@@ -184,6 +184,47 @@ describe('STORY_8_1 AC3 — real-time message delivery', () => {
   });
 });
 
+describe('STORY_8_1 Player-initiated coach messaging (resolved, QA3-05) — entry point + entitlement split', () => {
+  it('test_STORY_8_1_AC2_player_can_initiate_chat_with_coach: role-aware compose entry point for players', () => {
+    const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
+    // Player gets the same compose entry points as a coach, not gated behind canComposeDm alone.
+    expect(chat).toMatch(/const isPlayerRole = user\?\.role === 'player';/);
+    expect(chat).toMatch(/canComposeDm \|\| isPlayerRole \?/);
+    expect(chat).toMatch(/data-testid=\{isPlayerRole \? 'chat-compose-coach' : 'chat-compose-player'\}/);
+    // Mirrors loadRosterPlayers but via roster membership (players aren't team creators).
+    expect(chat).toMatch(/repos\.rosters\.listMemberTeams\(userId\)/);
+    expect(chat).toMatch(/team\.createdBy/);
+    // Context-first: skip the picker when there's exactly one coach; never silently
+    // default to one when there's more than one.
+    expect(chat).toMatch(/rosterCoaches\.length === 1/);
+  });
+
+  it('test_STORY_8_1_AC2_coach_messaging_free_at_every_tier: entitlement split — dm free, team/p2p stay Advanced+', () => {
+    const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
+    // Screen no longer fully locks out players/coaches/team managers regardless of tier.
+    expect(chat).toMatch(/const hasAnyMessagingAccess = canComposeDm \|\| isPlayerRole \|\| chatAllowed;/);
+    expect(chat).not.toMatch(/if \(!chatAllowed\) \{\s*\n\s*return \(/);
+    // DM creation, loading, and realtime no longer require chatAllowed.
+    expect(chat).toMatch(/openDmWithPlayer = useCallback\(\s*\n(\s*\/\/.*\n)*\s*async function \(playerId, displayName\) \{\s*\n\s*if \(!userId\) \{/);
+
+    const message = readFileSync(
+      path.join(REPO_ROOT, 'packages', 'domain', 'src', 'chat', 'message.ts'),
+      'utf8',
+    );
+    expect(message).toMatch(/if \(channelType === 'dm'\) {\s*\n\s*return true;/);
+  });
+
+  it('test_STORY_8_1_AC2_coach_not_visible_complaint_surfaces_pending_roster: not resolved (needs live repro), but no longer silent', () => {
+    // Genuinely can't confirm from code alone whether the reported roster entry
+    // was active at test time — not guessed at. What's fixed regardless: a
+    // pending-signup roster entry no longer vanishes with zero explanation.
+    const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
+    expect(chat).toMatch(/pendingRosterCount/);
+    expect(chat).toMatch(/data-testid="chat-pending-roster-note"/);
+    expect(chat).toMatch(/finished signing up yet/);
+  });
+});
+
 describe('STORY_8_1 AC4 — unread counts and conversation list persist', () => {
   it('test_STORY_8_1_AC4_unread_and_conversation_list_persist: members last_read and unread UI', () => {
     expect(computeUnreadCount(3)).toBe(3);

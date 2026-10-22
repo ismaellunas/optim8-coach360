@@ -68,6 +68,7 @@ describe('STORY_1_4 AC2 — Android release build in CI', () => {
 
     expect(workflow).toMatch(/android-release:/);
     expect(workflow).toMatch(/setup-java/);
+    expect(workflow).toMatch(/setup-android/);
     expect(workflow).toMatch(/assembleRelease/);
     expect(workflow).toMatch(/app-release\.apk/);
 

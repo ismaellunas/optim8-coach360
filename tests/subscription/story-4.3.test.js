@@ -234,7 +234,7 @@ describe('STORY_4_3 AC2 — Advanced and Pro features show paywall', () => {
     expect(app).toMatch(/setPaywall\(feature\)/);
     // App guards route through the centralized RBAC map (STORY-5.1).
     expect(app).toMatch(/checkFeatureAccess/);
-    expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro' });
+    expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro', team: 'pro' });
     // STORY-5.2 / OQ-6.5 — AI Pro-only for coach, player, and team manager.
     expect(FEATURE_TIER_REQUIREMENTS.ai).toEqual({ coach: 'pro', player: 'pro', team: 'pro' });
     // STORY-5.2 — chat Advanced+ for coach, player, and team manager.

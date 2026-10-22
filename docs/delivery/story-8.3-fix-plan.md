@@ -1,6 +1,6 @@
 # STORY-8.3 fix plan — Player-to-player knowledge sharing
 
-> **Status today:** DONE (tracker) — linked as reopened/contradicted by BUG-QA3-05
+> **Status today:** DONE (tracker), confirmed — not actually implicated by QA3-05. No code change; `docs/product/stakeholder-questions.md` backfilled.
 > **QA evidence:** docs/Coach_Feedback.docx (coach + player account sections)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md, [story-8.1-fix-plan.md](./story-8.1-fix-plan.md)
 
@@ -33,13 +33,17 @@ Separately, `docs/product/stakeholder-questions.md:242-244` shows OQ-18.1/18.2/1
 
 ## Fix plan
 
-No fix proposed. I don't believe this story needs code changes based on the QA3-05 evidence — see Open Questions below before anything is actioned here.
+No code changes. STORY-8.3 confirmed not implicated by QA3-05 — unlink/restore to DONE at the tracker level (already DONE; status was never actually flipped — see below). Backfilled `docs/product/stakeholder-questions.md` OQ-18.1/18.2/18.3 with the interim code-level defaults.
 
 ## Verification plan
 
-N/A pending the open question below. If confirmed out of scope, the only action is removing STORY-8.3 from BUG-QA3-05's `blocks` array in the tracker and reverting its status to DONE.
+No new tests needed — no code changed. Confirmed `docs/product/stakeholder-questions.md` now documents the interim defaults for OQ-18.1/18.2/18.3 (OQ-18.4, content moderation, remains genuinely unanswered — not touched, since nothing in this story's code resolves it).
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Was STORY-8.3 linked to QA3-05 correctly?** Based on the code and the actual feedback text, I don't see a connection — this looks like it may have been linked in error when the bug was drafted (plausibly because "chat" appears in both the complaint and this story's description). Is there a specific complaint about peer-sharing-as-DM, or coach visibility of peer shares, that I'm missing from a different part of the feedback doc or a conversation I don't have visibility into? If not, I'd recommend unlinking it and restoring STORY-8.3 to DONE rather than carrying a plan doc with no actual defect.
-- **Unrelated but adjacent:** should OQ-18.1/18.2/18.3's resolutions be backfilled into `docs/product/stakeholder-questions.md` (currently blank) now that code has an interim answer, so the next person doesn't have to grep source comments to find it? Flagging since I noticed it, not acting on it.
+- **QA3-05 link validity:** not correctly linked — no connection found between the complaint (direct player-coach messaging) and this story's scope (team-channel peer sharing). Tracker `status` was never actually flipped off DONE for this ticket (no BUG-QA3-05 entry exists in `docs/index.html`'s `bugs` array), so no tracker change was needed.
+- **Stakeholder questions backfill:** done — OQ-18.1/18.2/18.3 now show the interim code-level answers in `docs/product/stakeholder-questions.md`, clearly labeled "Engineering (interim), not formally ratified" rather than presented as a real product sign-off.
+
+## Open questions
+
+None outstanding for this story.

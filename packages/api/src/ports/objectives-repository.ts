@@ -1,7 +1,8 @@
 import type { CreateObjectiveInput, Objective } from '@coach360/domain';
 
 export type ObjectivesRepository = {
-  /** Coach: objectives they created. Player: assigned player + team objectives. */
-  listForUser(userId: string, role: 'coach' | 'player' | 'team_manager' | 'admin'): Promise<Objective[]>;
-  create(coachId: string, input: CreateObjectiveInput): Promise<Objective>;
+  /** Coach: objectives they created. Player/team: assigned player + team-scope objectives (RLS-gated). */
+  listForUser(userId: string, role: 'coach' | 'player' | 'team' | 'admin'): Promise<Objective[]>;
+  /** Coach creating for a player/team, or a player self-authoring their own (STORY-11.1 player self-author). */
+  create(creatorId: string, input: CreateObjectiveInput): Promise<Objective>;
 };

@@ -7,6 +7,28 @@ const corsHeaders = {
     'authorization, x-client-info, apikey, content-type, mux-signature',
 };
 
+// STORY-12.4 (resolved) — Mux is an inbound webhook receiver like Stripe/Sanity;
+// a DB-sync failure here is a genuine webhook_failure, not an api_error.
+// Note: video.asset.errored (mapped.kind === 'error') is Mux successfully telling
+// us a transcode failed — that's recorded via transcode_status, not here, since
+// the webhook itself was delivered and handled fine.
+async function recordWebhookFailure(
+  supabase: ReturnType<typeof createClient>,
+  message: string,
+  details: Record<string, unknown>,
+) {
+  try {
+    await supabase.rpc('record_system_health_event', {
+      p_kind: 'webhook_failure',
+      p_source: 'mux-webhook',
+      p_message: message,
+      p_details: details,
+    });
+  } catch {
+    // Best-effort health recording — never mask the original failure.
+  }
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -79,6 +101,7 @@ Deno.serve(async (request) => {
       .eq('id', mapped.libraryItemId);
 
     if (error) {
+      await recordWebhookFailure(admin, error.message, { stage: 'library_item_ready_update' });
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -108,6 +131,7 @@ Deno.serve(async (request) => {
     .eq('id', mapped.libraryItemId);
 
   if (error) {
+    await recordWebhookFailure(admin, error.message, { stage: 'library_item_error_update' });
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

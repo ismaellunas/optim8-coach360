@@ -17,4 +17,6 @@ export interface UserRepository {
   list(params?: UserListParams): Promise<PaginatedResult<User>>;
   getById(id: string): Promise<User | null>;
   updateUser(id: string, input: UpdateUserInput): Promise<User>;
+  /** STORY-12.1 (resolved, QA3-09) — admin-triggered self-service reset email. */
+  sendPasswordReset(id: string): Promise<void>;
 }

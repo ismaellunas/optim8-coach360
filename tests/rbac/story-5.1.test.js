@@ -21,7 +21,7 @@ const MIGRATION_PATH = path.join(
   REPO_ROOT,
   'supabase',
   'migrations',
-  '20260722140100_peer_engagement_feature_access.sql',
+  '20260728120000_objectives_team_tier_access.sql',
 );
 const RBAC_HELPERS_MIGRATION_PATH = path.join(
   REPO_ROOT,

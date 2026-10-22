@@ -19,7 +19,7 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
   createSession: { coach: 'advanced', team: 'advanced' },
   distribute: { coach: 'advanced' },
-  objectives: { coach: 'pro', player: 'pro' },
+  objectives: { coach: 'pro', player: 'pro', team: 'pro' },
   ai: { coach: 'pro', player: 'pro', team: 'pro' },
   createContent: { coach: 'advanced' },
   teamManage: { coach: 'basic', team: 'basic' },

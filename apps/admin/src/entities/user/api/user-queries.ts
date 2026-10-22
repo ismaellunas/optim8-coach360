@@ -33,3 +33,11 @@ export function useUpdateUserMutation() {
     },
   });
 }
+
+/** STORY-12.1 (resolved, QA3-09) — admin-triggered self-service reset email. */
+export function useSendPasswordResetMutation() {
+  const repos = useRepositories();
+  return useMutation({
+    mutationFn: (id: string) => repos.users.sendPasswordReset(id),
+  });
+}

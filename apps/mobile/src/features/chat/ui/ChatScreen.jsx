@@ -76,6 +76,7 @@ export function ChatScreen({
   const repos = useRepositories();
   const userId = session?.user.id;
   const isCoach = user?.role === 'coach';
+  const isPlayerRole = user?.role === 'player';
   const canComposeDm = user?.role === 'coach' || user?.role === 'team_manager';
 
   const [conversations, setConversations] = useState([]);
@@ -91,6 +92,8 @@ export function ChatScreen({
   const [error, setError] = useState(null);
   const [pickingPlayer, setPickingPlayer] = useState(false);
   const [rosterPlayers, setRosterPlayers] = useState([]);
+  const [pendingRosterCount, setPendingRosterCount] = useState(0);
+  const [rosterCoaches, setRosterCoaches] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
   const [startingDm, setStartingDm] = useState(false);
   const [attaching, setAttaching] = useState(false);
@@ -100,7 +103,10 @@ export function ChatScreen({
 
   const loadConversations = useCallback(
     async function () {
-      if (!userId || !chatAllowed) {
+      // STORY-8.1 (resolved): coach<->player DM is free at every tier, so the
+      // conversation list (which may contain DM threads) must load regardless
+      // of chatAllowed — RLS still governs which rows are actually visible.
+      if (!userId) {
         setConversations([]);
         return;
       }
@@ -128,13 +134,14 @@ export function ChatScreen({
         setError(cause instanceof Error ? cause.message : 'chat_conversations_load_failed');
       }
     },
-    [chatAllowed, repos, userId],
+    [repos, userId],
   );
 
   const loadRosterPlayers = useCallback(
     async function () {
       if (!userId || !canComposeDm) {
         setRosterPlayers([]);
+        setPendingRosterCount(0);
         return;
       }
       setLoadingPlayers(true);
@@ -146,18 +153,25 @@ export function ChatScreen({
           }),
         );
         const byId = new Map();
+        // STORY-8.1 (resolved, coach "have one setup but cannot initiate chat.
+        // Not visible" complaint): can't resolve from code alone whether a
+        // specific roster entry was actually active at test time — that needs
+        // a live repro. What's safe to fix regardless: surface a count of
+        // invited-but-not-joined entries instead of letting them vanish with
+        // no explanation (same filter as the picker list itself).
+        let pending = 0;
         for (const members of memberLists) {
           for (const member of members) {
-            if (
-              member.rosterRole === 'player'
-              && member.status === 'active'
-              && member.profileId
-              && member.profileId !== userId
-            ) {
+            if (member.rosterRole !== 'player') {
+              continue;
+            }
+            if (member.status === 'active' && member.profileId && member.profileId !== userId) {
               byId.set(member.profileId, {
                 profileId: member.profileId,
                 displayName: member.displayName?.trim() || 'Player',
               });
+            } else if (member.status !== 'active' || !member.profileId) {
+              pending += 1;
             }
           }
         }
@@ -165,6 +179,7 @@ export function ChatScreen({
           return a.displayName.localeCompare(b.displayName);
         });
         setRosterPlayers(players);
+        setPendingRosterCount(pending);
         setPlayerNames(function (prev) {
           const next = { ...prev };
           for (const player of players) {
@@ -174,12 +189,56 @@ export function ChatScreen({
         });
       } catch (cause) {
         setRosterPlayers([]);
+        setPendingRosterCount(0);
         setError(cause instanceof Error ? cause.message : 'roster_players_load_failed');
       } finally {
         setLoadingPlayers(false);
       }
     },
     [canComposeDm, repos.rosters, repos.teams, userId],
+  );
+
+  const loadRosterCoaches = useCallback(
+    async function () {
+      if (!userId || !isPlayerRole) {
+        setRosterCoaches([]);
+        return;
+      }
+      setLoadingPlayers(true);
+      try {
+        // Players aren't team creators, so repos.teams.listForUser (created_by)
+        // doesn't apply here — use the roster-membership lookup instead.
+        const teamList = await repos.rosters.listMemberTeams(userId);
+        const byId = new Map();
+        for (const team of teamList) {
+          if (team.createdBy && team.createdBy !== userId && !byId.has(team.createdBy)) {
+            byId.set(team.createdBy, {
+              profileId: team.createdBy,
+              displayName: null,
+              teamName: team.name,
+            });
+          }
+        }
+        const nameMap = await resolvePlayerDisplayNames(repos, teamList, [...byId.keys()]);
+        const coaches = [...byId.values()]
+          .map(function (coach) {
+            return { ...coach, displayName: nameMap[coach.profileId]?.trim() || 'Coach' };
+          })
+          .sort(function (a, b) {
+            return a.displayName.localeCompare(b.displayName);
+          });
+        setRosterCoaches(coaches);
+        setPlayerNames(function (prev) {
+          return { ...prev, ...nameMap };
+        });
+      } catch (cause) {
+        setRosterCoaches([]);
+        setError(cause instanceof Error ? cause.message : 'roster_coaches_load_failed');
+      } finally {
+        setLoadingPlayers(false);
+      }
+    },
+    [isPlayerRole, repos, userId],
   );
 
   const loadMessages = useCallback(
@@ -202,8 +261,12 @@ export function ChatScreen({
   );
 
   const openDmWithPlayer = useCallback(
+    // STORY-8.1 (resolved): coach<->player DM creation is free at every tier.
+    // Despite the name (kept for minimal diff against the existing coach-side
+    // flow), ensureDmChannel is role-agnostic — this is also used for a
+    // player opening a DM with their coach.
     async function (playerId, displayName) {
-      if (!userId || !chatAllowed) {
+      if (!userId) {
         return;
       }
       setStartingDm(true);
@@ -223,7 +286,7 @@ export function ChatScreen({
         setStartingDm(false);
       }
     },
-    [chatAllowed, loadMessages, playerNames, repos.messaging, userId],
+    [loadMessages, playerNames, repos.messaging, userId],
   );
 
   const handleRealtimeMessage = useCallback(
@@ -241,7 +304,8 @@ export function ChatScreen({
   );
 
   useChatRealtime(
-    chatAllowed ? repos.messaging : null,
+    // STORY-8.1 (resolved): DM realtime must work at every tier too.
+    repos.messaging,
     activeChannelId,
     handleRealtimeMessage,
   );
@@ -255,17 +319,28 @@ export function ChatScreen({
 
   useEffect(
     function () {
-      if (!pickingPlayer) {
-        return;
+      // Loaded eagerly (not gated on pickingPlayer) so startCompose can decide
+      // whether to skip the picker when the player has exactly one coach.
+      if (isPlayerRole) {
+        loadRosterCoaches();
       }
-      loadRosterPlayers();
     },
-    [loadRosterPlayers, pickingPlayer],
+    [isPlayerRole, loadRosterCoaches],
   );
 
   useEffect(
     function () {
-      if (!initialDm || !userId || !chatAllowed) {
+      if (!pickingPlayer || isPlayerRole) {
+        return;
+      }
+      loadRosterPlayers();
+    },
+    [isPlayerRole, loadRosterPlayers, pickingPlayer],
+  );
+
+  useEffect(
+    function () {
+      if (!initialDm || !userId) {
         return;
       }
 
@@ -332,10 +407,13 @@ export function ChatScreen({
 
   async function handleSend() {
     const trimmed = msg.trim();
-    if (!trimmed || !userId || !activeChannelId || !chatAllowed) {
+    if (!trimmed || !userId || !activeChannelId) {
       return;
     }
-    if (activeType && !canSendTextOnChannelType(activeType, chatAllowed)) {
+    // STORY-8.1 (resolved): canSendTextOnChannelType is the single source of
+    // truth for text-send gating — 'dm' is free at every tier, 'team'/'p2p'
+    // still require chatAllowed. Don't duplicate the chatAllowed check above.
+    if (!activeType || !canSendTextOnChannelType(activeType, chatAllowed)) {
       return;
     }
 
@@ -422,11 +500,24 @@ export function ChatScreen({
   }
 
   function startCompose() {
-    setPickingPlayer(true);
     setError(null);
+    // STORY-8.1 (resolved): infer from context when unambiguous — a player
+    // with exactly one coach shouldn't have to pick from a list of one.
+    // Never default to an unannounced "primary" coach when there's more
+    // than one, though — show the picker in that case.
+    if (isPlayerRole && rosterCoaches.length === 1) {
+      openDmWithPlayer(rosterCoaches[0].profileId, rosterCoaches[0].displayName);
+      return;
+    }
+    setPickingPlayer(true);
   }
 
-  if (!chatAllowed) {
+  // STORY-8.1 (resolved): coach<->player DM ("coach messaging") is free at
+  // every tier for every player/coach/team_manager — this screen should
+  // never fully lock for those roles anymore. Advanced+ still gates team
+  // channels and p2p (enforced in canSendTextOnChannelType, not here).
+  const hasAnyMessagingAccess = canComposeDm || isPlayerRole || chatAllowed;
+  if (!hasAnyMessagingAccess) {
     return (
       <ScreenContainer>
         <PageHeader title="MESSAGES" user={user} />
@@ -481,6 +572,10 @@ export function ChatScreen({
           return row.peerId;
         }),
     );
+    // STORY-8.1 (resolved): players pick a coach (grouped by team when there's
+    // more than one); coaches/team managers keep the existing player picker.
+    const pickerPeople = isPlayerRole ? rosterCoaches : rosterPlayers;
+    const peerKind = isPlayerRole ? 'coach' : 'player';
 
     return (
       <ScreenContainer data-testid="chat-compose-screen">
@@ -493,38 +588,48 @@ export function ChatScreen({
           }}
         />
         <p className="mb-3 font-body text-[13px] text-coach-t3">
-          Choose a player from your roster to start a conversation.
+          {isPlayerRole
+            ? 'Choose a coach to start a conversation.'
+            : 'Choose a player from your roster to start a conversation.'}
         </p>
         {error ? (
           <p className="mb-3 font-body text-xs text-coach-red">{error}</p>
         ) : null}
         {loadingPlayers ? (
-          <p className="font-body text-sm text-coach-t3">Loading players…</p>
+          <p className="font-body text-sm text-coach-t3">Loading {peerKind}es…</p>
         ) : null}
-        {!loadingPlayers && rosterPlayers.length === 0 ? (
+        {!loadingPlayers && pickerPeople.length === 0 ? (
           <p className="font-body text-sm text-coach-t3">
-            No active players on your teams yet. Add players from Roster first.
+            {isPlayerRole
+              ? 'No coach found for your team yet.'
+              : 'No active players on your teams yet. Add players from Roster first.'}
           </p>
         ) : null}
-        {rosterPlayers.map(function (player) {
-          const hasThread = existingPeerIds.has(player.profileId);
+        {!loadingPlayers && !isPlayerRole && pendingRosterCount > 0 ? (
+          <p className="mb-3 font-body text-xs text-coach-t3" data-testid="chat-pending-roster-note">
+            {pendingRosterCount} invited {pendingRosterCount === 1 ? 'player hasn\'t' : 'players haven\'t'} finished signing up yet, so they aren't shown here.
+          </p>
+        ) : null}
+        {pickerPeople.map(function (person) {
+          const hasThread = existingPeerIds.has(person.profileId);
           return (
             <button
-              key={player.profileId}
+              key={person.profileId}
               type="button"
               disabled={startingDm}
-              data-testid="chat-compose-player"
+              data-testid={isPlayerRole ? 'chat-compose-coach' : 'chat-compose-player'}
               onClick={function () {
-                openDmWithPlayer(player.profileId, player.displayName);
+                openDmWithPlayer(person.profileId, person.displayName);
               }}
               className="mb-0 flex w-full cursor-pointer items-center gap-3.5 border-0 border-b border-solid border-coach-border bg-transparent py-3.5 text-left disabled:opacity-50"
             >
               <div className="flex h-[46px] w-[46px] items-center justify-center rounded-full bg-coach-blue/20 text-coach-blue">
-                <span className="font-display text-lg font-bold">{player.displayName[0] || '?'}</span>
+                <span className="font-display text-lg font-bold">{person.displayName[0] || '?'}</span>
               </div>
               <div className="flex-1">
-                <div className="font-body text-sm font-semibold text-coach-t1">{player.displayName}</div>
+                <div className="font-body text-sm font-semibold text-coach-t1">{person.displayName}</div>
                 <div className="mt-0.5 font-body text-[13px] text-coach-t3">
+                  {person.teamName ? person.teamName + ' · ' : ''}
                   {hasThread ? 'Open conversation' : 'Start new conversation'}
                 </div>
               </div>
@@ -633,7 +738,7 @@ export function ChatScreen({
         title="MESSAGES"
         user={user}
         trailing={
-          canComposeDm ? (
+          canComposeDm || isPlayerRole ? (
             <button
               type="button"
               onClick={startCompose}
@@ -652,10 +757,12 @@ export function ChatScreen({
       {conversations.length === 0 ? (
         <div className="py-10 text-center" data-testid="chat-empty-state">
           <p className="mb-2 font-body text-sm text-coach-t3">No conversations yet.</p>
-          {canComposeDm ? (
+          {canComposeDm || isPlayerRole ? (
             <>
               <p className="mb-4 font-body text-[13px] text-coach-t3">
-                Message a player from your roster to get started.
+                {isPlayerRole
+                  ? 'Message your coach to get started.'
+                  : 'Message a player from your roster to get started.'}
               </p>
               <button
                 type="button"

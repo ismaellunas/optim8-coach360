@@ -196,14 +196,29 @@ function TeamEditor({ team }: { team: Team }) {
 export function TeamsOversightSection() {
   const { data: teams, isLoading, error } = useAllTeamsQuery();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  // STORY-12.1 (resolved, QA3-11) — client-side filter, matching the
+  // fix plan's "simplest, fine at current team counts" recommendation.
+  const [search, setSearch] = useState('');
+
+  const filteredTeams = (teams ?? []).filter((team) =>
+    team.name.toLowerCase().includes(search.trim().toLowerCase()),
+  );
 
   return (
     <div>
       <h2 className="mb-4 font-display text-lg font-semibold text-coach-t1">Team oversight</h2>
+      <input
+        type="text"
+        placeholder="Search by team name…"
+        aria-label="Search teams"
+        className="mb-4 w-full max-w-sm rounded-[10px] border border-coach-border bg-coach-surface px-3 py-2 font-body text-sm text-coach-t1"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+      />
       {isLoading ? <p className="text-coach-t2">Loading teams…</p> : null}
       {error ? <p className="text-coach-red">{(error as Error).message}</p> : null}
       <div className="space-y-3">
-        {(teams ?? []).map((team) => {
+        {filteredTeams.map((team) => {
           const isExpanded = expandedId === team.id;
           const isArchived = team.archivedAt !== null;
           return (

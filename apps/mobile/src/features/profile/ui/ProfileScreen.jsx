@@ -7,7 +7,9 @@ import {
 } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
+  Button,
   Card,
+  Field,
   PageHeader,
   ScreenContainer,
 } from '@/shared/ui/primitives.jsx';
@@ -16,9 +18,84 @@ export function ProfileScreen({ user, go, onSignOut }) {
   const { session } = useAuth();
   const repos = useRepositories();
   const playerId = session?.user.id;
+  const userId = playerId;
   const isPlayer = user?.role === 'player';
+  const isCoach = user?.role === 'coach';
+  const isTeamManager = user?.role === 'team_manager';
   const [completions, setCompletions] = useState([]);
   const [loadingProgress, setLoadingProgress] = useState(false);
+
+  const [profile, setProfile] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editAge, setEditAge] = useState('');
+  const [editPosition, setEditPosition] = useState('');
+  const [editBio, setEditBio] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState(null);
+
+  const loadProfile = useCallback(
+    async function () {
+      if (!userId) {
+        setProfile(null);
+        return;
+      }
+      try {
+        const row = await repos.profiles.getById(userId);
+        setProfile(row);
+        setEditAge(row?.age != null ? String(row.age) : '');
+        setEditPosition(row?.position ?? '');
+        setEditBio(row?.bio ?? '');
+      } catch {
+        setProfile(null);
+      }
+    },
+    [repos.profiles, userId],
+  );
+
+  useEffect(
+    function () {
+      loadProfile();
+    },
+    [loadProfile],
+  );
+
+  async function handleSaveProfile(event) {
+    event.preventDefault();
+    if (!userId) return;
+    setSavingProfile(true);
+    setProfileError(null);
+    try {
+      if (isPlayer) {
+        const age = Number.parseInt(editAge, 10);
+        if (!Number.isFinite(age) || !editPosition.trim()) {
+          setProfileError('Enter a valid age and position.');
+          return;
+        }
+        const updated = await repos.profiles.updatePlayerProfile(userId, {
+          age,
+          position: editPosition.trim(),
+          avatarUrl: profile?.avatarUrl ?? null,
+        });
+        setProfile(updated);
+      } else if (isCoach) {
+        const updated = await repos.profiles.updateCoachProfile(userId, {
+          coachContext: profile?.coachContext ?? 'independent',
+          bio: editBio.trim(),
+        });
+        setProfile(updated);
+      } else if (isTeamManager) {
+        const updated = await repos.profiles.updateTeamManagerProfile(userId, {
+          bio: editBio.trim(),
+        });
+        setProfile(updated);
+      }
+      setEditingProfile(false);
+    } catch (cause) {
+      setProfileError(cause instanceof Error ? cause.message : 'profile_save_failed');
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   const accessLevel = user
     ? featureAccessLevel(user.role, user.tier, 'viewProgress')
@@ -103,12 +180,60 @@ export function ProfileScreen({ user, go, onSignOut }) {
       <Card onClick={function () { go('subscription'); }}>
         <span className="font-body text-sm text-coach-t1">Manage Subscription</span>
       </Card>
-      <Card>
-        <span className="font-body text-sm text-coach-t1">Edit Profile</span>
+
+      {editingProfile ? (
+        <Card data-testid="profile-edit-form">
+          <form onSubmit={handleSaveProfile}>
+            {isPlayer ? (
+              <>
+                <Field
+                  label="Age"
+                  id="profile-edit-age"
+                  type="number"
+                  value={editAge}
+                  onChange={function (event) { setEditAge(event.target.value); }}
+                />
+                <Field
+                  label="Position"
+                  id="profile-edit-position"
+                  value={editPosition}
+                  onChange={function (event) { setEditPosition(event.target.value); }}
+                />
+              </>
+            ) : (
+              <Field
+                label="Bio"
+                id="profile-edit-bio"
+                value={editBio}
+                onChange={function (event) { setEditBio(event.target.value); }}
+              />
+            )}
+            {profileError ? <p className="mb-3 font-body text-sm text-coach-red">{profileError}</p> : null}
+            <div className="flex gap-2.5">
+              <Button
+                small
+                type="button"
+                onClick={function () { setEditingProfile(false); setProfileError(null); }}
+              >
+                Cancel
+              </Button>
+              <Button small primary type="submit" disabled={savingProfile}>
+                {savingProfile ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+          </form>
+        </Card>
+      ) : (
+        <Card onClick={function () { setEditingProfile(true); }} data-testid="profile-edit-trigger">
+          <span className="font-body text-sm text-coach-t1">Edit Profile</span>
+        </Card>
+      )}
+
+      <Card className="flex items-center justify-between" data-testid="profile-notifications">
+        <span className="font-body text-sm text-coach-t2">Notifications</span>
+        <span className="font-body text-[11px] uppercase text-coach-t3">Coming soon</span>
       </Card>
-      <Card>
-        <span className="font-body text-sm text-coach-t1">Notifications</span>
-      </Card>
+
       <Card onClick={onSignOut}>
         <span className="font-body text-sm text-coach-red">Sign Out</span>
       </Card>

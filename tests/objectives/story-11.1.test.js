@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  checkFeatureAccess,
   computeObjectiveProgress,
   createObjectiveInputSchema,
   objectiveSchema,
@@ -53,6 +54,18 @@ const SUPABASE_REPO_PATH = path.join(
   'supabase',
   'supabase-objectives-repository.ts',
 );
+const TEAM_TIER_SQL_PATH = path.join(
+  REPO_ROOT,
+  'supabase',
+  'migrations',
+  '20260728120000_objectives_team_tier_access.sql',
+);
+const PLAYER_SELF_AUTHOR_SQL_PATH = path.join(
+  REPO_ROOT,
+  'supabase',
+  'migrations',
+  '20260729120000_player_self_authored_objectives.sql',
+);
 const DI_PATH = path.join(
   REPO_ROOT,
   'packages',
@@ -64,7 +77,7 @@ const DI_PATH = path.join(
 
 describe('STORY_11_1 AC1 — coach at Pro sets objectives for individual players and teams', () => {
   it('test_STORY_11_1_AC1_coach_pro_sets_player_and_team_objectives: create schema, Pro gate, coach UI', () => {
-    expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro' });
+    expect(FEATURE_TIER_REQUIREMENTS.objectives).toEqual({ coach: 'pro', player: 'pro', team: 'pro' });
 
     const playerGoal = createObjectiveInputSchema.parse({
       title: 'Improve 3PT to 40%',
@@ -183,5 +196,70 @@ describe('STORY_11_1 AC4 — objective schema supports player and team goals per
     const di = readFileSync(DI_PATH, 'utf8');
     expect(di).toMatch(/objectives: new SupabaseObjectivesRepository/);
     expect(di).toMatch(/objectives: new RestObjectivesRepository/);
+  });
+});
+
+describe('STORY_11_1 Team manager objectives access (resolved, BUG-QA3-07) — read-only, team-scope only', () => {
+  it('test_STORY_11_1_AC1_team_manager_pro_gets_readonly_objectives_access: team role resolves to allowed, not locked', () => {
+    expect(checkFeatureAccess({ role: 'team', tier: 'pro', feature: 'objectives' }).allowed).toBe(true);
+    expect(checkFeatureAccess({ role: 'team', tier: 'basic', feature: 'objectives' }).allowed).toBe(false);
+
+    const sql = readFileSync(TEAM_TIER_SQL_PATH, 'utf8');
+    expect(sql).toMatch(/p_feature = 'objectives' and v_role = 'team_manager' then 'pro'/);
+
+    const port = readFileSync(REPO_PORT_PATH, 'utf8');
+    expect(port).toMatch(/'coach' \| 'player' \| 'team' \| 'admin'/);
+    expect(port).not.toMatch(/'team_manager'/);
+  });
+
+  it('test_STORY_11_1_AC1_team_manager_objectives_stays_readonly: no create/edit UI exposed for team role', () => {
+    const ui = readFileSync(OBJECTIVES_UI_PATH, 'utf8');
+    expect(ui).toMatch(/const isPlayer = role === 'player';/);
+    expect(ui).toMatch(/const canCreate = isCoach \|\| isPlayer;/);
+    expect(ui).toMatch(/canCreate && creating/);
+    expect(ui).toMatch(/canCreate && !creating/);
+  });
+
+  it('test_STORY_11_1_AC1_home_objectives_card_wired_to_real_data_all_roles: no hardcoded preview objectives', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).toMatch(/repos\.objectives\.listForUser\(playerId, user\.role\)/);
+    expect(app).toMatch(/computeObjectiveProgress\(o\.currentCompletions, o\.targetCompletions\)/);
+    expect(app).toMatch(/data-testid="home-objective-card"/);
+    expect(app).not.toMatch(/Improve 3PT %/);
+    expect(app).not.toMatch(/Defensive rotations/);
+  });
+});
+
+describe('STORY_11_1 Player self-authored objectives (resolved, QA3-02 "add my own")', () => {
+  it('test_STORY_11_1_AC4_player_can_insert_own_player_scoped_objective: RLS policy allows self-insert', () => {
+    const sql = readFileSync(PLAYER_SELF_AUTHOR_SQL_PATH, 'utf8');
+    expect(sql).toMatch(/create policy objectives_player_self_insert/);
+    expect(sql).toMatch(/on public\.objectives for insert/);
+    expect(sql).toMatch(/coach_id = auth\.uid\(\)/);
+    expect(sql).toMatch(/scope = 'player'/);
+    expect(sql).toMatch(/player_id = auth\.uid\(\)/);
+    expect(sql).toMatch(/has_feature_access\(auth\.uid\(\), 'objectives'\)/);
+    expect(sql).toMatch(/p\.role = 'player'/);
+
+    // Schema/validation already supports this shape — no domain change needed.
+    const playerGoal = createObjectiveInputSchema.parse({
+      title: 'Hit 50 free throws this week',
+      scope: 'player',
+      playerId: '66666666-6666-4666-8666-666666666666',
+      targetCompletions: 50,
+      category: 'shooting',
+    });
+    expect(playerGoal.scope).toBe('player');
+  });
+
+  it('test_STORY_11_1_AC4_player_create_ui_locks_scope_to_self: UI forces scope/playerId for a player, no assignee picker', () => {
+    const ui = readFileSync(OBJECTIVES_UI_PATH, 'utf8');
+    expect(ui).toMatch(/isPlayer\s*\?\s*createObjectiveInputSchema\.parse\(\{/);
+    expect(ui).toMatch(/scope: 'player',\s*\n\s*playerId: userId,\s*\n\s*teamId: null,/);
+    expect(ui).toMatch(/objective-self-author-note/);
+    expect(ui).toMatch(/· Self-set/);
+
+    const port = readFileSync(REPO_PORT_PATH, 'utf8');
+    expect(port).toMatch(/create\(creatorId: string/);
   });
 });

@@ -29,6 +29,7 @@ Before building or touching UI, read `.cursor/rules/ui-design-system.mdc` — de
 ## Skills
 
 - `/implement-story STORY-X.Y` — plan then implement a tracker story, plan requires approval first
-- `/compose-tests` — add manual click-through cases to `docs/mobile-app-test-pack.md` for completed stories; run after implement-story, before create-pr
+- `/implement-fix-plan STORY-X.Y` — for QA3 reopened tickets in `docs/delivery/*-fix-plan.md`: checks every "Open questions" item (and any sibling story it defers to) is Answered/Deferred in `docs/delivery/open-questions.xlsx` before planning or writing any code; refuses to guess a product decision
+- `/compose-tests` — add manual click-through cases to `docs/mobile-app-test-pack.md` for completed stories; run after implement-story/implement-fix-plan, before create-pr
 - `/audit-tracker` — re-verify ticket statuses from test evidence
 - `/create-pr` — open a PR following team conventions

@@ -1,6 +1,6 @@
 # STORY-5.2 fix plan — Launch-critical access matrix rules
 
-> **Status today:** DONE (tracker) — provisionally reopened alongside STORY-11.1/11.2/5.4/7.3/7.4 as part of the QA3 cross-reference pass
+> **Status today:** DONE (tracker), confirmed — not reopened. Resolved: this story was never responsible for the `objectives`/team gap (see Resolved decisions); STORY-5.2's own tracker `status` was never actually flipped off DONE, so no tracker change was needed here. A new AC-6 should be added once STORY-11.1's team-objectives fix ships, for traceability.
 > **QA evidence:** docs/Coach_Feedback.docx (team account section, via BUG-QA3-07)
 > **Related:** docs/index.html (tracker), docs/delivery/story-11.1-fix-plan.md (owns the actual root cause), docs/delivery/story-5.4-fix-plan.md
 
@@ -19,7 +19,7 @@ None of these five ACs mention `objectives`, and `objectives` does not appear in
 
 ## Acceptance criteria at risk
 
-None, pending confirmation in Open Questions below. If the decision is "team was always meant to have `objectives` access," then arguably AC-4 or AC-5 should have covered it and this story would need a line added — but that's speculative, not something I can confirm from the code or the ticket text.
+None — confirmed. "Team was always meant to have `objectives` access" is not the decision that was made; see Resolved decisions.
 
 ## Root cause
 
@@ -27,14 +27,17 @@ N/A — see docs/delivery/story-11.1-fix-plan.md.
 
 ## Fix plan
 
-No change proposed to this story's implementation. If the Open Question below is answered "yes, this was launch-critical access-matrix scope," the fix (adding `team` to the `objectives` row, or wiring it into `LAUNCH_ACCESS_BANDS`) would land in `paywall.ts`/`launch-matrix.ts` as part of the STORY-11.1 fix, and this ticket's ACs/tests would need a new AC-6 (or amended AC-4) plus a corresponding test case to actually claim ownership of it going forward.
+No change to this story's implementation. Once STORY-11.1's team-objectives fix lands (`team: 'pro'` added to `FEATURE_TIER_REQUIREMENTS.objectives` in `paywall.ts`), add a new **AC-6** to this ticket documenting that band, plus a corresponding test case — this is a traceability/ticket-ownership addition, not a code change against this story.
 
 ## Verification plan
 
-- If left DONE: no new verification needed beyond the existing `npm run test:story-5.2` (5/5 passing per audit_notes).
-- If reopened for real: add a `tests/rbac/story-5.2.test.js` case asserting `resolveLaunchFeatureAccess({ role: 'team', tier: 'pro', feature: 'objectives' })` matches whatever the product decision turns out to be.
+- No new verification needed beyond the existing `npm run test:story-5.2` (5/5 passing per audit_notes) until AC-6 is added; at that point, add a `tests/rbac/story-5.2.test.js` case asserting `resolveLaunchFeatureAccess({ role: 'team', tier: 'pro', feature: 'objectives' })` is allowed, mirroring the equivalent test added under STORY-11.1.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Should STORY-5.2 actually be reopened, or returned to DONE?** My read is that this story was never responsible for the `objectives`/team gap — it's cleanly attributable to STORY-11.1's scope instead. I'd like explicit confirmation before flipping this one back to DONE, since "the AC text doesn't mention it" is an inference, not a guarantee that whoever scoped STORY-5.2 didn't intend `objectives` to be covered by AC-4/AC-5's "documented launch feature list" and simply forgot to list it.
-- **If team objectives access becomes launch-critical,** should it be added to this story's AC-4 (as a new ◎/✓ band) rather than being a silent default-map edit under STORY-11.1? That's a ticket-ownership/scoping call, not a technical one.
+- **Reopen decision:** STORY-5.2 is not reopened — confirmed not responsible for the `objectives`/team gap, which is cleanly STORY-11.1's scope.
+- **AC ownership of team objectives:** add a new AC-6 to this ticket once STORY-11.1's fix ships, rather than letting it be a silent default-map edit with no corresponding AC/test here.
+
+## Open questions
+
+None outstanding for this story.

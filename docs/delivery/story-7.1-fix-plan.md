@@ -1,6 +1,6 @@
 # STORY-7.1 fix plan — Player session view and content consumption
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-04
+> **Status today:** DONE (tracker), confirmed — not reopened. Both open questions resolved; no code change needed.
 > **QA evidence:** docs/Coach_Feedback.docx (player-account "Progress" section)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md, docs/delivery/story-6.3-fix-plan.md
 
@@ -39,7 +39,11 @@ No code changes proposed against this story. If the STORY-6.3 fix (week navigati
 - No new test cases proposed for this story specifically.
 - Manual re-test: after the STORY-6.3 fix lands, confirm a player can open detail/content/completion flows for a session scheduled in a future week and one in a past week (not just the current week), to confirm the only blocker was discoverability via the schedule list.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Should STORY-7.1 be reopened (IN_PROGRESS) at all?** I found no confirmed defect in this story's own code or acceptance criteria — the QA complaint traces entirely to `STORY-6.3`'s schedule screen. Recommend either (a) leaving STORY-7.1 at DONE and removing it from BUG-QA3-04's `blocks` list, keeping only STORY-6.3, or (b) keeping it reopened as a placeholder pending verification after the STORY-6.3 fix ships, in case something surfaces once players can actually reach previously-unreachable sessions. This is a tracker-bookkeeping decision, not an engineering one — needs your call.
-- Same ambiguity as noted in the STORY-6.3 plan: the feedback is filed under "Progress" in the doc, but nothing in `ProgressScreen.jsx` or `PlayerSessionDetailScreen.jsx` matches the complaint. If the tester actually meant a real gap in the Progress tab (e.g. a session-history view distinct from Schedule), that would be new, unscoped work — not something either STORY-6.3 or STORY-7.1 currently covers. Needs confirmation from whoever ran the Fold7 pass before any further action.
+- **Reopen decision:** (a) — leave STORY-7.1 at DONE, not reopened. No confirmed defect in this story's own code; the complaint traces entirely to STORY-6.3.
+- **"Progress" complaint ambiguity:** treat as the same mislabeled-Schedule complaint as STORY-6.3's identical question (consistent answer across both stories) — the tester meant the Schedule tab, filed under the wrong heading. No separate Progress-tab gap to build.
+
+## Open questions
+
+None outstanding for this story.

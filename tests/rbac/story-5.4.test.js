@@ -100,6 +100,40 @@ describe('STORY_5_4 AC2 — checkFeatureAccess accepts injected map; static fall
   });
 });
 
+describe('STORY_5_4 Test coverage gap (resolved) — override adds a brand-new (feature, role) pair with no default', () => {
+  it('test_STORY_5_4_AC2_override_adds_new_feature_role_pair_with_no_default', () => {
+    // 'quiz' has no entry in FEATURE_TIER_REQUIREMENTS at all — not just no 'coach' row.
+    expect(FEATURE_TIER_REQUIREMENTS.quiz).toBeUndefined();
+
+    const merged = applyFeatureFlagOverrides([
+      { feature: 'quiz', role: 'coach', requiredTier: 'advanced' },
+    ]);
+    expect(merged.quiz).toEqual({ coach: 'advanced' });
+
+    expect(
+      checkFeatureAccess({
+        role: 'coach',
+        tier: 'advanced',
+        feature: 'quiz',
+        requirements: merged,
+      }).allowed,
+    ).toBe(true);
+    expect(
+      checkFeatureAccess({
+        role: 'coach',
+        tier: 'basic',
+        feature: 'quiz',
+        requirements: merged,
+      }).allowed,
+    ).toBe(false);
+
+    // Without the override, the feature doesn't exist for this role at all — denied.
+    expect(
+      checkFeatureAccess({ role: 'coach', tier: 'pro', feature: 'quiz' }).allowed,
+    ).toBe(false);
+  });
+});
+
 describe('STORY_5_4 AC3 — has_feature_access consults feature_flags overrides', () => {
   it('test_STORY_5_4_AC3_has_feature_access_consults_feature_flags', () => {
     expect(existsSync(path.join(REPO_ROOT, OVERRIDE_MIGRATION))).toBe(true);

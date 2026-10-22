@@ -23,7 +23,8 @@ export const FEATURE_TIER_REQUIREMENTS: Record<
   chat: { coach: 'advanced', player: 'advanced', team: 'advanced' },
   createSession: { coach: 'advanced', team: 'advanced' },
   distribute: { coach: 'advanced' },
-  objectives: { coach: 'pro', player: 'pro' },
+  // STORY-11.1: team manager read-only access to team-scope objectives.
+  objectives: { coach: 'pro', player: 'pro', team: 'pro' },
   // STORY-5.2 AC-2 / OQ-6.5: AI Pro-only for all gated roles.
   ai: { coach: 'pro', player: 'pro', team: 'pro' },
   // STORY-5.2 AC-3: coach content creation Advanced+.

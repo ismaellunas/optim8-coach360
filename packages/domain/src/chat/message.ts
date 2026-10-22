@@ -70,15 +70,24 @@ export function disabledChatMessageTooltip(type: DisabledChatMessageType): strin
   return DISABLED_CHAT_MESSAGE_TOOLTIPS[type];
 }
 
-/** Advanced+ text compose is allowed on every channel type once chat is unlocked. */
+/**
+ * STORY-8.1 (resolved) — entitlement split: coach<->player DM text
+ * ('dm' channels are always exactly a coach/player pair in this schema) is a
+ * free, every-tier capability — the core coaching relationship, not an
+ * upsell. Team channels and player-to-player 'p2p' remain Advanced+
+ * ('chat' feature), unchanged.
+ */
 export function canSendTextOnChannelType(
   channelType: ChatChannelType,
   chatAllowed: boolean,
 ): boolean {
+  if (channelType === 'dm') {
+    return true;
+  }
   if (!chatAllowed) {
     return false;
   }
-  return channelType === 'team' || channelType === 'dm' || channelType === 'p2p';
+  return channelType === 'team' || channelType === 'p2p';
 }
 
 export function previewBodyForMessage(

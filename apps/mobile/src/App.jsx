@@ -13,6 +13,7 @@ import { PlayerJoinTeamScreen } from "./features/roster/ui/PlayerJoinTeamScreen.
 import { ProfileScreen } from "./features/profile/ui/ProfileScreen.jsx";
 import { ProgressScreen } from "./features/progress/ui/ProgressScreen.jsx";
 import { CoachProgressReviewScreen } from "./features/progress/ui/CoachProgressReviewScreen.jsx";
+import { TeamProgressScreen } from "./features/progress/ui/TeamProgressScreen.jsx";
 import { ChatScreen } from "./features/chat/ui/ChatScreen.jsx";
 import { CreateContentScreen } from "./features/content/ui/CreateContentScreen.jsx";
 import { CoachLibraryScreen } from "./features/content/ui/CoachLibraryScreen.jsx";
@@ -31,6 +32,7 @@ import { useRepositories } from "@coach360/api";
 import {
   applyFeatureFlagOverrides,
   checkFeatureAccess,
+  computeObjectiveProgress,
   featureAccessLevel,
   filterUpcomingSessions,
   paywallTierOptionsForFeature,
@@ -179,6 +181,7 @@ function HomeScreen({ user, go, tryA }) {
   var playerId = auth.session?.user.id;
   var _upcoming = useState([]), upcomingSessions = _upcoming[0], setUpcomingSessions = _upcoming[1];
   var _completions = useState([]), completions = _completions[0], setCompletions = _completions[1];
+  var _homeObjectives = useState([]), homeObjectives = _homeObjectives[0], setHomeObjectives = _homeObjectives[1];
   var _homeLoading = useState(false), homeLoading = _homeLoading[0], setHomeLoading = _homeLoading[1];
 
   var loadPlayerHomeData = useCallback(
@@ -214,12 +217,78 @@ function HomeScreen({ user, go, tryA }) {
     [loadPlayerHomeData],
   );
 
+  // STORY-11.1: Home "Objectives" preview card data, for all roles (not player-only).
+  var loadHomeObjectives = useCallback(
+    async function () {
+      if (!playerId) {
+        setHomeObjectives([]);
+        return;
+      }
+      try {
+        var rows = await repos.objectives.listForUser(playerId, user.role);
+        setHomeObjectives(rows ?? []);
+      } catch {
+        setHomeObjectives([]);
+      }
+    },
+    [playerId, user.role, repos.objectives],
+  );
+
+  useEffect(
+    function () {
+      loadHomeObjectives();
+    },
+    [loadHomeObjectives],
+  );
+
+  // STORY-7.3: Home stats bar data for the team-manager role (roster count + sessions).
+  var _teamRosterCount = useState(0), teamRosterCount = _teamRosterCount[0], setTeamRosterCount = _teamRosterCount[1];
+  var _teamSessions = useState([]), teamSessions = _teamSessions[0], setTeamSessions = _teamSessions[1];
+
+  var loadTeamHomeData = useCallback(
+    async function () {
+      if (!isTeam || !playerId) {
+        setTeamRosterCount(0);
+        setTeamSessions([]);
+        return;
+      }
+      try {
+        var teams = await repos.teams.listForUser(playerId);
+        var team = teams[0] ?? null;
+        var sessionsPromise = repos.sessions.listForUser(playerId);
+        var membersPromise = team ? repos.rosters.listMembers(team.id) : Promise.resolve([]);
+        var _rows = await Promise.all([sessionsPromise, membersPromise]);
+        setTeamSessions(_rows[0] ?? []);
+        var activePlayers = (_rows[1] ?? []).filter(function (member) {
+          return member.rosterRole === "player" && member.status === "active";
+        });
+        setTeamRosterCount(activePlayers.length);
+      } catch {
+        setTeamRosterCount(0);
+        setTeamSessions([]);
+      }
+    },
+    [isTeam, playerId, repos.teams, repos.sessions, repos.rosters],
+  );
+
+  useEffect(
+    function () {
+      loadTeamHomeData();
+    },
+    [loadTeamHomeData],
+  );
+
   var homeAccessLevel = isPlayer
     ? featureAccessLevel(user.role, user.tier, "viewProgress")
     : "none";
   var homeProgressFeatures = playerProgressFeaturesForAccess(homeAccessLevel);
   var homeProgressSummary = summarizePlayerProgress(completions);
   var nextSession = filterUpcomingSessions(upcomingSessions)[0] ?? null;
+  var activeObjectivesCount = homeObjectives.filter(function (o) {
+    return o.currentCompletions < o.targetCompletions;
+  }).length;
+  var teamUpcomingSessions = filterUpcomingSessions(teamSessions);
+  var nextTeamSession = teamUpcomingSessions[0] ?? null;
 
   if (isAdmin) {
     return (
@@ -243,9 +312,17 @@ function HomeScreen({ user, go, tryA }) {
   }
 
   var stats = isPlayer
-    ? [{ l: "Drills", v: "24", c: COLORS.orange }, { l: "Streak", v: "7d", c: COLORS.green }, { l: "Goals", v: "3/5", c: COLORS.blue }, { l: "Rank", v: "#4", c: COLORS.purple }]
+    ? [
+        { l: "Drills", v: String(homeProgressSummary.drillsCompleted), c: COLORS.orange, onClick: function () { go("progress"); }, testId: "home-stat-drills" },
+        { l: "Streak", v: "7d", c: COLORS.green },
+        { l: "Goals", v: String(activeObjectivesCount), c: COLORS.blue, onClick: function () { go("objectives"); }, testId: "home-stat-goals" },
+      ]
     : isTeam
-    ? [{ l: "Players", v: "14", c: COLORS.blue }, { l: "Record", v: "10-1", c: COLORS.green }, { l: "Sessions", v: "32", c: COLORS.purple }, { l: "Next", v: "Thu", c: COLORS.orange }]
+    ? [
+        { l: "Players", v: String(teamRosterCount), c: COLORS.blue, onClick: function () { go("teams"); }, testId: "home-stat-players" },
+        { l: "Sessions", v: String(teamUpcomingSessions.length), c: COLORS.purple, onClick: function () { go("schedule"); }, testId: "home-stat-sessions" },
+        { l: "Next", v: nextTeamSession ? new Date(nextTeamSession.scheduledAt).toLocaleDateString([], { weekday: "short" }) : "—", c: COLORS.orange, onClick: function () { go("schedule"); }, testId: "home-stat-next" },
+      ]
     : [{ l: "Players", v: "34", c: COLORS.blue }, { l: "Teams", v: "4", c: COLORS.green }, { l: "Sessions", v: "128", c: COLORS.purple }, { l: "Drills", v: "57", c: COLORS.orange }];
 
   return (
@@ -270,10 +347,15 @@ function HomeScreen({ user, go, tryA }) {
         <PlayerTeamContext onJoinTeam={function () { go("join-team"); }} />
       ) : null}
 
-      <div className="grid grid-cols-4 gap-2.5 py-3">
+      <div className={`grid gap-2.5 py-3 ${stats.length === 3 ? "grid-cols-3" : "grid-cols-4"}`}>
         {stats.map(function(s, i) {
           return (
-            <div key={i} className="rounded-[14px] border border-coach-border bg-coach-card px-2 py-3.5 text-center">
+            <div
+              key={i}
+              onClick={s.onClick}
+              data-testid={s.testId}
+              className={`rounded-[14px] border border-coach-border bg-coach-card px-2 py-3.5 text-center ${s.onClick ? "cursor-pointer" : ""}`}
+            >
               <div className={`font-display text-[22px] font-bold ${tcx(s.c)}`}>{s.v}</div>
               <div className="mt-1 font-body text-[10px] uppercase text-coach-t3">{s.l}</div>
             </div>
@@ -332,7 +414,7 @@ function HomeScreen({ user, go, tryA }) {
               <div className="text-coach-orange"><IconSpark /></div>
               <span className="font-display text-[13px] font-semibold uppercase tracking-widest text-coach-orange">AI Insights</span>
             </div>
-            <div className="font-body text-[13px] text-coach-t2">{isPlayer ? "Your shooting accuracy improved 12% this week." : "3 players in U14 haven't logged drills this week."}</div>
+            <div className="font-body text-[13px] text-coach-t2">{isPlayer ? "Insights based on your recent activity." : "3 players in U14 haven't logged drills this week."}</div>
           </Card>
         </div>
       ) : (
@@ -389,19 +471,27 @@ function HomeScreen({ user, go, tryA }) {
           <span onClick={function() { tryA("objectives", function() { go("objectives"); }); }} className="cursor-pointer font-body text-xs text-coach-orange">{canAccess(user, "objectives") ? "Manage" : "Pro"}</span>
         </div>
         {canAccess(user, "objectives") ? (
-          [{ n: "Improve 3PT %", p: 72, c: COLORS.orange }, { n: "Defensive rotations", p: 45, c: COLORS.blue }].map(function(o, i) {
-            return (
-              <Card key={i}>
-                <div className="mb-2 flex justify-between">
-                  <span className="font-body text-[13px] text-coach-t1">{o.n}</span>
-                  <span className={`font-mono text-[13px] ${tcx(o.c)}`}>{o.p + "%"}</span>
-                </div>
-                <div className="h-1.5 rounded-sm bg-coach-border">
-                  <div className="h-full rounded-sm" style={{ width: o.p + "%", backgroundColor: o.c }} />
-                </div>
-              </Card>
-            );
-          })
+          homeObjectives.length > 0 ? (
+            homeObjectives.slice(0, 2).map(function(o, i) {
+              var pct = computeObjectiveProgress(o.currentCompletions, o.targetCompletions);
+              var color = i % 2 === 0 ? COLORS.orange : COLORS.blue;
+              return (
+                <Card key={o.id} onClick={function() { go("objectives"); }} data-testid="home-objective-card">
+                  <div className="mb-2 flex justify-between">
+                    <span className="font-body text-[13px] text-coach-t1">{o.title}</span>
+                    <span className={`font-mono text-[13px] ${tcx(color)}`}>{pct + "%"}</span>
+                  </div>
+                  <div className="h-1.5 rounded-sm bg-coach-border">
+                    <div className="h-full rounded-sm" style={{ width: pct + "%", backgroundColor: color }} />
+                  </div>
+                </Card>
+              );
+            })
+          ) : (
+            <Card onClick={function() { go("objectives"); }} className="p-6 text-center" data-testid="home-objectives-empty">
+              <div className="font-body text-[13px] text-coach-t2">No objectives yet.</div>
+            </Card>
+          )
         ) : (
           <Card onClick={function() { tryA("objectives", function() {}); }} className="p-6 text-center">
             <div className="mb-2 text-coach-t3"><IconLock /></div>
@@ -775,6 +865,9 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
           }}
         />
       );
+    }
+    if (screen === "progress" && user.role === "team") {
+      return <TeamProgressScreen user={user} go={go} />;
     }
     if (screen === "progress") return <ProgressScreen user={user} tryA={tryA} />;
     if (screen === "join-team") {

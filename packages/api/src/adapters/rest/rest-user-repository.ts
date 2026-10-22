@@ -19,4 +19,9 @@ export class RestUserRepository implements UserRepository {
     void input;
     throw new NotImplementedAdapterError('rest', 'updateUser');
   }
+
+  async sendPasswordReset(id: string): Promise<void> {
+    void id;
+    throw new NotImplementedAdapterError('rest', 'sendPasswordReset');
+  }
 }

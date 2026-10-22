@@ -1,6 +1,6 @@
 # STORY-5.4 fix plan — Mobile consumption of admin gating overrides
 
-> **Status today:** DONE (tracker) — provisionally reopened alongside STORY-5.2/11.1/11.2/7.3/7.4 as part of the QA3 cross-reference pass
+> **Status today:** DONE (tracker), confirmed — not implicated, no code change. One test-coverage gap closed (see Resolved decisions).
 > **QA evidence:** docs/Coach_Feedback.docx (team account section, via BUG-QA3-07)
 > **Related:** docs/index.html (tracker), docs/delivery/story-11.1-fix-plan.md (owns the actual root cause), docs/delivery/story-5.2-fix-plan.md
 
@@ -23,15 +23,18 @@ N/A — see docs/delivery/story-11.1-fix-plan.md and docs/delivery/story-5.2-fix
 
 ## Fix plan
 
-No change proposed. If the product decision (see STORY-11.1's Open Questions) is "add a default `team` tier for objectives in code," that's a `paywall.ts` edit under STORY-11.1, not this story. If the decision is "leave the default as-is and have an admin configure an override instead," this story's existing mechanism already supports that — the blocker, if any, would be whether the **admin UI** (STORY-5.3, not STORY-5.4) lets an admin add the first override for a (feature, role) pair that has no default. I did not investigate the admin UI in depth — flagged below.
+No code change to this story's own files. STORY-11.1 already added the `team: 'pro'` default for `objectives` (resolved in that story's fix plan), so this story's override mechanism was never actually needed for that specific case — but the test-coverage gap this raised is real and general, so it's closed here (see Resolved decisions).
 
 ## Verification plan
 
-- If left DONE: no new verification needed beyond existing `npm run test:story-5.4` (5/5 passing per audit_notes).
-- If the team-objectives override path is actually exercised for the first time in production, it would be worth adding one regression test confirming `applyFeatureFlagOverrides` correctly adds a *new* (feature, role) pair that wasn't in the static defaults at all (today's tests likely only cover overriding an *existing* default tier — I did not confirm this either way; see Open Questions).
+- `npm run test:story-5.4`: 6/6 passing (5 original + 1 new: `test_STORY_5_4_AC2_override_adds_new_feature_role_pair_with_no_default`, using a `quiz` feature with zero existing defaults to prove the mechanism generically, independent of the now-resolved `objectives`/`team` case).
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Should STORY-5.4 actually be reopened, or returned to DONE?** My read is "not implicated" — flagging for your explicit sign-off before I'd flip it back.
-- **Does `tests/rbac/story-5.4.test.js` cover the case of adding a brand-new (feature, role) override where no default existed?** I did not read that test file in this pass (out of scope for a planning-only document focused on root cause, not test-coverage audit) — worth a quick check before fully trusting AC-1/AC-2 for this specific scenario.
-- **Can an admin actually create a first-time `(objectives, team)` override through the admin UI today**, or does `gatedFeaturesForRole`-style filtering (STORY-5.3, `paywall.ts:113-129`) prevent surfacing a feature for a role it has no default tier for? This is the one real gap I can imagine existing, but it's in STORY-5.3's files, not this story's — I'd want explicit direction before expanding this reopen to a fourth ticket.
+- **Reopen decision:** confirmed not implicated — returned to DONE, no code change.
+- **Test coverage gap:** confirmed and closed. Direct code read of `applyFeatureFlagOverrides` showed it already correctly handles a brand-new (feature, role) pair with no default (it iterates all `GATED_ROLES` regardless of existing defaults) — the gap was in test coverage only, not behavior. Added a regression test proving this generically.
+- **Admin UI first-time override:** confirmed real gap by direct code read of `gatedFeaturesForRole()` — it only lists a feature for a role if that role already has a default tier *or* an existing override, so an admin cannot select a feature with zero existing presence for a role from the admin UI dropdown today. This is real, but lives entirely in STORY-5.3's files — not fixed here; logged as a STORY-5.3 backlog item rather than expanding this reopen into a fourth ticket.
+
+## Open questions
+
+None outstanding for this story.

@@ -49,6 +49,10 @@ const RECOMMEND_INDEX_PATH = 'supabase/functions/recommend-packages/index.ts';
 const RECOMMEND_HANDLER_PATH = 'supabase/functions/recommend-packages/handler.ts';
 const SANITY_WEBHOOK_PATH = 'supabase/functions/sanity-webhook/index.ts';
 const STRIPE_WEBHOOK_PATH = 'supabase/functions/stripe-webhook/index.ts';
+const MUX_WEBHOOK_PATH = 'supabase/functions/mux-webhook/index.ts';
+const HEALTH_SHARED_PATH = 'supabase/functions/_shared/health.ts';
+const DAU_YESTERDAY_MIGRATION_PATH =
+  'supabase/migrations/20260730120000_admin_monitor_dau_yesterday.sql';
 
 describe('STORY_12_4 AC1 — dashboard shows DAU, revenue, content completion, onboarding funnel', () => {
   it('test_STORY_12_4_AC1_dashboard_shows_dau_revenue_completion_and_funnel', () => {
@@ -129,6 +133,35 @@ describe('STORY_12_4 AC1 — dashboard shows DAU, revenue, content completion, o
     expect(page).toMatch(/Content completion/);
     expect(page).toMatch(/Onboarding funnel/);
     expect(page).toMatch(/usePlatformAnalyticsQuery/);
+  });
+
+  it('test_STORY_12_4_AC1_dau_headline_defaults_to_last_complete_day: resolved DAU scoping/presentation', () => {
+    const parsed = parsePlatformAnalytics({
+      dau_today: 3,
+      dau_yesterday: 42,
+      dau_date: '2026-07-26',
+      dau_series: [{ date: '2026-07-26', dau: 42 }],
+      paid_revenue_cents: 0,
+      paid_invoice_count: 0,
+      currency: 'usd',
+      content_completion: { session_completions: 0, drip_completions: 0, first_drill_completions: 0 },
+      onboarding_funnel: { signed_up: 0, profile_completed: 0, onboarding_completed: 0, first_drill: 0 },
+    });
+    expect(parsed.dauYesterday).toBe(42);
+    expect(parsed.dauDate).toBe('2026-07-26');
+    // Still parses dauToday too — kept as a secondary "today so far" figure, not removed.
+    expect(parsed.dauToday).toBe(3);
+
+    const sql = read(DAU_YESTERDAY_MIGRATION_PATH);
+    expect(sql).toMatch(/v_dau_yesterday/);
+    expect(sql).toMatch(/v_dau_date := \(date_trunc\('day', now\(\)\) - interval '1 day'\)::date/);
+    expect(sql).toMatch(/'dau_yesterday', coalesce\(v_dau_yesterday, 0\)/);
+    expect(sql).toMatch(/'dau_date', v_dau_date/);
+
+    const page = read(MONITOR_PAGE_PATH);
+    expect(page).toMatch(/analytics\?\.dauYesterday/);
+    expect(page).toMatch(/analytics\.dauDate/);
+    expect(page).toMatch(/Today so far/);
   });
 });
 
@@ -373,6 +406,32 @@ describe('STORY_12_4 AC5 — app health indicators surfaced', () => {
     const stripeWebhook = read(STRIPE_WEBHOOK_PATH);
     expect(stripeWebhook).toMatch(/record_system_health_event/);
     expect(stripeWebhook).toMatch(/webhook_failure/);
+  });
+
+  it('test_STORY_12_4_AC5_api_error_instrumented_on_recommend_packages: resolved api_error gap, one representative function', () => {
+    const shared = read(HEALTH_SHARED_PATH);
+    expect(shared).toMatch(/export async function recordApiError/);
+    expect(shared).toMatch(/p_kind: 'api_error'/);
+
+    const recommendIndex = read(RECOMMEND_INDEX_PATH);
+    expect(recommendIndex).toMatch(/import \{ recordApiError \} from '\.\.\/_shared\/health\.ts'/);
+    // Explicit error paths are instrumented...
+    expect(recommendIndex).toMatch(/recordApiError\(admin, 'recommend-packages', message, \{ stage: 'access_context' \}\)/);
+    expect(recommendIndex).toMatch(/stage: 'purchases_lookup'/);
+    expect(recommendIndex).toMatch(/stage: 'package_metadata_lookup'/);
+    // ...and anything else uncaught (e.g. the Mistral calls) falls through to a catch-all.
+    expect(recommendIndex).toMatch(/stage: 'unhandled'/);
+  });
+
+  it('test_STORY_12_4_AC5_webhook_failure_scope_includes_mux: resolved webhook-failure scope expansion', () => {
+    const muxWebhook = read(MUX_WEBHOOK_PATH);
+    expect(muxWebhook).toMatch(/record_system_health_event/);
+    expect(muxWebhook).toMatch(/p_kind: 'webhook_failure'/);
+    expect(muxWebhook).toMatch(/p_source: 'mux-webhook'/);
+    // video.asset.errored is Mux successfully delivering bad news, not a webhook failure —
+    // only the DB-sync failure paths record a health event.
+    expect(muxWebhook).toMatch(/stage: 'library_item_ready_update'/);
+    expect(muxWebhook).toMatch(/stage: 'library_item_error_update'/);
   });
 });
 

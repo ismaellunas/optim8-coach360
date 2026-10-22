@@ -30,7 +30,7 @@ const CURRENT_RBAC_MIGRATION_PATH = path.join(
   REPO_ROOT,
   'supabase',
   'migrations',
-  '20260722140100_peer_engagement_feature_access.sql',
+  '20260728120000_objectives_team_tier_access.sql',
 );
 /** @deprecated alias — AC1–AC4 still assert against the original launch-matrix file. */
 const MIGRATION_PATH = LAUNCH_MATRIX_MIGRATION_PATH;

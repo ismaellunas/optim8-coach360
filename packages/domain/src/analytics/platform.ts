@@ -22,6 +22,10 @@ export type ContentCompletionSummary = {
 
 export type PlatformAnalytics = {
   dauToday: number;
+  /** Last complete day's DAU (STORY-12.4 resolved) — the Monitor headline default. */
+  dauYesterday: number;
+  /** ISO date (YYYY-MM-DD) that dauYesterday is scoped to, for the "DAU · <date>" label. */
+  dauDate: string;
   dauSeries: DailyActiveUsersPoint[];
   paidRevenueCents: number;
   paidInvoiceCount: number;
@@ -112,6 +116,8 @@ export function parsePlatformAnalytics(raw: unknown): PlatformAnalytics {
 
   return {
     dauToday: asNumber(row.dau_today),
+    dauYesterday: asNumber(row.dau_yesterday),
+    dauDate: asString(row.dau_date),
     dauSeries,
     paidRevenueCents: asNumber(row.paid_revenue_cents),
     paidInvoiceCount: asNumber(row.paid_invoice_count),

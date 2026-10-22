@@ -26,9 +26,14 @@ export function MonitorPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="text-center">
           <p className="font-display text-3xl font-bold text-coach-orange">
-            {analytics?.dauToday ?? 0}
+            {analytics?.dauYesterday ?? 0}
           </p>
-          <p className="mt-1 text-xs uppercase text-coach-t3">DAU</p>
+          <p className="mt-1 text-xs uppercase text-coach-t3">
+            DAU{analytics?.dauDate ? ` · ${analytics.dauDate}` : ''}
+          </p>
+          <p className="mt-1 text-[11px] text-coach-t3">
+            Today so far: {analytics?.dauToday ?? 0}
+          </p>
         </Card>
         <Card className="text-center">
           <p className="font-display text-3xl font-bold text-coach-green">

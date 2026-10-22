@@ -44,7 +44,7 @@ export class SupabaseObjectivesRepository implements ObjectivesRepository {
 
   async listForUser(
     userId: string,
-    role: 'coach' | 'player' | 'team_manager' | 'admin',
+    role: 'coach' | 'player' | 'team' | 'admin',
   ): Promise<Objective[]> {
     if (role === 'coach' || role === 'admin') {
       const { data, error } = await this.client
@@ -73,10 +73,10 @@ export class SupabaseObjectivesRepository implements ObjectivesRepository {
     return (data ?? []).map(mapObjectiveRow);
   }
 
-  async create(coachId: string, input: CreateObjectiveInput): Promise<Objective> {
+  async create(creatorId: string, input: CreateObjectiveInput): Promise<Objective> {
     const parsed = createObjectiveInputSchema.parse(input);
     const payload = {
-      coach_id: coachId,
+      coach_id: creatorId,
       scope: parsed.scope,
       player_id: parsed.scope === 'player' ? parsed.playerId ?? null : null,
       team_id: parsed.scope === 'team' ? parsed.teamId ?? null : null,

@@ -1,6 +1,6 @@
 # STORY-7.3 fix plan — Coach progress review and feedback loop
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-08
+> **Status today:** DONE (tracker) — all items implemented and tested: Home stats bar wired to real data (Record dropped), and team manager AI Insights/Progress now routes to a dedicated operational view instead of the player-shaped screen's permanent lock.
 > **QA evidence:** docs/Coach_Feedback.docx (team/pro account section)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md (QA2-04), [story-7.4-fix-plan.md](./story-7.4-fix-plan.md) (same shared component, player-role slice)
 
@@ -35,18 +35,23 @@ None of STORY-7.3's own ACs (AC-1 through AC-4, all about `CoachProgressReviewSc
 
 ## Fix plan
 
-1. **Top stats bar (team slice):** Same fix as the player slice — replace the hardcoded team array (`App.jsx:248`) with real aggregates (active roster count, win/loss record if that data exists anywhere — see Open Questions, it may not — upcoming session count from `repos.sessions`). Coordinate with [story-7.4-fix-plan.md](./story-7.4-fix-plan.md) so this isn't implemented twice against the same function.
-2. **AI Insights for team:** No fix needed in this component once the `viewProgress` (and by extension `objectives`) requirements map gets a `team` entry — that's the actual blocker. Cross-reference the STORY-5.2/5.4 fix plan; don't duplicate the RBAC fix here.
-3. Once the RBAC fix lands, verify `ProgressScreen.jsx` actually renders something sensible for a team-manager role — right now even its "full" branch (`statCards`, `features.canViewTrends` Coach Feedback block) is written entirely in player-progress terms ("Drills completed," "Practice minutes," "Coach Feedback"). A team manager isn't a player with drill completions — giving them `accessLevel: 'full'` on `viewProgress` without a team-specific view would just replace one broken screen with a nonsensical one. See Open Questions.
+1. **Top stats bar (team slice) — resolved, implemented:** `HomeScreen`'s team branch now fetches the team manager's team (`repos.teams.listForUser`), active roster count (`repos.rosters.listMembers`), and upcoming sessions (`repos.sessions.listForUser`), replacing the hardcoded array. "Record" dropped entirely (no win/loss concept exists). Tiles: Players (roster count, → Roster tab), Sessions (upcoming count, → Schedule), Next (next session's weekday, → Schedule) — all clickable.
+2. **AI Insights for team — resolved, implemented, smaller fix than expected:** the dead end wasn't actually a `viewProgress`/`FEATURE_TIER_REQUIREMENTS` gap that needed a paywall-map edit — `canAccess(user, "ai")` was already `true` for team/Pro, so no tier change was needed. The fix is routing: `App.jsx` now special-cases `screen === "progress" && user.role === "team"` (mirroring the existing coach special-case) to render a dedicated `TeamProgressScreen` instead of falling through to the player-shaped `ProgressScreen`, which is what hit the permanent `viewProgress` lock. `FEATURE_TIER_REQUIREMENTS.viewProgress` was left unchanged since nothing else gates this new screen on it.
+3. **Team manager Progress/AI Insights view (resolved — option (c); implemented, scaled to real data):** new `TeamProgressScreen.jsx` — team roster size, upcoming session count, and team-scope objectives (reusing the same `repos.objectives.listForUser(userId, 'team')` call and progress-bar pattern from `ObjectivesScreen`). **Scaled down from the original resolved answer:** attendance/RSVP rates and "who hasn't opened the app" engagement signals were NOT built — no attendance/RSVP/last-active tracking exists anywhere in this schema (confirmed by grep), so that's new instrumentation work, not a wiring fix. Flagged as a new open question rather than fabricated. Explicitly excludes individual performance data, skill assessments, and coach feedback, consistent with the resolved privacy boundary.
 
 ## Verification plan
 
-- Existing tests to re-run: `npm run test:story-7.3` (unaffected — none of its ACs touch this code path) and whatever RBAC test suite covers `viewProgress`/`FEATURE_TIER_REQUIREMENTS` once STORY-5.2/5.4 add a team entry.
-- New test cases needed: an assertion (likely in `tests/rbac/`) that `featureAccessLevel('team', 'pro', 'viewProgress')` resolves to something other than a permanent `'none'`; a Home-screen test asserting the team stats grid is wired to real data, mirroring whatever gets added for the player slice.
-- Manual re-test: team/pro account on Fold7 — confirm stats bar reflects real roster/session data, and confirm tapping AI Insights lands on a screen that makes sense for a team manager (not a player-shaped progress dashboard).
+- `npm run test:story-7.3`: 6/6 passing (4 original + 2 new: Home stats bar team-slice real-data wiring, `TeamProgressScreen` routing + data-source assertions).
+- Full suite (`npx vitest run`): 250/260 non-skipped passing, same 7 pre-existing unrelated failures as before this change.
+- `eslint` on changed files: 0 errors.
+- Manual re-test (not done — no live device/account in this session): team/pro account on Fold7 — confirm Home stats bar reflects real roster/session data and is tappable, confirm tapping AI Insights lands on the new team progress view (not a locked player-shaped dashboard).
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Is STORY-7.3 the right owner at all?** Its description and every AC are about the coach's player-progress-review screen, not the Home screen or team role. Should this bug instead sit under a renamed/new story for "Home screen live data across roles," rather than being bolted onto STORY-7.3 by precedent? I'm not reassigning tracker ownership without confirmation.
-- **Team "Record" stat (`10-1`)** — I found no win/loss, game-result, or scoring concept anywhere in `packages/domain` or the Supabase schema. Is this a real feature that hasn't been built yet, or should "Record" be dropped from the team stats bar entirely?
-- **What should a team manager see when they tap "AI Insights" / "Progress"?** The existing `ProgressScreen` is written entirely around an individual player's drill completions. Does a team manager get: (a) an aggregate team-progress view (new screen, new scope), (b) nothing (card should be hidden/locked for team role instead of fixed), or (c) something else? This determines whether the fix is "add team to the requirements map" or "build a new team-progress screen" — materially different scope, not something to assume.
+- **Story ownership:** keep the current precedent — STORY-7.3 owns the team-slice fix, consistent with the same decision on STORY-7.4's identical question. Not reassigned to a new story.
+- **Team "Record" stat:** dropped — no win/loss/scoring concept exists anywhere in this codebase.
+- **Team manager AI Insights/Progress:** option (c) — a purpose-built team-scoped operational view, not an aggregate copy of the player view and not a locked card. Implemented, scoped to real available data (see Fix plan item 3 for what's deliberately not built).
+
+## Open questions — new, discovered during implementation
+
+- **Should attendance/RSVP tracking and "who hasn't opened the app" engagement signals be built as new features?** Not possible today — no instrumentation exists anywhere in this schema. This is genuinely new scope (a new table, UI for marking attendance, last-active tracking), not something fixable within this bug-fix pass. The current `TeamProgressScreen` covers roster/sessions/objectives only.

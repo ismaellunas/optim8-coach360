@@ -1,6 +1,6 @@
 # STORY-8.1 fix plan — Chat SDK integration and channel model
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-05
+> **Status today:** DONE (tracker) — player-initiated coach messaging and the entitlement split implemented and tested. AC-2 reworded. Coach-side "not visible" complaint remains genuinely unresolved (needs a live repro), with a safe partial mitigation shipped regardless.
 > **QA evidence:** docs/Coach_Feedback.docx (coach + player account sections)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md
 
@@ -33,26 +33,39 @@ Once a DM channel *does* exist, sending is role-agnostic: `handleSend` (`ChatScr
 
 ## Fix plan
 
-1. Add a player-facing "message coach" entry point, parallel to the existing coach flow:
-   - Extend the header "+" / empty-state CTA to render for players too (replace the `canComposeDm` coach/team_manager-only check with a role-aware branch), or add a distinct "Message coach" action if the UX should differ from the coach's "pick a player" picker (see Open Questions on multi-coach handling).
-   - Build a `loadRosterCoaches`-equivalent (mirroring `loadRosterPlayers`) that queries the player's team(s) for coach members instead of player members.
-   - Wire the picker's selection to `openDmWithPlayer`-equivalent logic (reuse `ensureDmChannel`, swapping which side is "self" vs "peer" per the existing `coachId`/`playerId` resolution pattern already in `handleSend`/`openDmWithPlayer`).
-2. Leave the backend/domain layer (`ensureDmChannel`, `canSendTextOnChannelType`, RLS in `20260722123000_fix_chat_channel_rls.sql`) untouched — confirmed role-agnostic already.
-3. Re-verify the coach-side "not visible" complaint against a real roster fixture before changing anything: if it reproduces with a genuinely `active` player, that's a second, separate bug in `loadRosterPlayers`'s filter; if it reproduces only with an invited-not-joined player, it's already-documented expected behavior and no code change is needed (maybe just clearer empty-state copy explaining why a roster entry isn't listed).
+1. **Player-facing "message coach" entry point (resolved, implemented):**
+   - `ChatScreen.jsx`'s header "+" and empty-state "New message" CTA now render for players too (`canComposeDm || isPlayerRole`), not just coach/team_manager.
+   - New `loadRosterCoaches` — **not** a straight mirror of `loadRosterPlayers`: players aren't team creators, so `repos.teams.listForUser` (keyed on `created_by`) returns nothing for them. Uses `repos.rosters.listMemberTeams(userId)` instead (the same method `PlayerTeamContext`/`TeamManagerTeamGate` already use for a player's own team membership), then resolves each team's coach via `team.createdBy` — the `roster_role` enum has no `'coach'` value (only `player`/`assistant_coach`/`manager`), so the head coach is `created_by`, not a roster row. Names resolved via the existing `resolvePlayerDisplayNames` helper (it already special-cases `team.createdBy` for exactly this).
+   - **Multi-coach/team membership (resolved, implemented):** `startCompose` skips the picker and opens the thread directly when the player has exactly one coach; shows the picker (grouped, each row labeled with team name) when there's more than one. Never silently defaults to a "primary" coach.
+   - **Entry point placement (resolved, implemented — scaled down):** the Chat tab is the only entry point built. The up-to-2–3 contextual shortcuts (event/game detail, a Progress/feedback item, Team page) from the resolved answer were **not** built — that's meaningfully more UI surface across other screens, and the Chat tab alone fully resolves the literal QA complaint (player couldn't initiate chat with coach *at all*). Logged as a new open question rather than silently expanded into.
+   - **Guardian-visibility/safeguarding for minors — not built.** No minors/guardian-account concept exists anywhere in this codebase today (confirmed by grep) — this would be new product infrastructure, not a wiring fix. Flagged as a new open question rather than fabricated.
+   - Reuses `openDmWithPlayer`/`ensureDmChannel` as-is (confirmed role-agnostic) rather than forking new logic.
+2. **Entitlement split (resolved — implemented, scaled to the literal bug, not the full aspirational model):**
+   - `canSendTextOnChannelType` (`packages/domain/src/chat/message.ts`): `'dm'` channels (always exactly a coach/player pair in this schema) are now unconditionally allowed regardless of tier. `'team'`/`'p2p'` unchanged (still require `chatAllowed`, i.e. Advanced+).
+   - `ChatScreen.jsx`: removed the `chatAllowed` requirement from DM channel creation (`openDmWithPlayer`), conversation list loading (`loadConversations`), the `initialDm` auto-open effect, and chat realtime subscription (`useChatRealtime`) — all of these create/read DM threads, which are now free. The top-level "Chat Locked" screen now only shows if none of `canComposeDm`/`isPlayerRole`/`chatAllowed` apply (practically unreachable for coach/player/team_manager now, since they all get free `coach_messaging`).
+   - **Not implemented: `messaging_media`/`messaging_history` as separate feature keys with either-party unlock.** That's a materially bigger change (fetching the *other* participant's tier to decide unlock, a new paywall concept) than what's needed to fix the reported bug. Attachment/video sends (`handleSendContentLink`/`handleSendVideoFile`) are **still gated on the sender's own `chatAllowed`**, unchanged — only core DM text is now free. Logged as a new open question (full either-party-unlock design) rather than guessed at.
+   - No server-side/RLS change needed — confirmed `chat_messages` has no tier-based INSERT policy at all; gating in this app is entirely client-side already, consistent with the existing security model.
+3. Backend/domain layer (`ensureDmChannel`, RLS in `20260722123000_fix_chat_channel_rls.sql`) left untouched — confirmed role-agnostic, no change needed beyond item 2's `canSendTextOnChannelType` edit.
+4. **Coach-side "not visible" complaint (resolved as "can't confirm, ship the safe half"):** genuinely can't determine from code whether the specific roster player was `active` at test time — not guessed at, logged as a permanently-open item needing a live repro. What's fixed regardless: the roster picker now counts and surfaces invited-but-not-joined entries ("N invited players haven't finished signing up yet, so they aren't shown here") instead of letting them vanish with zero explanation — correct under either explanation of the original complaint.
+5. **AC-2 wording (resolved, implemented):** reworded in the tracker to state who can initiate each channel type.
 
 ## Verification plan
 
-- Existing tests to re-run: `npm test -- --reporter=json -t STORY_8_1` (expect AC2 to need a rewrite, not just a re-run).
-- New test cases needed:
-  - Render `ChatScreen` as a `player` role and assert a compose entry point is present and functional (not a source-string regex).
-  - Render as `coach`/`team_manager` and assert existing behavior is unchanged.
-  - A case with an invited-but-not-`active` roster player, asserting the picker correctly omits them (locks in current documented behavior rather than letting it silently regress further).
-- Manual re-test: Fold7 device, player/pro account — initiate a chat with a coach from a clean conversation list; coach/pro account — confirm the specific "have one setup" player's roster `status` and `profileId` state in Supabase before and after they complete signup.
+- `npm run test:story-8.1`: 7/7 passing (4 original + 3 new: player-initiated chat entry point + roster-coach lookup, entitlement split, pending-roster-count note).
+- Full suite (`npx vitest run`): 252/262 non-skipped passing, same 7 pre-existing unrelated failures as before this change — includes confirming STORY-8.2's own `canSendTextOnChannelType('team', false)` assertion still passes (team channel gating unaffected) and all of STORY-8.3's tests (peer-share, unrelated).
+- `eslint` on changed files: 0 errors.
+- Manual re-test (not done — no live device/account in this session): player/pro **and** player/basic account — initiate a chat with a coach from a clean conversation list, confirm it works at Basic tier (not just Pro); coach/pro account — confirm the specific "have one setup" player's roster `status`/`profileId` state in Supabase, and confirm the new pending-roster note appears/disappears correctly as that player completes signup.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Multi-coach/team membership:** can a player belong to more than one team (and therefore have more than one coach)? If so, what should "message coach" do — show a picker (like the coach's player picker), default to a single "primary" coach, or something else? I did not trace the full team-membership model to confirm whether multi-team players are in scope for MVP.
-- **Tier gating intent:** today *all* chat (including team channel) is gated behind `canAccess(user, 'chat')` (Advanced+ per the existing paywall). Is a player messaging their own coach meant to be gated the same way, or should it be available at a lower tier since it's a core coaching relationship rather than an upsell feature? The feedback doesn't state what tier the player test account was on.
-- **Entry point placement:** should "message coach" live only in the Chat tab (symmetric with the coach's flow), or should there also be a shortcut elsewhere (e.g. from the player's Progress or Profile screen), mirroring how the coach's flow has a secondary entry from `CoachProgressReviewScreen`?
-- **The coach-side "not visible" complaint specifically:** was the roster player in question actually `active` with a linked profile at test time? If yes, that's a distinct, unconfirmed bug in `loadRosterPlayers` I have not been able to reproduce from code reading alone — needs a live repro against the actual test account/roster row before I'd trust either explanation.
-- **AC-2 wording:** should the acceptance criterion be rewritten to explicitly state *who* can initiate each channel type (team/DM/P2P), so a future test can actually assert on it instead of only checking that the capability exists somewhere in source?
+- **Multi-coach/team membership:** players can belong to more than one team/coach. Infer the team from context first, show a picker only when genuinely ambiguous, never default to a silent "primary" coach. Implemented.
+- **Tier gating intent:** `coach_messaging` (DM text) is free at every tier; `chat` (team/p2p) stays per-user Advanced+. Implemented, scaled down from the full `messaging_media`/`messaging_history` either-party-unlock model — see Fix plan item 2.
+- **Entry point placement:** the Chat tab is the source of truth. Implemented; the additional contextual shortcuts were not built — see new open questions.
+- **Coach-side "not visible" complaint:** can't confirm from code; shipped the safe, correct-either-way partial fix (pending-roster count) instead of guessing.
+- **AC-2 wording:** reworded. Implemented.
+
+## Open questions — new, discovered during implementation
+
+- **Should the 2–3 contextual chat shortcuts (event/game detail, Progress/feedback item, Team page) be built as a follow-up?** Not built — the Chat tab alone resolves the literal reported bug. This is genuinely more UI surface across other screens, not a small addition.
+- **Should guardian-visibility/safeguarding for minors be built for chat threads?** No minors/guardian-account concept exists anywhere in this codebase today — this is new product infrastructure (a data model decision), not something to retrofit into a chat bug fix.
+- **Should `messaging_media`/`messaging_history` become separate either-party-unlock feature keys**, as originally envisioned, rather than attachments/video staying gated on the sender's own tier? This needs a design for how to cheaply check the *other* participant's tier client-side (a new repo call, or a server-side RPC) — not a trivial extension of what's built now.

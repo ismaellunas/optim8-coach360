@@ -6,15 +6,15 @@ import type { Objective } from '@coach360/domain';
 export class RestObjectivesRepository implements ObjectivesRepository {
   async listForUser(
     userId: string,
-    role: 'coach' | 'player' | 'team_manager' | 'admin',
+    role: 'coach' | 'player' | 'team' | 'admin',
   ): Promise<Objective[]> {
     void userId;
     void role;
     throw new NotImplementedAdapterError('rest', 'listForUser');
   }
 
-  async create(coachId: string, input: CreateObjectiveInput): Promise<Objective> {
-    void coachId;
+  async create(creatorId: string, input: CreateObjectiveInput): Promise<Objective> {
+    void creatorId;
     void input;
     throw new NotImplementedAdapterError('rest', 'create');
   }

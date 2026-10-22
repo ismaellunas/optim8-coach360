@@ -102,6 +102,33 @@ function dateForWeekday(weekdayIndex, now = new Date()) {
   return next;
 }
 
+/** STORY-6.3 (resolved) — Sunday-anchored start of the week containing `date`. */
+function startOfWeek(date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  start.setDate(start.getDate() - start.getDay());
+  return start;
+}
+
+function isSameCalendarDate(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear()
+    && a.getMonth() === b.getMonth()
+    && a.getDate() === b.getDate()
+  );
+}
+
+function formatWeekRangeLabel(weekStart) {
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  const sameMonth = weekStart.getMonth() === weekEnd.getMonth();
+  const startLabel = weekStart.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  const endLabel = weekEnd.toLocaleDateString([], {
+    month: sameMonth ? undefined : 'short',
+    day: 'numeric',
+  });
+  return `${startLabel} – ${endLabel}`;
+}
+
 function SessionForm({
   mode,
   readOnly = false,
@@ -535,6 +562,12 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
   );
 
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  // STORY-6.3 (resolved) — the week currently being viewed; previously the
+  // day-strip always anchored to `new Date()` at render time, so there was
+  // no way to browse a different week at all.
+  const [weekAnchorDate, setWeekAnchorDate] = useState(function () {
+    return startOfWeek(new Date());
+  });
   const [sessions, setSessions] = useState([]);
   const [teams, setTeams] = useState([]);
   const [players, setPlayers] = useState([]);
@@ -639,6 +672,51 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
     },
     [loadBaseData],
   );
+
+  // STORY-6.3 (resolved, item 3) — re-derive "today" on resume instead of only
+  // at mount, so a long-lived session doesn't show a stale highlight. Only
+  // refreshes when the user hasn't deliberately navigated to a different
+  // week — doesn't yank them back to today while they're browsing elsewhere.
+  useEffect(
+    function () {
+      function refreshToday() {
+        if (document.visibilityState !== 'visible') {
+          return;
+        }
+        const now = new Date();
+        if (isSameCalendarDate(startOfWeek(now), weekAnchorDate)) {
+          setSelectedDay(now.getDay());
+        }
+      }
+      document.addEventListener('visibilitychange', refreshToday);
+      return function () {
+        document.removeEventListener('visibilitychange', refreshToday);
+      };
+    },
+    [weekAnchorDate],
+  );
+
+  function goToPreviousWeek() {
+    setWeekAnchorDate(function (prev) {
+      const next = new Date(prev);
+      next.setDate(next.getDate() - 7);
+      return next;
+    });
+  }
+
+  function goToNextWeek() {
+    setWeekAnchorDate(function (prev) {
+      const next = new Date(prev);
+      next.setDate(next.getDate() + 7);
+      return next;
+    });
+  }
+
+  function goToToday() {
+    const now = new Date();
+    setWeekAnchorDate(startOfWeek(now));
+    setSelectedDay(now.getDay());
+  }
 
   useEffect(
     function () {
@@ -793,7 +871,7 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
         mode={editingSession ? 'edit' : 'create'}
         readOnly={isReadOnly}
         initialSession={activeSession}
-        defaultDate={showCreate && !activeSession ? dateForWeekday(selectedDay) : undefined}
+        defaultDate={showCreate && !activeSession ? dateForWeekday(selectedDay, weekAnchorDate) : undefined}
         teams={teams}
         players={players}
         libraryItems={libraryItems}
@@ -815,30 +893,69 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
     );
   }
 
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const dates = Array.from({ length: 7 }, (_, index) => {
-    const now = new Date();
-    const diff = index - now.getDay();
-    const next = new Date(now);
-    next.setDate(now.getDate() + diff);
-    return next.getDate();
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  // STORY-6.3 (resolved) — concrete Date per visible cell, computed once per
+  // render from the viewed week, not `new Date()` at render time.
+  const weekDates = Array.from({ length: 7 }, (_, index) => {
+    const cell = new Date(weekAnchorDate);
+    cell.setDate(cell.getDate() + index);
+    return cell;
   });
+  const selectedDate = weekDates[selectedDay];
+  const isCurrentWeek = isSameCalendarDate(startOfWeek(new Date()), weekAnchorDate);
 
   const scheduleSessions =
     appRole === 'player' ? filterUpcomingSessions(sessions) : sessions;
+  // STORY-6.3 (resolved) — exact calendar-date match, not just day-of-week,
+  // so "Monday" no longer conflates last week's/next month's/this week's
+  // sessions into one undifferentiated list.
   const dayData = scheduleSessions.filter(
-    (entry) => new Date(entry.scheduledAt).getDay() === selectedDay,
+    (entry) => isSameCalendarDate(new Date(entry.scheduledAt), selectedDate),
   );
-  const daysWithSessions = Array.from({ length: 7 }, () => false);
-  for (const entry of scheduleSessions) {
-    daysWithSessions[new Date(entry.scheduledAt).getDay()] = true;
-  }
+  const daysWithSessions = weekDates.map(
+    (cellDate) => scheduleSessions.some((entry) => isSameCalendarDate(new Date(entry.scheduledAt), cellDate)),
+  );
 
   return (
     <ScreenContainer>
       <PageHeader title="SCHEDULE" user={user} />
+      <div className="mb-3 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={goToPreviousWeek}
+          aria-label="Previous week"
+          data-testid="schedule-prev-week"
+          className="cursor-pointer rounded-xl border border-coach-border bg-coach-card px-3 py-2 font-body text-sm text-coach-t1"
+        >
+          ‹
+        </button>
+        <div className="text-center">
+          <div className="font-body text-xs text-coach-t3" data-testid="schedule-week-range">
+            {formatWeekRangeLabel(weekAnchorDate)}
+          </div>
+          {!isCurrentWeek ? (
+            <button
+              type="button"
+              onClick={goToToday}
+              data-testid="schedule-today"
+              className="cursor-pointer border-none bg-transparent font-body text-xs text-coach-orange"
+            >
+              Today
+            </button>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={goToNextWeek}
+          aria-label="Next week"
+          data-testid="schedule-next-week"
+          className="cursor-pointer rounded-xl border border-coach-border bg-coach-card px-3 py-2 font-body text-sm text-coach-t1"
+        >
+          ›
+        </button>
+      </div>
       <div className="mb-5 flex gap-1.5">
-        {days.map(function (day, index) {
+        {dayLabels.map(function (day, index) {
           const active = selectedDay === index;
           const hasSessions = daysWithSessions[index];
           return (
@@ -850,7 +967,7 @@ export function ScheduleScreen({ user, tryA, prefillCreate, onPrefillConsumed })
               className={`flex-1 cursor-pointer rounded-[14px] border px-0 py-2.5 text-center ${active ? 'border-coach-orange bg-coach-orange' : 'border-coach-border bg-coach-card'}`}
             >
               <div className={`font-body text-[10px] uppercase ${active ? 'text-white/70' : 'text-coach-t3'}`}>{day}</div>
-              <div className={`mt-0.5 font-display text-lg font-bold ${active ? 'text-white' : 'text-coach-t1'}`}>{dates[index]}</div>
+              <div className={`mt-0.5 font-display text-lg font-bold ${active ? 'text-white' : 'text-coach-t1'}`}>{weekDates[index].getDate()}</div>
               {hasSessions ? (
                 <div
                   className={`mx-auto mt-1 h-1.5 w-1.5 rounded-full ${active ? 'bg-white' : 'bg-coach-orange'}`}

@@ -76,8 +76,8 @@ describe('STORY_6_3 AC1 — share to full team roster or individual player selec
     expect(ui).toMatch(/Individual player/);
     expect(ui).toMatch(/data-testid="share-recipient-team"/);
     expect(ui).toMatch(/data-testid="share-recipient-player"/);
-    expect(ui).toMatch(/dateForWeekday\(selectedDay\)/);
-    expect(ui).toMatch(/defaultDate=\{showCreate && !activeSession \? dateForWeekday\(selectedDay\)/);
+    expect(ui).toMatch(/dateForWeekday\(selectedDay, weekAnchorDate\)/);
+    expect(ui).toMatch(/defaultDate=\{showCreate && !activeSession \? dateForWeekday\(selectedDay, weekAnchorDate\)/);
   });
 });
 
@@ -142,6 +142,35 @@ describe('STORY_6_3 AC3 — in-app schedule shows upcoming for players at Basic+
     expect(ui).toMatch(/filterUpcomingSessions/);
     expect(ui).toMatch(/tryA\('viewSchedule'/);
     expect(ui).toMatch(/schedule-paywall/);
+  });
+});
+
+describe('STORY_6_3 Week navigation and exact-date filtering (resolved, BUG-QA3-04)', () => {
+  it('test_STORY_6_3_AC3_week_navigation_and_exact_date_filtering: no more weekday-collision across weeks', () => {
+    const ui = readFileSync(UI_PATH, 'utf8');
+    // Week is a real, navigable piece of state — not re-anchored to new Date() at render time.
+    expect(ui).toMatch(/const \[weekAnchorDate, setWeekAnchorDate\] = useState/);
+    expect(ui).toMatch(/function goToPreviousWeek/);
+    expect(ui).toMatch(/function goToNextWeek/);
+    expect(ui).toMatch(/data-testid="schedule-prev-week"/);
+    expect(ui).toMatch(/data-testid="schedule-next-week"/);
+    expect(ui).toMatch(/data-testid="schedule-week-range"/);
+    // Exact calendar-date match replaces the old getDay()-only comparison that
+    // conflated every same-weekday session across all weeks into one list.
+    expect(ui).toMatch(/isSameCalendarDate\(new Date\(entry\.scheduledAt\), selectedDate\)/);
+    expect(ui).not.toMatch(/new Date\(entry\.scheduledAt\)\.getDay\(\) === selectedDay/);
+    // "Today" re-derives on resume (visibilitychange), not only at mount.
+    expect(ui).toMatch(/document\.addEventListener\('visibilitychange', refreshToday\)/);
+  });
+
+  it('test_STORY_6_3_AC3_week_navigation_unbounded: no season-start/end enforcement (resolved: unbounded for MVP)', () => {
+    const ui = readFileSync(UI_PATH, 'utf8');
+    // goToPreviousWeek/goToNextWeek always shift by 7 days — no min/max check
+    // against team season dates (resolved: unbounded, season isn't enforced
+    // anywhere else in this codebase today).
+    expect(ui).toMatch(/next\.setDate\(next\.getDate\(\) - 7\)/);
+    expect(ui).toMatch(/next\.setDate\(next\.getDate\(\) \+ 7\)/);
+    expect(ui).not.toMatch(/seasonStart|seasonEnd/);
   });
 });
 

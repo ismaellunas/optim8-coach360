@@ -239,9 +239,9 @@
 
 | # | Question | Why it matters | Answer | Owner | Date |
 | --- | --- | --- | --- | --- | --- |
-| 18.1 | What can players share — stats, achievements, tips only, or also videos/drills? | Flow 18 vs chat media | | | |
-| 18.2 | Is sharing **team-scoped only**, or can players DM shared content? | Privacy/safety | | | |
-| 18.3 | Should coaches see **all** peer shares, or aggregated engagement only (○ at Advanced, ✓ at Pro)? | Coach visibility | | | |
+| 18.1 | What can players share — stats, achievements, tips only, or also videos/drills? | Flow 18 vs chat media | Interim (code default, not formally ratified): achievements + tips only — no videos/drills via this flow. See `packages/domain/src/chat/peer-share.ts` (`PEER_SHARE_MESSAGE_TYPES`). | Engineering (interim) | 2026-10-22 |
+| 18.2 | Is sharing **team-scoped only**, or can players DM shared content? | Privacy/safety | Interim (code default, not formally ratified): team-scoped only — no DM/p2p peer shares. DM/p2p remain for normal chat (STORY-8.1/8.2), not Flow 18 shares. See `canSharePeerContentToChannel()` in `peer-share.ts`. | Engineering (interim) | 2026-10-22 |
+| 18.3 | Should coaches see **all** peer shares, or aggregated engagement only (○ at Advanced, ✓ at Pro)? | Coach visibility | Interim (code default, not formally ratified): aggregated engagement metrics only, gated at Pro (○ read-only at Advanced). See `peer-share.ts` header comment. | Engineering (interim) | 2026-10-22 |
 | 18.4 | Content moderation for peer shares — required at MVP? | Youth safety | | | |
 
 ---

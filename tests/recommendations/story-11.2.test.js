@@ -10,6 +10,7 @@ import {
   recommendationContextSchema,
   scorePackageMatch,
 } from '@coach360/domain';
+import { DEFAULT_AI_RECOMMENDATION_CONFIG } from '../../supabase/functions/recommend-packages/handler.ts';
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
 
 const DOMAIN_RANK = path.join(
@@ -233,6 +234,18 @@ describe('STORY_11_2 AC3 — Top 3 packages returned with match score', () => {
     const index = readFileSync(EDGE_INDEX, 'utf8');
     expect(index).toMatch(
       /rankPackageRecommendations\(candidates,\s*context,\s*(?:3|LLM_CANDIDATE_POOL)\)/,
+    );
+  });
+});
+
+describe('STORY_11_2 LLM rerank default (resolved, QA3-02 "suggested objectives slow to load")', () => {
+  it('test_STORY_11_2_AC4_llm_rerank_off_by_default_for_phase_1: default config skips the Mistral rerank round-trip', () => {
+    expect(DEFAULT_AI_RECOMMENDATION_CONFIG.llmRerankEnabled).toBe(false);
+
+    const index = readFileSync(EDGE_INDEX, 'utf8');
+    // The rerank call stays conditional on the (now-false-by-default) flag — admin opt-in still works.
+    expect(index).toMatch(
+      /const llmResult = aiConfig\.llmRerankEnabled\s*\n\s*\? await rerankPackagesWithMistral\(providerPayload\)\s*\n\s*: null;/,
     );
   });
 });

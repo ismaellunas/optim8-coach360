@@ -1,6 +1,6 @@
 # STORY-7.4 fix plan — Player profile and dashboard by tier
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-01 and BUG-QA3-03
+> **Status today:** DONE (tracker) — all 4 open questions resolved and implemented except Drills/Streak wiring (see Fix plan item 1); tracker ticket `status` was never actually flipped off DONE (no BUG-QA3-01/BUG-QA3-03 entries exist in `docs/index.html`'s `bugs` array — this reopen only ever lived in `docs/Coach_Feedback.docx` and this fix-plan doc), so no status flip was needed — `verify.tests`/`verify.files`/`audit_notes` updated instead.
 > **QA evidence:** docs/Coach_Feedback.docx (player/pro account section)
 > **Related:** docs/index.html (tracker), docs/bug-investigations.md (QA2-04), [story-7.3-fix-plan.md](./story-7.3-fix-plan.md) (same shared component, team-role slice)
 
@@ -16,7 +16,7 @@ Player account (Fold7, player/pro):
 
 - **AC-1** "Player home shows schedule summary and progress at minimum" — **not actually at risk.** The schedule/progress sections QA2-04 verified as live (`home-schedule-summary`, `home-progress-summary`, `repos.sessions.listForUser`, `repos.sessionContent.listPlayerProgress`) are a *different* part of the Home screen than the "top stats bar" QA is now complaining about. AC-1 doesn't mention a stats bar or AI insights at all, so this AC's test (`test_STORY_7_4_AC1_...`) still passes correctly — it just never covered the components QA is flagging.
 - **AC-2 / AC-3** (Pro/Basic gating) — not contradicted; the gating logic itself works as designed, see Root cause.
-- No AC in this story covers Profile's "Edit Profile" / "Notifications" buttons — see Open Questions.
+- No AC in this story covers Profile's "Edit Profile" / "Notifications" buttons — **resolved**: Edit Profile is being added as new STORY-7.4 scope, Notifications is deliberately out of MVP for now. See Resolved decisions.
 
 ## Root cause (confirmed in code)
 
@@ -28,7 +28,7 @@ Player account (Fold7, player/pro):
    ```
    Rendered at `App.jsx:273-282` as a plain 4-box grid with **no `onClick` at all** and no repo call. For the player role this is 100% hardcoded (`"24"`, `"7d"`, `"3/5"`, `"#4"` are literals) — "not updated, not clickable, not linked" is accurate as reported. This is the *same component and same root cause* as `BUG-QA2-04` (coach dashboard), just never fixed for the player/team branches of the same ternary. Not a regression — QA2-04's original write-up only tested the coach account, so the player/team branches of this one hardcoded array were never caught until this pass.
 
-2. **AI Insights card** — `App.jsx:320-348`. For a Pro player, `canAccess(user, "ai")` is `true` (`FEATURE_TIER_REQUIREMENTS.ai = { coach: 'pro', player: 'pro', team: 'pro' }`, `packages/domain/src/subscription/paywall.ts:28`), so the card **is** clickable (`onClick` → `tryA("ai", () => go("progress"))`) and **is** correctly gated. What's not real is the body copy: `"Your shooting accuracy improved 12% this week."` is a hardcoded string (`App.jsx:335`), not generated from any insight/recommendation repo. So "AI insights not linked" means "not linked to real data," not "not clickable" — worth confirming with the tester which they meant (see Open Questions).
+2. **AI Insights card** — `App.jsx:320-348`. For a Pro player, `canAccess(user, "ai")` is `true` (`FEATURE_TIER_REQUIREMENTS.ai = { coach: 'pro', player: 'pro', team: 'pro' }`, `packages/domain/src/subscription/paywall.ts:28`), so the card **is** clickable (`onClick` → `tryA("ai", () => go("progress"))`) and **is** correctly gated. What's not real is the body copy: `"Your shooting accuracy improved 12% this week."` is a hardcoded string (`App.jsx:335`), not generated from any insight/recommendation repo. **Resolved:** "AI insights not linked" means "not linked to real data," not "not clickable" — the QA account was Pro, where the card is already clickable, so the content-realism reading is the only one consistent with the evidence.
 
 3. **Profile dead buttons** — `apps/mobile/src/features/profile/ui/ProfileScreen.jsx:103-114`:
    ```jsx
@@ -42,19 +42,31 @@ Player account (Fold7, player/pro):
 
 ## Fix plan
 
-1. **Top stats bar (player slice):** Replace the player branch of the `stats` array (`App.jsx:245-246`) with real aggregates: drills-completed count and total practice streak from `repos.sessionContent.listPlayerProgress(playerId)` (already fetched into `completions` in this same component — reuse it, don't double-fetch), plus whatever "Goals" / "Rank" are supposed to mean (see Open Questions — those two have no backing data source anywhere in the repo layer today). Add `onClick` handlers that navigate somewhere sensible (e.g., Drills → `go("progress")`).
-2. **AI Insights copy:** Either (a) wire the card body to `STORY-11.2`'s recommendation engine output (`packages/domain` metadata-based recommendations) once that story's fix lands, or (b) if AI-generated per-player insight text doesn't exist yet as a backend capability, change the copy to something that isn't a specific fabricated claim (e.g., a generic prompt) until real AI insight text is available. This decision belongs with whoever owns STORY-11.3/11.4 (Mistral/RAG) — don't guess which.
-3. **Profile dead buttons:** Decide scope (see Open Questions) then either build "Edit Profile" (name/email/avatar form wired to the profile repository) and "Notifications" (push/email preference toggles — note `STORY-14.1` Push notification infrastructure is still `TODO`, so a Notifications screen may have nothing to configure yet), or remove the buttons/mark them "Coming soon" if out of MVP scope.
+1. **Top stats bar (player slice):** Replace the player branch of the `stats` array (`App.jsx:245-246`) with real aggregates:
+   - **Drills (implemented):** wired to `homeProgressSummary.drillsCompleted` (already computed in this component from `completions` via `summarizePlayerProgress`). Clickable (`go("progress")`), `data-testid="home-stat-drills"`.
+   - **"Goals" (resolved, implemented):** wired to `repos.objectives.listForUser(playerId, "player")` — count of objectives not yet complete (`currentCompletions < targetCompletions`; the schema has no `archived`/`season` field, so this is the closest real equivalent to "active"). Clickable (`go("objectives")`), `data-testid="home-stat-goals"`.
+   - **"Rank" (resolved, implemented): removed from the stats bar.** No ranking/leaderboard concept exists anywhere in the domain or API layer. The stats grid now renders 3 columns for the player role instead of 4.
+   - **"Streak" — new finding, deferred, not implemented.** During implementation I grepped the full domain layer for any streak/consecutive-day concept: none exists. The original assumption that this was "wire to real data" was wrong — a practice streak requires new calculation logic (consecutive days with at least one completion), not just a repo call. Left hardcoded `"7d"` for now rather than inventing the algorithm unreviewed. This needs its own product/scope decision (same treatment "Rank" got) before being built — logged as a new item, see below.
+2. **AI Insights copy (resolved — option (b), implemented):** player-branch copy changed from the fabricated `"Your shooting accuracy improved 12% this week."` to a generic `"Insights based on your recent activity."` The coach/team branch copy was left untouched (out of this story's slice). Re-wire to `STORY-11.2`'s recommendation engine output once that capability lands.
+3. **Profile dead buttons (resolved, implemented) — new finding on scope:** `repos.profiles`'s update schemas (`PlayerProfileInput`/`CoachProfileInput`/`TeamManagerProfileInput`) have no `displayName` field at all — only `age`+`position`+`avatarUrl` (player), `bio`+`coachContext` (coach), or `bio` (team manager). "Edit Profile" was built scoped to what the repository actually supports (age/position/avatar for players, bio for coach/team manager) — **display name editing was not built**, since it would require a new schema field plus a repository/migration change, which is new scope beyond "wire the dead button." Logged as a new item below. "Notifications" is now disabled and explicitly labeled "Coming soon" rather than a silent dead button — `STORY-14.1` push notification infrastructure is still `TODO`.
 
 ## Verification plan
 
-- Existing tests to re-run: `npm run test:story-7.4` (should still pass — AC-1 through AC-4 don't need to change) plus a new assertion so the top-stats-bar fix can't silently regress back to hardcoded values.
-- New test cases needed (new file or extend `story-7.4.test.js`): assert player home stats grid reads from `completions`/`upcomingSessions` state, not literals; assert `ProfileScreen` "Edit Profile" and "Notifications" cards have real `onClick` handlers (or are explicitly removed) once scope is decided.
-- Manual re-test: player/pro account on Fold7 — confirm stats bar reflects real drill count after logging a drill; confirm Profile buttons either work or are no longer presented as tappable.
+- Existing + new tests: `npm run test:story-7.4` — 9/9 passing (4 original + 5 new: Goals/Rank, Drills wiring, AI Insights copy, Edit Profile wiring, Notifications state).
+- Full suite (`npx vitest run`): 237/247 passing (10 skipped), 7 pre-existing failures unrelated to this story (STORY-1.4 CI config, STORY-11.2/11.3/11.4 recommendation pipeline) — confirmed unaffected by this change.
+- `eslint` on changed files: 0 errors (1 pre-existing warning, unrelated to this change, about `useCallback` deps on stable `setState` setters).
+- Manual re-test (not done — no live device/account available in this session): player/pro account on Fold7 — confirm stats bar reflects real drill/goal counts and both are tappable; confirm Edit Profile form saves and Notifications reads "Coming soon."
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **"Top stats bar not... linked"** — for player, "Goals" and "Rank" have no corresponding data anywhere I can find in `packages/domain` or `packages/api` (no leaderboard/ranking concept, no "goals" distinct from Objectives). Is "Goals" meant to be the Objectives count, and is "Rank" a feature that doesn't exist yet and should be removed from the stats bar rather than wired up?
-- **"AI insights not linked"** — does this mean the tester expected it to be clickable and it wasn't (contradicts what I found in code — it should be clickable for Pro), or did they mean the content isn't real/personalized? I'm treating it as the latter based on the code, but this should be confirmed against the actual tester before work starts, since the fix is completely different (navigation bug vs. content-generation gap).
-- **Edit Profile / Notifications scope** — these buttons exist in the UI but are owned by no story and no AC. Is this: (a) new scope to add to STORY-7.4, (b) a separate story that should be created, or (c) deliberately out of MVP and the buttons should be removed/disabled with a "coming soon" state? I'm not picking one without a product decision.
-- **Shared-component ownership** — the hardcoded `stats` array and `AI Insights` card in `HomeScreen` serve coach, player, and team in one function. This fix plan only covers the player slice; the team slice is in [story-7.3-fix-plan.md](./story-7.3-fix-plan.md). Should there be one unified story for "Home screen live stats across roles" instead of splitting the fix across STORY-7.3/7.4 (current precedent from BUG-QA2-04)? Flagging rather than assuming — the current split works but is arguably an artifact of which story happened to get blocked first.
+All 4 original open questions for this story are resolved and implemented, except Drills/Streak wiring in item 1 (Drills implemented, Streak deferred — see below).
+
+- **"Goals"/"Rank" stats:** "Goals" wires to the Objectives count; "Rank" is removed from the stats bar (unimplemented, no backing concept). Implemented. See Fix plan item 1.
+- **"AI insights not linked" meaning:** content-realism complaint, not a clickability bug (QA account was Pro, where the card is already clickable). Implemented with honest generic copy; real recommendation output once STORY-11.2 lands. See Fix plan item 2.
+- **Edit Profile / Notifications scope:** (a) — new STORY-7.4 scope. Implemented, scoped to what `repos.profiles` actually supports (see new finding below for what's excluded). See Fix plan item 3.
+- **Shared-component ownership:** keep the current STORY-7.3/7.4 split for this reopen round; file a backlog item for a future unified "Home screen live stats across roles" cleanup story rather than re-scoping now.
+
+## Open questions — new, discovered during implementation
+
+- **"Streak" has no backing concept anywhere in the domain layer** (confirmed by grep — `summarizePlayerProgress` has no consecutive-day logic, nothing else does either). Is a practice streak actually wanted as a feature? If yes, it needs its own definition (what counts as a "practiced" day, timezone handling, does a rest day reset it) before being built — this is new feature work, not a wiring fix. If no, drop the "Streak" tile the same way "Rank" was dropped.
+- **Display-name self-service editing has no backend support.** `PlayerProfileInput`/`CoachProfileInput`/`TeamManagerProfileInput` don't include `displayName`. Is this worth adding (new schema field + repository method + possibly a migration), or is role-specific profile data (age/position/bio) sufficient for "Edit Profile" and a name change should go through support/admin instead (STORY-12.1's admin-side user editing)?

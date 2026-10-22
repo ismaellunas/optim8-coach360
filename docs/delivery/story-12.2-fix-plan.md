@@ -1,6 +1,6 @@
 # STORY-12.2 fix plan — Subscription and trial administration
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-12
+> **Status today:** DONE (tracker) — the silent invoice-skip fix (steps 1) and Subscriptions-page error display (step 4) implemented and tested. Backfill (step 3) deferred — needs production Stripe access authorization, not decided here.
 > **QA evidence:** docs/Coach_Feedback.docx (admin account section, MacBook M1 Pro / Chrome)
 > **Related:** docs/index.html (tracker), docs/bug-investigations-archive.md (BUG-E12-T6, a different but structurally similar admin "looks fine, shows nothing" bug)
 
@@ -28,19 +28,24 @@ This fully explains real, confirmed Stripe payments producing an empty or underc
 
 ## Fix plan
 
-1. **Stop the silent skip.** In `supabase/functions/stripe-webhook/index.ts`, when `resolveInvoiceProfileId` returns `null` for an `invoice_upsert`, call `recordWebhookFailure(supabase, 'missing_profile_id', { stage: 'invoice_upsert', stripeInvoiceId: result.invoice.stripe_invoice_id, stripeCustomerId: result.stripeCustomerId })` before returning — so it surfaces on the Monitor health panel (`HealthSection`) instead of vanishing.
-2. **Reduce the chance of the skip happening at all.** Add a fallback resolution step to `resolveInvoiceProfileId`: if `stripeCustomerId` is present but no `subscriptions` row matches yet, look up the Stripe customer's email (requires a Stripe API call from the Edge Function, which it doesn't currently make) and match against `profiles`/`auth.users` email — or, simpler, re-process by re-queuing/retrying the invoice event after a short delay instead of accepting it as permanently skipped. Needs a product/eng call on which approach (see Open Questions).
-3. **Backfill.** Once the fix ships, write a one-off script to list Stripe invoices with `status=paid` from the Stripe API directly and reconcile against `billing_invoices`, inserting any that were silently dropped historically, so revenue figures aren't permanently missing pre-fix invoices.
-4. **Make failures visible on the Subscriptions page too**, independent of the webhook fix: add `revenueQuery.isError` handling to the "Billing & revenue" card (mirror `MonitorPage`'s `analyticsQuery.isError` pattern), since today an RPC-level failure (e.g. a future regression) would also render as a silent `$0` with no error shown.
+1. **Stop the silent skip (resolved, implemented).** `supabase/functions/stripe-webhook/index.ts`'s `invoice_upsert` handler: when `resolveInvoiceProfileId` returns `null`, it now calls `recordWebhookFailure(supabase, 'missing_profile_id', { stage: 'invoice_upsert', stripeInvoiceId, stripeCustomerId })` and returns **500** (was: silent `{received:true, skipped:...}` with 200). Surfaces on the Monitor health panel instead of vanishing.
+2. **Fallback resolution (resolved — neither originally-proposed option; use Stripe's own retry instead):** checked `create-checkout-session/handler.ts` — it already stamps `subscription_data.metadata.profile_id` at checkout time, but Stripe does **not** propagate subscription metadata onto the invoices that subscription later generates (confirmed by this codebase's own "metadata may be absent on Checkout-created invoices" comment) — so stamping *more* metadata at checkout wouldn't have fixed anything. The real cause is webhook delivery **ordering**: Stripe doesn't guarantee `customer.subscription.created/updated` arrives before `invoice.paid`. Returning 500 (item 1) makes Stripe retry the delivery for ~3 days, which gives the subscription-linking webhook a chance to land first — no new Stripe API call, no email-matching needed.
+3. **Backfill — deferred, not built.** Needs a one-off script with Stripe API credentials run against **production** billing data — that's a real authorization decision (who's allowed to touch live financial records) that isn't an engineering call. The forward-looking fix (items 1–2) stops new data loss; backfilling historically-dropped invoices is a separate, optional follow-up for whoever owns production Stripe access.
+4. **Subscriptions-page error visibility (resolved, implemented):** added `revenueQuery.isError` handling to the "Billing & revenue" card, mirroring `MonitorPage`'s `analyticsQuery.isError` pattern — a future RPC-level failure now shows an error message instead of rendering as a silent `$0`.
 
 ## Verification plan
 
-- Existing tests to re-run: `npx vitest run tests/admin/story-12.2.test.js` — **will not catch this.** `test_STORY_12_2_AC3_billing_revenue_summary_on_subscriptions` only regex-matches source/migration strings; it never exercises the webhook handler's profile-resolution branches.
-- New test cases needed: a `handleStripeWebhookEvent`/`resolveInvoiceProfileId` unit test asserting that an `invoice.paid` event with no metadata and no matching `subscriptions` row (a) does not silently succeed, and (b) records a health event. Plus an integration test seeding a `subscriptions` row with `stripe_customer_id` and asserting a same-customer `invoice.paid` event successfully upserts `billing_invoices`.
-- Manual re-test: trigger a Stripe test-mode checkout end-to-end against a profile with no pre-existing `subscriptions` row, inspect whether `billing_invoices` gets a row and whether `system_health_events` logs anything if it doesn't.
+- `npx vitest run tests/admin/story-12.2.test.js`: 6/6 passing (5 original + 1 new: `test_STORY_12_2_AC3_missing_profile_id_invoice_logs_and_retries`, asserting the silent-skip path is gone, the failure is logged, and the response is 500; plus the Subscriptions page `isError` handling).
+- Full suite (`npx vitest run`): 248/258 non-skipped passing, same 7 pre-existing unrelated failures as before this change.
+- `tsc --noEmit` on `apps/admin`: clean.
+- Manual re-test (not done — no live Stripe test-mode environment in this session): trigger a Stripe test-mode checkout against a profile with no pre-existing `subscriptions` row, confirm the webhook now retries (visible as repeated `system_health_events` rows) rather than silently dropping the invoice once.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Q1:** For the fallback resolution (fix-plan step 2) — should we call the Stripe API from the Edge Function to look up the customer's email and match against `profiles`, or should checkout-session creation be changed to always stamp `invoice.metadata.profile_id` at source (e.g. via `subscription_data.metadata` on the Checkout Session) so this ambiguity can't occur in the first place? The latter is more robust but needs to be confirmed against how `create-package-checkout-session`/the subscription checkout function currently builds the session.
-- **Q2:** Is a historical backfill (fix-plan step 3) actually wanted, or is it acceptable to only fix this going forward? Backfilling requires a one-off script with Stripe API credentials run outside the normal app — confirm who's authorized to run that against production.
-- **Q3:** Should a missing-profile-id invoice skip be treated as `api_error` or `webhook_failure` in `system_health_events`? Current schema only allows those two `kind` values (`20260727180000_admin_monitor_analytics.sql:35`) — `webhook_failure` fits better than `api_error`, but confirming before I commit to one in the fix.
+- **Q1, invoice fallback resolution:** neither proposed option — rely on Stripe's built-in retry (return 500, let Stripe redeliver) instead of adding a new Stripe API dependency or checkout-metadata change that wouldn't have worked anyway (see Fix plan item 2 for why).
+- **Q2, historical backfill:** deferred — needs production Stripe API authorization that isn't an engineering decision. Not built.
+- **Q3, health event kind:** `webhook_failure`. Implemented.
+
+## Open questions
+
+None outstanding for items 1/2/4. Item 3 (backfill) remains deferred pending a human decision on authorization — see Resolved decisions.

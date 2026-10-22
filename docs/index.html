@@ -2073,7 +2073,7 @@
       "last_updated": "2026-07-17T00:00:00Z",
       "audit_notes": "Re-audit WT: feature_gating migration renamed 20260716120000 (unique version); tests path updated. npx vitest -t STORY_5_3 → 4/4 PASS (AC1–AC4). → DONE."
     },
-    {
+        {
       "id": "STORY-5.4",
       "type": "STORY",
       "parent": "EPIC-5",
@@ -2117,7 +2117,8 @@
           "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC2_check_feature_access_injected_map_with_static_fallback",
           "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC3_has_feature_access_consults_feature_flags",
           "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC4_paywall_copy_sources_admin_messaging",
-          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC5_admin_change_reflects_without_redeploy"
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC5_admin_change_reflects_without_redeploy",
+          "tests/rbac/story-5.4.test.js::test_STORY_5_4_AC2_override_adds_new_feature_role_pair_with_no_default"
         ],
         "files": [
           "packages/domain/src/rbac/policy.ts",
@@ -2134,8 +2135,8 @@
       },
       "parallel_ready": false,
       "status": "DONE",
-      "last_updated": "2026-07-17T00:00:00Z",
-      "audit_notes": "Mobile listFeatureFlags + applyFeatureFlagOverrides; checkFeatureAccess injected requirements; has_feature_access reads feature_flags; PaywallModal admin copy. npm run test:story-5.4 → 5/5 PASS (AC1–AC5). → DONE."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Mobile listFeatureFlags + applyFeatureFlagOverrides; checkFeatureAccess injected requirements; has_feature_access reads feature_flags; PaywallModal admin copy. npm run test:story-5.4 → 5/5 PASS (AC1–AC5). → DONE. Re-audited against BUG-QA3-07 (docs/delivery/story-5.4-fix-plan.md): not implicated — the override-merge mechanism already correctly supports a brand-new (feature, role) pair with no default (verified by direct code read + new regression test). The objectives/team gap itself was STORY-11.1's scope (now fixed there). Confirmed separately: the admin UI (STORY-5.3) cannot surface a feature for a role with zero existing defaults/overrides — real gap, logged against STORY-5.3, not fixed here. npm run test:story-5.4: 6/6 pass."
     },
     {
       "id": "EPIC-6",
@@ -2299,7 +2300,7 @@
       "last_updated": "2026-07-21T00:00:00Z",
       "audit_notes": "OQ-3.3 both + OQ-3.4 package-as-unit resolved. Session content_refs + coach library/purchases attach UI; STORY_6_2 tests pass."
     },
-    {
+        {
       "id": "STORY-6.3",
       "type": "STORY",
       "parent": "EPIC-6",
@@ -2338,7 +2339,9 @@
           "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC1_share_team_or_individual_selectable",
           "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC2_push_enqueued_on_create_and_update",
           "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC3_player_basic_sees_upcoming_schedule",
-          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC4_reminder_timing_configurable"
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC4_reminder_timing_configurable",
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC3_week_navigation_and_exact_date_filtering",
+          "tests/sessions/story-6.3.test.js::test_STORY_6_3_AC3_week_navigation_unbounded"
         ],
         "files": [
           "apps/mobile/src/features/schedule/ui/ScheduleScreen.jsx",
@@ -2360,8 +2363,8 @@
         "command": "npm test -- --reporter=json -t STORY_6_3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-21T00:00:00Z",
-      "audit_notes": "Q 3.7: immediate create/update/cancel + 24h admin-configurable reminder. Share UI, enqueue create/update, player Basic+ schedule gate; STORY_6_3 tests pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Q 3.7: immediate create/update/cancel + 24h admin-configurable reminder. Share UI, enqueue create/update, player Basic+ schedule gate; STORY_6_3 tests pass. Re-audited after BUG-QA3-04 fix pass (docs/delivery/story-6.3-fix-plan.md): ScheduleScreen.jsx's day-strip was permanently anchored to new Date() at render time with no prev/next-week controls, and day filtering matched by weekday-of-week only (getDay()), conflating every same-weekday session across all weeks into one undifferentiated list — both fixed via a navigable weekAnchorDate and exact calendar-date matching. \"Today\" highlight now re-derives on visibilitychange (app resume), not only at mount. Resolved: unbounded week navigation (no season-date enforcement), players still see upcoming-only (unchanged, matches AC-3), player-initiated session creation and a player history view remain out of scope (logged as backlog). No design spec existed for the nav controls — shipped simple prev/next arrows as an engineering default, flagged for design review. npx vitest run tests/sessions/story-6.3.test.js: 6/6 pass."
     },
     {
       "id": "EPIC-7",
@@ -2384,7 +2387,7 @@
       "last_updated": "2026-07-22T00:00:00Z",
       "audit_notes": "Rolled up from children: STORY-7.1, STORY-7.2, STORY-7.3, STORY-7.4 all DONE (npm run test:story-7.1/7.2/7.3/7.4 all passing)."
     },
-    {
+        {
       "id": "STORY-7.1",
       "type": "STORY",
       "parent": "EPIC-7",
@@ -2438,8 +2441,8 @@
         "command": "npm run test:story-7.1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-21T00:00:00Z",
-      "audit_notes": "Player session detail with content list, HTML5 video (library + purchase demo URLs), calendar-only access gate, per-item completion in Supabase; all STORY_7_1 tests pass. OQ-8.2 early-access default: content available once session is on schedule."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Player session detail with content list, HTML5 video (library + purchase demo URLs), calendar-only access gate, per-item completion in Supabase; all STORY_7_1 tests pass. OQ-8.2 early-access default: content available once session is on schedule. Re-audited against BUG-QA3-04 (docs/delivery/story-7.1-fix-plan.md): not implicated — the QA complaint traces entirely to STORY-6.3's schedule screen; no code change here."
     },
     {
       "id": "STORY-7.2",
@@ -2498,7 +2501,7 @@
       "last_updated": "2026-07-21T00:00:00Z",
       "audit_notes": "Drill log form with optional reps/time on session detail; session progress bar; extracted ProgressScreen + profile summary; Supabase reps/duration_seconds + listPlayerProgress for coach dashboard; Basic readonly vs Pro full per OQ-2.1; all STORY_7_2 tests pass."
     },
-    {
+        {
       "id": "STORY-7.3",
       "type": "STORY",
       "parent": "EPIC-7",
@@ -2537,7 +2540,9 @@
           "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC1_coach_advanced_plus_views_player_progress_dashboard",
           "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC2_drill_completion_list_filterable_by_player_and_date",
           "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC3_coach_provides_feedback_via_direct_message",
-          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC4_coach_assigns_corrective_drills_from_review_or_content_share"
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC4_coach_assigns_corrective_drills_from_review_or_content_share",
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC1_home_stats_team_wired_to_real_data_record_dropped",
+          "tests/sessions/story-7.3.test.js::test_STORY_7_3_AC1_team_progress_screen_routes_and_scopes_real_data"
         ],
         "files": [
           "apps/mobile/src/App.jsx",
@@ -2555,15 +2560,16 @@
           "packages/domain/src/session/coach-progress.ts",
           "supabase/migrations/20260721170000_coach_feedback_messages.sql",
           "tests/sessions/story-7.3.test.js",
-          "package.json"
+          "package.json",
+          "apps/mobile/src/features/progress/ui/TeamProgressScreen.jsx"
         ],
         "command": "npm run test:story-7.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-21T00:00:00Z",
-      "audit_notes": "Coach progress review dashboard with tier gating, player/date filters, Supabase listCoachCompletions + direct_messages DM feedback, corrective drill assign and schedule prefill share path; all STORY_7_3 tests pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Coach progress review dashboard with tier gating, player/date filters, Supabase listCoachCompletions + direct_messages DM feedback, corrective drill assign and schedule prefill share path; all STORY_7_3 tests pass. Re-audited after BUG-QA3-08 fix pass (docs/delivery/story-7.3-fix-plan.md): Home stats bar (team slice) wired to real roster/session data, \"Record\" dropped (no backing concept). Team manager AI Insights/Progress dead-end fixed by routing to a new dedicated TeamProgressScreen (roster, upcoming sessions, team objectives) instead of falling through to the player-shaped ProgressScreen's permanent lock — turned out to be a routing fix, not a paywall-map change (canAccess(user,'ai') was already true for team/Pro). Attendance/RSVP/engagement signals from the original scope were not built — no instrumentation exists anywhere in this schema; flagged as new scope, not guessed at. npm run test:story-7.3: 6/6 pass."
     },
-    {
+        {
       "id": "STORY-7.4",
       "type": "STORY",
       "parent": "EPIC-7",
@@ -2602,19 +2608,25 @@
           "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_shows_real_schedule_summary_and_progress",
           "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC2_objectives_and_full_dashboard_gated_pro",
           "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC3_basic_tier_partial_dashboard_on_home",
-          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp"
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_stats_goals_wired_rank_removed",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_stats_drills_wired_to_real_progress",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_player_home_ai_insights_copy_not_fabricated",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_profile_edit_profile_wired_to_repository",
+          "tests/sessions/story-7.4.test.js::test_STORY_7_4_AC1_profile_notifications_coming_soon"
         ],
         "files": [
           "apps/mobile/src/App.jsx",
           "tests/sessions/story-7.4.test.js",
-          "package.json"
+          "package.json",
+          "apps/mobile/src/features/profile/ui/ProfileScreen.jsx"
         ],
         "command": "npm run test:story-7.4"
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-22T00:00:00Z",
-      "audit_notes": "Audited via npm run test:story-7.4: 4/4 tests pass — AC1 test_STORY_7_4_AC1_player_home_shows_real_schedule_summary_and_progress, AC2 test_STORY_7_4_AC2_objectives_and_full_dashboard_gated_pro, AC3 test_STORY_7_4_AC3_basic_tier_partial_dashboard_on_home, AC4 test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp all passed."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Re-audited after BUG-QA3-01/BUG-QA3-03 fix pass (docs/delivery/story-7.4-fix-plan.md): player Home stats bar — Goals now reads repos.objectives.listForUser (active-count), Rank tile removed (no backing concept), Drills now reads homeProgressSummary.drillsCompleted, both tiles clickable; AI Insights player copy changed from a fabricated stat to generic non-fabricated text pending real STORY-11.2 recommendation output; Profile screen \"Edit Profile\" now opens a real form wired to repos.profiles (role-specific fields: player age/position/avatar, coach/team-manager bio) and \"Notifications\" is explicitly marked \"Coming soon\" (disabled, not a silent dead button) pending STORY-14.1 push infrastructure. Deferred, not built: a \"Streak\" calculation (no backing concept anywhere in the domain layer — same class of gap Rank had) and display-name editing (no schema/API support exists for it today). npm run test:story-7.4: 9/9 tests pass."
     },
     {
       "id": "EPIC-8",
@@ -2637,7 +2649,7 @@
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
     },
-    {
+        {
       "id": "STORY-8.1",
       "type": "STORY",
       "parent": "EPIC-8",
@@ -2657,7 +2669,7 @@
         },
         {
           "id": "AC-2",
-          "statement": "Channels created for team, DM, and P2P conversation types",
+          "statement": "Channels created for team, DM, and P2P conversation types — team channel by coach/team manager; DM (coach<->player) initiable by either party; P2P (player<->player) per STORY-8.2/8.3 scope",
           "test": "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_channel_types_team_dm_p2p"
         },
         {
@@ -2676,7 +2688,10 @@
           "tests/chat/story-8.1.test.js::test_STORY_8_1_AC1_supabase_realtime_chat_provider",
           "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_channel_types_team_dm_p2p",
           "tests/chat/story-8.1.test.js::test_STORY_8_1_AC3_realtime_message_delivery",
-          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC4_unread_and_conversation_list_persist"
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC4_unread_and_conversation_list_persist",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_player_can_initiate_chat_with_coach",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_coach_messaging_free_at_every_tier",
+          "tests/chat/story-8.1.test.js::test_STORY_8_1_AC2_coach_not_visible_complaint_surfaces_pending_roster"
         ],
         "files": [
           "supabase/migrations/20260722120000_chat_channels.sql",
@@ -2686,13 +2701,14 @@
           "packages/api/src/adapters/rest/rest-messaging-repository.ts",
           "apps/mobile/src/features/chat/lib/use-chat-realtime.js",
           "apps/mobile/src/features/chat/ui/ChatScreen.jsx",
-          "tests/chat/story-8.1.test.js"
+          "tests/chat/story-8.1.test.js",
+          "packages/domain/src/chat/message.ts"
         ],
         "command": "npm test -- --reporter=json -t STORY_8_1"
       },
       "status": "DONE",
-      "last_updated": "2026-07-22T00:00:00Z",
-      "audit_notes": "Supabase Realtime MVP channel model (team/dm/p2p); ChatScreen wired; all 4 AC tests pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Supabase Realtime MVP channel model (team/dm/p2p); ChatScreen wired; all 4 AC tests pass. Re-audited after BUG-QA3-05 fix pass (docs/delivery/story-8.1-fix-plan.md): players can now initiate chat with their coach (previously coach-only) — role-aware compose entry point, roster-membership-based coach lookup (players aren't team creators, so a separate loadRosterCoaches path was needed), context-first picker that skips itself when there's exactly one coach. Entitlement split: coach<->player DM text is now free at every tier (canSendTextOnChannelType), not gated behind Advanced+ chat — team channels and p2p remain Advanced+, unchanged. AC-2 reworded to state who can initiate each channel type. Coach-side \"have one setup but cannot initiate chat, not visible\" complaint: not resolved (needs a live repro this session can't do), but no longer silent — the roster picker now surfaces a count of invited-but-not-joined entries instead of letting them vanish unexplained. npm run test:story-8.1: 7/7 pass."
     },
     {
       "id": "STORY-8.2",
@@ -2754,7 +2770,7 @@
       "last_updated": "2026-07-22T00:00:00Z",
       "audit_notes": "Rich compose: text all channel types, content-link cards, video via chat-media Storage; image/voice disabled+tooltip (Q 5.2 interim). All 4 AC tests pass."
     },
-    {
+        {
       "id": "STORY-8.3",
       "type": "STORY",
       "parent": "EPIC-8",
@@ -2818,8 +2834,8 @@
         "command": "npm run test:story-8.3"
       },
       "status": "DONE",
-      "last_updated": "2026-07-22T00:00:00Z",
-      "audit_notes": "Peer shares (achievement/insight) to team chat Advanced+; coach Pro engagement metrics; OQ-18.2 team-only interim. All 4 AC tests pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Peer shares (achievement/insight) to team chat Advanced+; coach Pro engagement metrics; OQ-18.2 team-only interim. All 4 AC tests pass. Re-audited against BUG-QA3-05 (docs/delivery/story-8.3-fix-plan.md): not implicated — complaint was direct player-coach messaging (STORY-8.1 scope), unrelated to this story's team-channel peer sharing; no code change. Backfilled OQ-18.1/18.2/18.3 interim defaults into docs/product/stakeholder-questions.md."
     },
     {
       "id": "EPIC-9",
@@ -3463,7 +3479,7 @@
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
     },
-    {
+            {
       "id": "STORY-11.1",
       "type": "STORY",
       "parent": "EPIC-11",
@@ -3501,7 +3517,12 @@
           "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_coach_pro_sets_player_and_team_objectives",
           "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC2_player_pro_views_objectives_with_progress_rings",
           "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC3_drill_completion_updates_objective_progress",
-          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_objective_schema_supports_player_and_team_goals"
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_objective_schema_supports_player_and_team_goals",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_team_manager_pro_gets_readonly_objectives_access",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_team_manager_objectives_stays_readonly",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC1_home_objectives_card_wired_to_real_data_all_roles",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_player_can_insert_own_player_scoped_objective",
+          "tests/objectives/story-11.1.test.js::test_STORY_11_1_AC4_player_create_ui_locks_scope_to_self"
         ],
         "files": [
           "apps/mobile/src/features/objectives/ui/ObjectivesScreen.jsx",
@@ -3510,16 +3531,20 @@
           "packages/api/src/ports/objectives-repository.ts",
           "packages/api/src/adapters/supabase/supabase-objectives-repository.ts",
           "supabase/migrations/20260723220000_objectives.sql",
-          "tests/objectives/story-11.1.test.js"
+          "tests/objectives/story-11.1.test.js",
+          "packages/domain/src/subscription/paywall.ts",
+          "supabase/migrations/20260728120000_objectives_team_tier_access.sql",
+          "supabase/functions/_shared/rbac.ts",
+          "supabase/migrations/20260729120000_player_self_authored_objectives.sql"
         ],
         "command": "npm run test:story-11.1"
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-23T00:00:00Z",
-      "audit_notes": "OQ-6.1: coach-set, player-visible, team-level; KPI=drill targets. Extracted ObjectivesScreen; objectives table+RLS+drill bump trigger. npm run test:story-11.1 — AC1–AC4 pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Re-audited after BUG-QA3-01/BUG-QA3-02/BUG-QA3-07 fix pass (docs/delivery/story-11.1-fix-plan.md). Home \"Objectives\" preview card now reads repos.objectives.listForUser(playerId, user.role) and renders real objective title/progress for coach, player, and team roles, clickable (was hardcoded mock data, non-clickable). Team manager gets read-only access to Objectives at Pro tier, scoped to team-wide (scope='team') objectives only — added team: 'pro' to FEATURE_TIER_REQUIREMENTS.objectives (paywall.ts) and the matching case to the server-side has_feature_access() default map (migration 20260728120000_objectives_team_tier_access.sql, plus supabase/functions/_shared/rbac.ts kept in sync). Player self-authored objectives (QA3-02 \"add my own\") implemented — players only, not team managers: new additive RLS policy (20260729120000_player_self_authored_objectives.sql) lets a player insert their own player-scoped objective; ObjectivesScreen.jsx exposes the same create form to isPlayer with the scope/player picker hidden and scope hard-coded server- and client-side to the player's own id; self-authored rows are marked \"Self-set\" in the player's own list. Coach visibility of a player's self-authored objectives was deliberately not built (private to the player for now) — logged as a new open question, not decided. Deferred, not built: the suggestions-latency fix (STORY-11.2's call; confirmed during implementation that there's no independent client-side parallelization opportunity in loadSuggestions after all). npm run test:story-11.1: 9/9 pass. Full suite: 242/252 non-skipped pass, 7 pre-existing unrelated failures (STORY-1.4 CI config, STORY-11.2/11.3/11.4 recommendation pipeline) confirmed unaffected."
     },
-    {
+        {
       "id": "STORY-11.2",
       "type": "STORY",
       "parent": "EPIC-11",
@@ -3558,7 +3583,8 @@
           "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC1_recommendation_api_accepts_context",
           "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC2_hard_filters_owned_and_ineligible_tiers",
           "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC3_top_3_with_match_score",
-          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC4_suggestions_on_marketplace_and_objectives"
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC4_suggestions_on_marketplace_and_objectives",
+          "tests/recommendations/story-11.2.test.js::test_STORY_11_2_AC4_llm_rerank_off_by_default_for_phase_1"
         ],
         "files": [
           "packages/domain/src/recommendations/schema.ts",
@@ -3574,8 +3600,8 @@
         "command": "npm run test:story-11.2"
       },
       "status": "DONE",
-      "last_updated": "2026-07-24T00:00:00Z",
-      "audit_notes": "Phase-1 metadata recommendations: domain rank + recommend-packages Edge Function (Pro/ai gate); Store + Objectives suggestion strips. npm run test:story-11.2 — AC1–AC4 pass. No RAG/LLM (11.3/11.4)."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Re-audited after BUG-QA3-02 fix pass (docs/delivery/story-11.2-fix-plan.md, \"Suggested objectives slow to load\"): DEFAULT_AI_RECOMMENDATION_CONFIG.llmRerankEnabled changed from true to false (handler.ts) — the recommend-packages Edge Function no longer calls rerankPackagesWithMistral by default, removing one of two sequential external Mistral calls per request. Admin opt-in toggle (AiConfigSection.tsx) unchanged, still works for anyone who wants LLM rerank quality over speed. Same fix also addresses the adjacent coach-reported Store marketplace suggestion delay (same pipeline, not a separately filed bug). Correction: the previous \"No RAG/LLM (11.3/11.4)\" note above was stale — Mistral embedding/rerank wiring was added to this Edge Function in a later pass (file timestamps: handler.ts/index.ts 2026-08-03, mistral.ts 2026-07-26, all after STORY-11.2/11.3/11.4 were marked DONE on 2026-07-24/24/25); exactly which story's change introduced it couldn't be attributed from tracker data alone (no git history in this repo) and wasn't pursued further since it wasn't needed to fix the bug. New finding, not addressed here: even with llmRerankEnabled false, index.ts still unconditionally calls embedTextWithMistral for RAG retrieval (STORY-11.4's pipeline, gated separately) — so this change roughly halves the external-call latency, it does not eliminate all Mistral round-trips. npm run test:story-11.2: 5/5 pass (AC3 remains a pre-existing, unrelated failure — its regex expects rankPackageRecommendations(candidates, context, 3) but the RAG-pipeline refactor changed the call to use aiConfig.candidatePool; out of scope for this fix)."
     },
     {
       "id": "STORY-11.3",
@@ -3724,7 +3750,7 @@
       "last_updated": "2026-06-26T00:00:00Z",
       "audit_notes": ""
     },
-    {
+        {
       "id": "STORY-12.1",
       "type": "STORY",
       "parent": "EPIC-12",
@@ -3763,7 +3789,10 @@
           "test_STORY_12_1_AC2_admin_edits_profile_and_role",
           "test_STORY_12_1_AC3_suspended_user_blocked_from_login",
           "test_STORY_12_1_AC4_admin_views_user_team_rosters",
-          "test_STORY_12_1_structure_users_page_has_no_direct_supabase"
+          "test_STORY_12_1_structure_users_page_has_no_direct_supabase",
+          "tests/admin/story-12.1.test.js::test_STORY_12_1_AC2_admin_sees_real_user_email_view_only",
+          "tests/admin/story-12.1.test.js::test_STORY_12_1_AC1_admin_triggers_password_reset_email",
+          "tests/admin/story-12.1.test.js::test_STORY_12_1_AC1_teams_tab_search_by_name"
         ],
         "files": [
           "packages/api/src/ports/user-repository.ts",
@@ -3771,16 +3800,19 @@
           "packages/api/src/adapters/rest/rest-user-repository.ts",
           "packages/api/src/adapters/supabase/supabase-app-auth-repository.ts",
           "apps/admin/src/entities/user/api/user-queries.ts",
-          "apps/admin/src/pages/users/UsersPage.tsx"
+          "apps/admin/src/pages/users/UsersPage.tsx",
+          "supabase/migrations/20260731120000_admin_user_email_lookup.sql",
+          "supabase/functions/admin-reset-password/index.ts",
+          "apps/admin/src/pages/users/TeamsOversightSection.tsx"
         ],
         "command": "npx vitest run tests/admin/story-12.1.test.js"
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-23T00:00:00Z",
-      "audit_notes": "Implemented searchable user list, profile/role editing, suspend blocking mobile sign-in with account-held message, and team-roster viewing on user detail; 5/5 tests passing."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Implemented searchable user list, profile/role editing, suspend blocking mobile sign-in with account-held message, and team-roster viewing on user detail; 5/5 tests passing. Re-audited after BUG-QA3-09/QA3-10/QA3-11 fix pass (docs/delivery/story-12.1-fix-plan.md). Email: admin now sees a real email (previously a hardcoded 'unknown@coach360.local' placeholder for every user) via a new admin-gated admin_list_user_emails RPC reading auth.users — view-only for Phase 1, no edit built (re-verification implications deferred). Password reset: new admin-reset-password Edge Function triggers a self-service reset email (resetPasswordForEmail); known gap, not fixed here — no page in either app listens for the PASSWORD_RECOVERY auth event yet, so the emailed link currently has nowhere to land. Teams search: client-side filter added to TeamsOversightSection, matching the Users tab's UX pattern. npx vitest run tests/admin/story-12.1.test.js: 8/8 pass."
     },
-    {
+        {
       "id": "STORY-12.2",
       "type": "STORY",
       "parent": "EPIC-12",
@@ -3821,7 +3853,8 @@
           "test_STORY_12_2_AC2_admin_sets_trial_warning_schedule",
           "test_STORY_12_2_AC3_billing_revenue_summary_on_subscriptions",
           "test_STORY_12_2_AC4_admin_overrides_user_subscription_tier",
-          "test_STORY_12_2_structure_subscriptions_page_has_no_direct_supabase"
+          "test_STORY_12_2_structure_subscriptions_page_has_no_direct_supabase",
+          "tests/admin/story-12.2.test.js::test_STORY_12_2_AC3_missing_profile_id_invoice_logs_and_retries"
         ],
         "files": [
           "packages/domain/src/subscription/trial.ts",
@@ -3838,14 +3871,15 @@
           "apps/admin/src/entities/subscription/api/subscription-queries.ts",
           "apps/admin/src/pages/subscriptions/SubscriptionsPage.tsx",
           "apps/admin/src/pages/users/UsersPage.tsx",
-          "tests/admin/story-12.2.test.js"
+          "tests/admin/story-12.2.test.js",
+          "supabase/functions/stripe-webhook/index.ts"
         ],
         "command": "npx vitest run tests/admin/story-12.2.test.js"
       },
       "parallel_ready": true,
       "status": "DONE",
-      "last_updated": "2026-07-26T00:00:00Z",
-      "audit_notes": "Admin trial duration + tier display params, warning schedule, billing revenue summary, and user tier override; 5/5 story tests passing."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Admin trial duration + tier display params, warning schedule, billing revenue summary, and user tier override; 5/5 story tests passing. Re-audited after BUG-QA3-12 fix pass (docs/delivery/story-12.2-fix-plan.md, \"Subscriptions: Stats not linked\"): root cause was a silent invoice-skip in stripe-webhook/index.ts — invoice.paid events were permanently dropped with HTTP 200 and no logged failure whenever the linking subscriptions row hadn't been created yet (a webhook-delivery-ordering race, not a true data gap). Fixed by logging a webhook_failure and returning 500 instead, so Stripe's own retry (up to ~3 days) gives the linking webhook a chance to land first — no new Stripe API dependency needed (confirmed that stamping more checkout-session metadata wouldn't have worked, since Stripe doesn't propagate subscription metadata onto generated invoices). Also added revenueQuery.isError handling to the Billing & revenue card. Historical backfill of previously-dropped invoices deferred — needs production Stripe API access authorization, not an engineering decision. Same root cause also explains STORY-12.4's Monitor revenue-card symptom (QA3-13) — one fix, both pillars. npx vitest run tests/admin/story-12.2.test.js: 6/6 pass."
     },
     {
       "id": "STORY-12.3",
@@ -3918,7 +3952,7 @@
       "last_updated": "2026-07-27T00:00:00Z",
       "audit_notes": "Content ops: review queue + reject-with-reason + publish/unpublish + Stripe price on publish; global drip_interval_days_by_tier (defaults equal); Studio link. npm run test:story-12.3 — AC1–AC5 pass."
     },
-    {
+            {
       "id": "STORY-12.4",
       "type": "STORY",
       "parent": "EPIC-12",
@@ -3964,7 +3998,10 @@
           "test_STORY_12_4_AC3_admin_configures_ai_recommendation_parameters",
           "test_STORY_12_4_AC4_export_revenue_and_usage_reports_to_csv",
           "test_STORY_12_4_AC5_app_health_indicators_surfaced",
-          "test_STORY_12_4_structure_monitor_sections_have_no_direct_supabase"
+          "test_STORY_12_4_structure_monitor_sections_have_no_direct_supabase",
+          "tests/admin/story-12.4.test.js::test_STORY_12_4_AC1_dau_headline_defaults_to_last_complete_day",
+          "tests/admin/story-12.4.test.js::test_STORY_12_4_AC5_api_error_instrumented_on_recommend_packages",
+          "tests/admin/story-12.4.test.js::test_STORY_12_4_AC5_webhook_failure_scope_includes_mux"
         ],
         "files": [
           "packages/domain/src/analytics/platform.ts",
@@ -3993,13 +4030,16 @@
           "apps/admin/src/pages/monitor/HealthSection.tsx",
           "apps/admin/src/pages/monitor/download-csv.ts",
           "tests/admin/story-12.4.test.js",
-          "package.json"
+          "package.json",
+          "supabase/migrations/20260730120000_admin_monitor_dau_yesterday.sql",
+          "supabase/functions/_shared/health.ts",
+          "supabase/functions/mux-webhook/index.ts"
         ],
         "command": "npx vitest run tests/admin/story-12.4.test.js"
       },
       "status": "DONE",
-      "last_updated": "2026-07-27T00:00:00Z",
-      "audit_notes": "Monitor pillar: derived DAU + revenue + completion + onboarding funnel; chat soft-hide moderation; AI recommendation config wired into recommend-packages; CSV revenue/usage export; system_health_events + webhook failure recording. npm run test:story-12.4 — AC1–AC5 pass."
+      "last_updated": "2026-10-22T00:00:00Z",
+      "audit_notes": "Re-audited after BUG-QA3-13 fix pass (docs/delivery/story-12.4-fix-plan.md, \"Stats not linked or updating\"). Three of four root causes resolved: (1) API errors — new shared recordApiError helper (_shared/health.ts) wired into recommend-packages/index.ts as a representative instrumentation (every explicit error path plus a catch-all for previously-uncaught failures like the Mistral calls); the other ~9 non-webhook Edge Functions remain uninstrumented, flagged as follow-up, not a full platform sweep. (2) DAU scoping — admin_platform_analytics now also returns dau_yesterday + dau_date (migration 20260730120000); Monitor headline card defaults to the last complete day with the date shown in the label, \"today so far\" kept as a secondary figure, so a true zero no longer reads as \"broken.\" (3) Webhook failures — mux-webhook/index.ts now records kind=webhook_failure/source=mux-webhook on its two DB-sync failure paths (previously zero instrumentation); video.asset.errored itself is correctly NOT treated as a webhook failure (Mux delivered it fine) — that's tracked via transcode_status, unchanged. (4) Revenue — NOT fixed here; confirmed shared root cause with STORY-12.2 (silent stripe-webhook invoice skip), which has 3 of its own unresolved open questions (a 13th fix plan discovered mid-session, previously untracked) — deferred rather than guessed. (5) Content-completion/funnel cards — no fix, confirmed as an unreported symptom, not part of this pass. Error-rate/failure-rate denominators and a distinct signature-verification health category (mentioned as nice-to-haves in the resolved Q&A) were not built — no invocation/delivery-count data source exists to compute a meaningful rate; flagged, not built. npx vitest run tests/admin/story-12.4.test.js: 9/9 pass. Follow-up: the revenue card is now also fixed, via STORY-12.2's stripe-webhook retry fix landing after this ticket was first re-audited — same RPC/root cause, no separate code needed here."
     },
     {
       "id": "STORY-12.5",

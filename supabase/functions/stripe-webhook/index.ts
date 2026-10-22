@@ -171,8 +171,19 @@ Deno.serve(async (request) => {
     });
 
     if (!profileId) {
-      return new Response(JSON.stringify({ received: true, skipped: 'missing_profile_id' }), {
-        status: 200,
+      // STORY-12.2 (resolved) — this used to silently accept with HTTP 200 (no error,
+      // no health event, no retry), which permanently dropped invoices whenever the
+      // linking subscription webhook hadn't processed yet (a race condition, not a
+      // true data gap — Stripe doesn't guarantee webhook delivery order). Record it
+      // and return 5xx instead, so Stripe's built-in retry (it retries on any non-2xx
+      // for ~3 days) gives the subscription-linking webhook a chance to land first.
+      await recordWebhookFailure(supabase, 'missing_profile_id', {
+        stage: 'invoice_upsert',
+        stripeInvoiceId: result.invoice.stripe_invoice_id,
+        stripeCustomerId: result.stripeCustomerId,
+      });
+      return new Response(JSON.stringify({ error: 'missing_profile_id' }), {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }

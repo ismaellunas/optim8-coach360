@@ -91,6 +91,8 @@ export function ObjectivesScreen({ user, onBack }) {
   const userId = session?.user.id;
   const role = session?.user.role || user?.role;
   const isCoach = role === 'coach';
+  const isPlayer = role === 'player';
+  const canCreate = isCoach || isPlayer;
 
   const [objectives, setObjectives] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -249,21 +251,32 @@ export function ObjectivesScreen({ user, onBack }) {
 
   async function handleCreate(event) {
     event.preventDefault();
-    if (!userId || !isCoach) {
+    if (!userId || !canCreate) {
       return;
     }
 
     setSaving(true);
     setError(null);
     try {
-      const parsed = createObjectiveInputSchema.parse({
-        title,
-        scope,
-        playerId: scope === 'player' ? playerId || null : null,
-        teamId: scope === 'team' ? teamId || null : null,
-        category: category || null,
-        targetCompletions: Number(targetCompletions) || 10,
-      });
+      // A player can only self-author a player-scoped objective for themselves —
+      // lock scope/playerId regardless of component state, don't trust the coach-only form fields.
+      const parsed = isPlayer
+        ? createObjectiveInputSchema.parse({
+            title,
+            scope: 'player',
+            playerId: userId,
+            teamId: null,
+            category: category || null,
+            targetCompletions: Number(targetCompletions) || 10,
+          })
+        : createObjectiveInputSchema.parse({
+            title,
+            scope,
+            playerId: scope === 'player' ? playerId || null : null,
+            teamId: scope === 'team' ? teamId || null : null,
+            category: category || null,
+            targetCompletions: Number(targetCompletions) || 10,
+          });
 
       await repos.objectives.create(userId, parsed);
       setCreating(false);
@@ -330,7 +343,9 @@ export function ObjectivesScreen({ user, onBack }) {
           <p className="font-body text-sm text-coach-t2">
             {isCoach
               ? 'No objectives yet. Add a player or team goal.'
-              : 'No objectives assigned yet.'}
+              : isPlayer
+                ? 'No objectives yet. Add your own, or wait for your coach to assign one.'
+                : 'No objectives assigned yet.'}
           </p>
         </Card>
       ) : null}
@@ -359,6 +374,7 @@ export function ObjectivesScreen({ user, onBack }) {
                   <div className="mt-1 font-body text-[11px] text-coach-t3">
                     {objective.currentCompletions}/{objective.targetCompletions} drills
                     {objective.scope === 'team' ? ' · Team' : ''}
+                    {objective.coachId === userId ? ' · Self-set' : ''}
                   </div>
                 </div>
               </Card>
@@ -388,7 +404,7 @@ export function ObjectivesScreen({ user, onBack }) {
           );
         })}
 
-      {isCoach && creating ? (
+      {canCreate && creating ? (
         <Card className="mb-3" data-testid="objective-create-form">
           <form onSubmit={handleCreate}>
             <Field
@@ -401,85 +417,93 @@ export function ObjectivesScreen({ user, onBack }) {
               }}
             />
 
-            <div className="mb-3.5">
-              <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Scope</div>
-              <div className="flex gap-2" data-testid="objective-scope-toggle">
-                {['player', 'team'].map(function (value) {
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={function () {
-                        setScope(value);
-                      }}
-                      className={`flex-1 cursor-pointer rounded-xl border-none py-2.5 font-display text-[12px] font-semibold uppercase ${
-                        scope === value
-                          ? 'bg-coach-orange text-white'
-                          : 'bg-coach-orange-glow text-coach-orange'
-                      }`}
-                      data-testid={value === 'player' ? 'objective-scope-player' : 'objective-scope-team'}
-                    >
-                      {value}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {scope === 'player' ? (
-              <div className="mb-3.5">
-                <label
-                  htmlFor="objective-player"
-                  className="mb-1.5 block font-body text-xs uppercase text-coach-t3"
-                >
-                  Player
-                </label>
-                <select
-                  id="objective-player"
-                  data-testid="objective-player-select"
-                  value={playerId}
-                  onChange={function (e) {
-                    setPlayerId(e.target.value);
-                  }}
-                  className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-                >
-                  <option value="">Select player</option>
-                  {players.map(function (player) {
-                    return (
-                      <option key={player.id} value={player.id}>
-                        {player.name} ({player.teamName})
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+            {isPlayer ? (
+              <p className="mb-3.5 font-body text-xs text-coach-t3" data-testid="objective-self-author-note">
+                This objective is for you — your coach can't set it on your behalf.
+              </p>
             ) : (
-              <div className="mb-3.5">
-                <label
-                  htmlFor="objective-team"
-                  className="mb-1.5 block font-body text-xs uppercase text-coach-t3"
-                >
-                  Team
-                </label>
-                <select
-                  id="objective-team"
-                  data-testid="objective-team-select"
-                  value={teamId}
-                  onChange={function (e) {
-                    setTeamId(e.target.value);
-                  }}
-                  className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-                >
-                  <option value="">Select team</option>
-                  {teams.map(function (team) {
-                    return (
-                      <option key={team.id} value={team.id}>
-                        {team.name}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
+              <>
+                <div className="mb-3.5">
+                  <div className="mb-1.5 font-body text-xs uppercase text-coach-t3">Scope</div>
+                  <div className="flex gap-2" data-testid="objective-scope-toggle">
+                    {['player', 'team'].map(function (value) {
+                      return (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={function () {
+                            setScope(value);
+                          }}
+                          className={`flex-1 cursor-pointer rounded-xl border-none py-2.5 font-display text-[12px] font-semibold uppercase ${
+                            scope === value
+                              ? 'bg-coach-orange text-white'
+                              : 'bg-coach-orange-glow text-coach-orange'
+                          }`}
+                          data-testid={value === 'player' ? 'objective-scope-player' : 'objective-scope-team'}
+                        >
+                          {value}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {scope === 'player' ? (
+                  <div className="mb-3.5">
+                    <label
+                      htmlFor="objective-player"
+                      className="mb-1.5 block font-body text-xs uppercase text-coach-t3"
+                    >
+                      Player
+                    </label>
+                    <select
+                      id="objective-player"
+                      data-testid="objective-player-select"
+                      value={playerId}
+                      onChange={function (e) {
+                        setPlayerId(e.target.value);
+                      }}
+                      className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+                    >
+                      <option value="">Select player</option>
+                      {players.map(function (player) {
+                        return (
+                          <option key={player.id} value={player.id}>
+                            {player.name} ({player.teamName})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="mb-3.5">
+                    <label
+                      htmlFor="objective-team"
+                      className="mb-1.5 block font-body text-xs uppercase text-coach-t3"
+                    >
+                      Team
+                    </label>
+                    <select
+                      id="objective-team"
+                      data-testid="objective-team-select"
+                      value={teamId}
+                      onChange={function (e) {
+                        setTeamId(e.target.value);
+                      }}
+                      className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
+                    >
+                      <option value="">Select team</option>
+                      {teams.map(function (team) {
+                        return (
+                          <option key={team.id} value={team.id}>
+                            {team.name}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                )}
+              </>
             )}
 
             <div className="mb-3.5">
@@ -538,7 +562,7 @@ export function ObjectivesScreen({ user, onBack }) {
         </Card>
       ) : null}
 
-      {isCoach && !creating ? (
+      {canCreate && !creating ? (
         <DashedBtn
           onClick={function () {
             setCreating(true);

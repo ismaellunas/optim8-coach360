@@ -12,6 +12,16 @@ import {
 import { REPO_ROOT } from '../helpers/supabase-test-env.js';
 
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
+const PROFILE_SCREEN_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'profile',
+  'ui',
+  'ProfileScreen.jsx',
+);
 const PROTOTYPE_README_PATH = path.join(
   REPO_ROOT,
   'docs',
@@ -50,6 +60,29 @@ describe('STORY_7_4 AC1 — player home shows schedule summary and progress at m
     expect(app).toMatch(/summarizePlayerProgress\(completions\)/);
     expect(app).not.toMatch(/Personal Training/);
   });
+
+  it('test_STORY_7_4_AC1_player_home_stats_goals_wired_rank_removed: Goals tile reads real objectives, Rank tile removed (QA3-01/QA3-03)', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).toMatch(/repos\.objectives\.listForUser\(playerId, user\.role\)/);
+    expect(app).toMatch(/activeObjectivesCount/);
+    expect(app).toMatch(/testId: "home-stat-goals"/);
+    expect(app).toMatch(/data-testid=\{s\.testId\}/);
+    expect(app).not.toMatch(/"Goals", v: "3\/5"/);
+    expect(app).not.toMatch(/\{ l: "Rank", v: "#4"/);
+  });
+
+  it('test_STORY_7_4_AC1_player_home_stats_drills_wired_to_real_progress: Drills tile reads homeProgressSummary, not a literal', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).toMatch(/testId: "home-stat-drills"/);
+    expect(app).toMatch(/String\(homeProgressSummary\.drillsCompleted\)/);
+    expect(app).not.toMatch(/"Drills", v: "24"/);
+  });
+
+  it('test_STORY_7_4_AC1_player_home_ai_insights_copy_not_fabricated: player AI Insights copy is generic, not a specific fake stat', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).not.toMatch(/Your shooting accuracy improved 12% this week\./);
+    expect(app).toMatch(/isPlayer \? "Insights based on your recent activity\." : /);
+  });
 });
 
 describe('STORY_7_4 AC2 — profile tabs for objectives and full dashboard gated per Pro tier', () => {
@@ -82,5 +115,25 @@ describe('STORY_7_4 AC4 — scope of 6-tab profile confirmed against MVP decisio
   it('test_STORY_7_4_AC4_six_tab_profile_scope_documented_out_of_mvp: prototype notes confirm scope', () => {
     const readme = readFileSync(PROTOTYPE_README_PATH, 'utf8');
     expect(readme).toMatch(/Player profile deep-dive \(6-tab\) not yet in mock/);
+  });
+});
+
+describe('STORY_7_4 Profile dead buttons — Edit Profile wired, Notifications marked coming soon (QA3-01/QA3-03)', () => {
+  it('test_STORY_7_4_AC1_profile_edit_profile_wired_to_repository: Edit Profile toggles a real form wired to repos.profiles', () => {
+    const profileScreen = readFileSync(PROFILE_SCREEN_PATH, 'utf8');
+    expect(profileScreen).toMatch(/data-testid="profile-edit-trigger"/);
+    expect(profileScreen).toMatch(/data-testid="profile-edit-form"/);
+    expect(profileScreen).toMatch(/repos\.profiles\.getById\(userId\)/);
+    expect(profileScreen).toMatch(/repos\.profiles\.updatePlayerProfile\(userId, \{/);
+    expect(profileScreen).toMatch(/repos\.profiles\.updateCoachProfile\(userId, \{/);
+    expect(profileScreen).toMatch(/repos\.profiles\.updateTeamManagerProfile\(userId, \{/);
+    expect(profileScreen).not.toMatch(/<Card>\s*<span className="font-body text-sm text-coach-t1">Edit Profile<\/span>\s*<\/Card>/);
+  });
+
+  it('test_STORY_7_4_AC1_profile_notifications_coming_soon: Notifications is explicitly disabled, not a silent dead button', () => {
+    const profileScreen = readFileSync(PROFILE_SCREEN_PATH, 'utf8');
+    expect(profileScreen).toMatch(/data-testid="profile-notifications"/);
+    expect(profileScreen).toMatch(/Coming soon/);
+    expect(profileScreen).not.toMatch(/<Card>\s*<span className="font-body text-sm text-coach-t1">Notifications<\/span>\s*<\/Card>/);
   });
 });

@@ -5,6 +5,7 @@ import {
   useUserListQuery,
   useUpdateUserMutation,
   useUserTeamsQuery,
+  useSendPasswordResetMutation,
 } from '@/entities/user/api/user-queries.js';
 import {
   useUserSubscriptionQuery,
@@ -83,6 +84,7 @@ function UsersDirectory() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { data, isLoading, error } = useUserListQuery(search);
   const updateUser = useUpdateUserMutation();
+  const resetPassword = useSendPasswordResetMutation();
 
   return (
     <div>
@@ -104,7 +106,9 @@ function UsersDirectory() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-coach-t1">{user.displayName ?? user.email}</p>
-                  <p className="text-xs text-coach-t3">{user.role}</p>
+                  <p className="text-xs text-coach-t3">
+                    {user.email} · {user.role}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <Badge tone={user.isSuspended ? 'yellow' : 'green'}>
@@ -121,6 +125,10 @@ function UsersDirectory() {
 
               {isExpanded ? (
                 <div className="mt-4 space-y-4">
+                  <div>
+                    <p className="text-xs uppercase text-coach-t3">Email</p>
+                    <p className="mt-1 text-sm text-coach-t1">{user.email}</p>
+                  </div>
                   <div className="flex flex-wrap items-center gap-3">
                     <input
                       type="text"
@@ -164,11 +172,26 @@ function UsersDirectory() {
                     >
                       {user.isSuspended ? 'Reactivate' : 'Suspend'}
                     </Button>
+                    <Button
+                      variant="ghost"
+                      disabled={resetPassword.isPending}
+                      onClick={() => resetPassword.mutate(user.id)}
+                    >
+                      Reset password
+                    </Button>
                   </div>
                   {updateUser.isError ? (
                     <p className="text-xs text-coach-red">
                       {(updateUser.error as Error).message}
                     </p>
+                  ) : null}
+                  {resetPassword.isError ? (
+                    <p className="text-xs text-coach-red">
+                      {(resetPassword.error as Error).message}
+                    </p>
+                  ) : null}
+                  {resetPassword.isSuccess ? (
+                    <p className="text-xs text-coach-green">Reset email sent.</p>
                   ) : null}
                   <UserDetail userId={user.id} />
                 </div>

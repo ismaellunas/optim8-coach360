@@ -19,6 +19,9 @@ const REST_REPO_PATH = 'packages/api/src/adapters/rest/rest-user-repository.ts';
 const APP_AUTH_PATH = 'packages/api/src/adapters/supabase/supabase-app-auth-repository.ts';
 const QUERIES_PATH = 'apps/admin/src/entities/user/api/user-queries.ts';
 const USERS_PAGE_PATH = 'apps/admin/src/pages/users/UsersPage.tsx';
+const TEAMS_SECTION_PATH = 'apps/admin/src/pages/users/TeamsOversightSection.tsx';
+const EMAIL_LOOKUP_MIGRATION_PATH = 'supabase/migrations/20260731120000_admin_user_email_lookup.sql';
+const RESET_PASSWORD_FN_PATH = 'supabase/functions/admin-reset-password/index.ts';
 
 describe('STORY_12_1 AC1 — admin views searchable list of all user profiles', () => {
   it('test_STORY_12_1_AC1_admin_can_search_user_list', () => {
@@ -106,6 +109,63 @@ describe('STORY_12_1 AC4 — admin views all team rosters from user detail', () 
     expect(usersPage).toMatch(/useUserTeamsQuery/);
     expect(usersPage).toMatch(/Team rosters/);
     expect(usersPage).toMatch(/team\.name/);
+  });
+});
+
+describe('STORY_12_1 AC2 — real user email (resolved, view-only, QA3-10)', () => {
+  it('test_STORY_12_1_AC2_admin_sees_real_user_email_view_only', () => {
+    const sql = read(EMAIL_LOOKUP_MIGRATION_PATH);
+    expect(sql).toMatch(/create or replace function public\.admin_list_user_emails/);
+    expect(sql).toMatch(/admin_required/);
+    expect(sql).toMatch(/from auth\.users u/);
+    expect(sql).toMatch(/revoke all on function public\.admin_list_user_emails\(uuid\[\]\) from public/);
+
+    const supabaseRepo = read(SUPABASE_REPO_PATH);
+    expect(supabaseRepo).toMatch(/admin_list_user_emails/);
+    expect(supabaseRepo).toMatch(/resolveEmails/);
+    expect(supabaseRepo).not.toMatch(/mapProfileToUser\(row, 'unknown@coach360\.local'\)/);
+
+    const usersPage = read(USERS_PAGE_PATH);
+    expect(usersPage).toMatch(/\{user\.email\} · \{user\.role\}/);
+    expect(usersPage).toMatch(/Email<\/p>/);
+    // View-only Phase 1 — no email input/edit field anywhere on this page.
+    expect(usersPage).not.toMatch(/aria-label=\{`Email for/);
+  });
+});
+
+describe('STORY_12_1 AC1 — admin resets a user password (resolved, QA3-09)', () => {
+  it('test_STORY_12_1_AC1_admin_triggers_password_reset_email', () => {
+    const fn = read(RESET_PASSWORD_FN_PATH);
+    expect(fn).toMatch(/admin_required/);
+    expect(fn).toMatch(/profile\.role === 'admin'|callerProfile\.role !== 'admin'/);
+    expect(fn).toMatch(/auth\.admin\.getUserById\(profileId\)/);
+    expect(fn).toMatch(/auth\.resetPasswordForEmail\(targetUser\.user\.email\)/);
+
+    const port = read(PORT_PATH);
+    expect(port).toMatch(/sendPasswordReset\(id: string\): Promise<void>/);
+
+    const supabaseRepo = read(SUPABASE_REPO_PATH);
+    expect(supabaseRepo).toMatch(/functions\.invoke\('admin-reset-password'/);
+
+    const restRepo = read(REST_REPO_PATH);
+    expect(restRepo).toMatch(/NotImplementedAdapterError\('rest', 'sendPasswordReset'\)/);
+
+    const queries = read(QUERIES_PATH);
+    expect(queries).toMatch(/useSendPasswordResetMutation/);
+    expect(queries).toMatch(/repos\.users\.sendPasswordReset/);
+
+    const usersPage = read(USERS_PAGE_PATH);
+    expect(usersPage).toMatch(/Reset password/);
+    expect(usersPage).toMatch(/resetPassword\.mutate\(user\.id\)/);
+  });
+});
+
+describe('STORY_12_1 AC1 — Teams tab search by name (resolved, client-side, QA3-11)', () => {
+  it('test_STORY_12_1_AC1_teams_tab_search_by_name', () => {
+    const section = read(TEAMS_SECTION_PATH);
+    expect(section).toMatch(/Search teams/);
+    expect(section).toMatch(/filteredTeams/);
+    expect(section).toMatch(/team\.name\.toLowerCase\(\)\.includes\(search\.trim\(\)\.toLowerCase\(\)\)/);
   });
 });
 

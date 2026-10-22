@@ -100,11 +100,13 @@ export type AiRecommendationConfig = {
   llmRerankEnabled: boolean;
 };
 
+// STORY-11.2 (resolved, QA3-02 latency fix): off by default for Phase 1 — metadata-based
+// ranking only, no LLM re-rank round-trip. Admin can opt back in via AiConfigSection.
 export const DEFAULT_AI_RECOMMENDATION_CONFIG: AiRecommendationConfig = {
   llmTopK: LLM_TOP_K,
   candidatePool: LLM_CANDIDATE_POOL,
   ragTopK: RAG_TOP_K_DEFAULT,
-  llmRerankEnabled: true,
+  llmRerankEnabled: false,
 };
 
 const TIER_ORDER: SubscriptionTier[] = ['trial', 'basic', 'advanced', 'pro'];

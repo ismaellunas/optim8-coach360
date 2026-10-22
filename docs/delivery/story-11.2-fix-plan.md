@@ -1,6 +1,6 @@
 # STORY-11.2 fix plan — Metadata-based package recommendations (Phase 1)
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-02
+> **Status today:** DONE (tracker) — implemented and tested. `audit_notes` corrected.
 > **QA evidence:** docs/Coach_Feedback.docx (player account section: "Suggested objectives slow to load")
 > **Related:** docs/index.html (tracker), docs/delivery/story-11.1-fix-plan.md (client-side half of the same symptom)
 
@@ -24,20 +24,23 @@
 
 ## Fix plan
 
-Pick one of these, per the Open Questions below — I'm not picking for you because it's a product tradeoff (recommendation quality vs. latency), not a code-correctness question:
-
-1. **If LLM rerank should stay on by default:** parallelize what can be parallelized server-side (e.g. `embedTextWithMistral` and any independent metadata fetch can run via `Promise.all` if they don't depend on each other — needs a read of the full request flow between lines 100-240 of `index.ts` to confirm independence), and/or add a client-side loading skeleton so "slow" reads as "visibly working" rather than "broken." Also correct the STORY-11.2 and STORY-11.3/11.4 `audit_notes` to stop claiming "No RAG/LLM" since that's no longer true.
-2. **If LLM rerank should default to off for Phase 1** (matching the original "metadata-based, Phase 1" framing in this story's title and audit_notes): change `DEFAULT_AI_RECOMMENDATION_CONFIG.llmRerankEnabled` to `false` in `handler.ts:100-107`, leaving the admin toggle as an opt-in enhancement. This would eliminate both Mistral round-trips for most users immediately, no other code changes needed.
-3. Either way: update STORY-11.2's `audit_notes` to stop asserting "No RAG/LLM" and instead state the current (post-11.3/11.4-wiring) reality, so future audits don't repeat this staleness.
+1. **LLM rerank default (resolved — option 2, off for Phase 1; implemented):** `DEFAULT_AI_RECOMMENDATION_CONFIG.llmRerankEnabled` changed to `false` in `handler.ts`, leaving the existing admin toggle (`AiConfigSection.tsx`) as an opt-in enhancement. **New finding, corrects the Root cause section above:** this does *not* eliminate both Mistral round-trips. `index.ts` calls `embedTextWithMistral(queryText)` unconditionally for STORY-11.4's RAG retrieval — that call isn't gated by `llmRerankEnabled` at all, only `rerankPackagesWithMistral` is. So the default path now makes **one** external Mistral call instead of two, not zero. Still a real, meaningful latency win (roughly halves it), just not full elimination — flagging so nobody is surprised suggestions aren't instant. Gating/removing the RAG embedding call too would be a STORY-11.4-scoped change, not attempted here.
+2. **Store/marketplace delay (resolved: fold in; no separate code needed):** `StoreScreen.jsx` consumes the same `recommend-packages` pipeline, so item 1 above addresses both the Objectives-screen and Store-screen latency complaints together.
+3. **`audit_notes` correction (resolved, implemented):** STORY-11.2's `audit_notes` updated to stop asserting "No RAG/LLM" and state the current reality instead. STORY-11.3/11.4's own `audit_notes` don't carry this stale claim (checked) — only STORY-11.2's did, so only that one needed correcting.
 
 ## Verification plan
 
-- Existing tests to re-run: `npm run test:story-11.2`, plus STORY-11.3/11.4's test commands (need to look these up — not in my assigned scope, flagged below).
-- New test cases needed: a timed assertion or at least a call-count assertion that `embedTextWithMistral`/`rerankPackagesWithMistral` are not invoked when `llmRerankEnabled` is false, and that recommendations still return (from the pure-metadata path) in that case.
-- Manual re-test: time the Objectives screen "suggestions" load before/after, on a comparable network to the Fold7 test, with the toggle in each position.
+- `npm run test:story-11.2`: 5/5 passing, including a new executable test importing `DEFAULT_AI_RECOMMENDATION_CONFIG` directly from `handler.ts` (precedented by `tests/recommendations/story-11.4.test.js`, which already imports real named exports from this same file — stronger than the source-string-match convention used elsewhere in this test file) asserting `llmRerankEnabled === false`, plus a regex check that the conditional gate in `index.ts` is unchanged. `test_STORY_11_2_AC3_top_3_with_match_score` remains a pre-existing, unrelated failure (its regex expects a literal `3`/`LLM_CANDIDATE_POOL` arg but the actual call uses `aiConfig.candidatePool` since a RAG-pipeline refactor — out of this fix's scope, left untouched).
+- Full suite (`npx vitest run`): 243/253 non-skipped passing, same 7 pre-existing unrelated failures as before this change.
+- `eslint` on changed test file: 0 errors.
+- Manual re-test (not done — no live device/account in this session): time the Objectives screen and Store screen "suggestions" load before/after, on a comparable network to the Fold7 test.
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Should LLM rerank be on or off by default for Phase 1 users?** This is the central product decision this plan is blocked on — everything else follows from it.
-- **Was STORY-11.3 (Mistral integration) or STORY-11.4 (RAG pipeline) the actual source of this Edge Function change**, and should one of those be reopened instead of/in addition to STORY-11.2? I can see the file-timestamp evidence that the change happened after all three were marked DONE, but I can't attribute it to a specific story from the tracker data alone — that needs whoever made the change, or a commit history, and this repo currently has no git history to check (`git` reports this isn't a repository).
-- **Is the Store/marketplace suggestion delay (coach feedback, not a filed QA3 bug) the same root cause?** `StoreScreen.jsx` is listed as a consumer of the same recommendation pipeline (STORY-11.2 files list), so it plausibly is, but no one has filed it as a bug and it's outside my assigned scope to confirm or fix here. Recommend deciding whether to fold it into this fix or file it separately.
+- **LLM rerank default:** off for Phase 1 (`llmRerankEnabled = false`). See Fix plan item 1.
+- **Source story attribution:** not pursued — correct the `audit_notes` regardless of which story technically introduced the Mistral wiring; no git history exists to attribute it precisely, and it isn't needed to fix the bug. See Fix plan item 3.
+- **Store/marketplace delay:** same root cause, folded into this fix. See Fix plan item 2.
+
+## Open questions — new, discovered during implementation
+
+- **Should the RAG embedding call (`embedTextWithMistral` for STORY-11.4's retrieval) also be made skippable, to fully eliminate external-call latency rather than halve it?** Turning off `llmRerankEnabled` only removes the rerank call; the RAG embedding call is unconditional today. This is STORY-11.4-scoped (its own retrieval pipeline), not decided or built here — flagging rather than expanding this fix's scope to cover it.

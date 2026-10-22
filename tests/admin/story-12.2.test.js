@@ -31,6 +31,7 @@ const REST_BILLING_PATH = 'packages/api/src/adapters/rest/rest-billing-repositor
 const QUERIES_PATH = 'apps/admin/src/entities/subscription/api/subscription-queries.ts';
 const SUBS_PAGE_PATH = 'apps/admin/src/pages/subscriptions/SubscriptionsPage.tsx';
 const USERS_PAGE_PATH = 'apps/admin/src/pages/users/UsersPage.tsx';
+const STRIPE_WEBHOOK_PATH = 'supabase/functions/stripe-webhook/index.ts';
 
 describe('STORY_12_2 AC1 — admin configures subscription tier parameters and trial duration', () => {
   it('test_STORY_12_2_AC1_admin_configures_tier_params_and_trial_duration', () => {
@@ -183,6 +184,28 @@ describe('STORY_12_2 AC4 — admin can override individual user subscription tie
     expect(usersPage).toMatch(/useOverrideUserTierMutation/);
     expect(usersPage).toMatch(/TIER_OPTIONS/);
     expect(usersPage).toMatch(/overrideTier\.mutate/);
+  });
+});
+
+describe('STORY_12_2 AC3 — silent invoice-skip fix (resolved, BUG-QA3-12)', () => {
+  it('test_STORY_12_2_AC3_missing_profile_id_invoice_logs_and_retries: no more silent 200 data loss', () => {
+    const webhook = read(STRIPE_WEBHOOK_PATH);
+    // The old silent-accept path is gone...
+    expect(webhook).not.toMatch(/skipped: 'missing_profile_id'/);
+    // ...replaced with a logged failure and a non-2xx so Stripe retries automatically
+    // (covers the common race: customer.subscription.created/updated hasn't landed yet).
+    expect(webhook).toMatch(
+      /recordWebhookFailure\(supabase, 'missing_profile_id', \{\s*\n\s*stage: 'invoice_upsert',/,
+    );
+    const invoiceUpsertBlock = webhook.slice(
+      webhook.indexOf("result.kind === 'invoice_upsert'"),
+      webhook.indexOf("result.kind === 'purchase_upsert'"),
+    );
+    expect(invoiceUpsertBlock).toMatch(/error: 'missing_profile_id'[\s\S]*?status: 500/);
+
+    const page = read(SUBS_PAGE_PATH);
+    expect(page).toMatch(/revenueQuery\.isError/);
+    expect(page).toMatch(/revenueQuery\.error as Error/);
   });
 });
 

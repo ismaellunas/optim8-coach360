@@ -1,6 +1,6 @@
 # STORY-12.1 fix plan — User management: profiles, roles, suspend
 
-> **Status today:** DONE (tracker) — reopened, contradicted by BUG-QA3-09, BUG-QA3-10, BUG-QA3-11
+> **Status today:** DONE (tracker) — all 3 defects implemented and tested: real (view-only) email, admin-triggered password reset email, client-side Teams search.
 > **QA evidence:** docs/Coach_Feedback.docx (admin account section, MacBook M1 Pro / Chrome, `coach360-admin-blond.vercel.app`)
 > **Related:** docs/index.html (tracker), apps/admin/src/pages/users/UsersPage.tsx, apps/admin/src/pages/users/TeamsOversightSection.tsx
 
@@ -38,29 +38,35 @@ This story bundles three distinct defects found in the same admin pass. Each has
 
 ## Fix plan
 
-**QA3-10 (email):**
-1. Add `supabase/migrations/<ts>_admin_user_email.sql`: a `SECURITY DEFINER` RPC `admin_list_user_emails(p_profile_ids uuid[])` (or a single `admin_get_user_email(p_profile_id uuid)`) that checks `profiles.role = 'admin'` for `auth.uid()` (same guard pattern as `get_billing_revenue_summary`), then selects `id, email` from `auth.users` for the given ids. Do not expose a raw `auth.users` select to the anon/authenticated role.
-2. Extend `UserRepository.list()`/`getById()` return type to include a real `email`, sourced via the new RPC (likely a second query joined client-side, since `profiles` and `auth.users` can't be joined in one PostgREST call without a view).
-3. Add `email?: string` to `UpdateUserInput` only if product wants admin-initiated email changes — see Open Questions; email changes have auth implications (re-verification) that profile edits don't.
-4. Render email in `UsersPage.tsx` — read-only display at minimum, in both the list row and the expanded detail panel; make it an editable input only if Q1 below says yes.
+**QA3-10 (email) — resolved, implemented, view-only:**
+1. New migration `20260731120000_admin_user_email_lookup.sql`: `SECURITY DEFINER` RPC `admin_list_user_emails(p_profile_ids uuid[])`, admin-gated (same pattern as `get_billing_revenue_summary`), selecting from `auth.users`. No raw `auth.users` select exposed to `anon`/`authenticated`.
+2. `SupabaseUserRepository.list()`/`getById()` now resolve real emails via this RPC (a second query, since `profiles`/`auth.users` can't be joined in one PostgREST call) instead of the hardcoded `'unknown@coach360.local'` placeholder.
+3. **Not implemented: admin-initiated email editing.** Resolved as Phase 1 = view-only (lowest-risk option) — editing auth email has re-verification implications that are a separate, bigger feature. `UpdateUserInput` unchanged.
+4. Email now renders in `UsersPage.tsx` in both the collapsed list row and the expanded detail panel, read-only.
 
-**QA3-09 (password reset):**
-1. New Supabase Edge Function (pattern-match existing ones in `supabase/functions/`, e.g. `create-mux-upload`), admin-only, calling `supabase.auth.admin.generateLink({ type: 'recovery', email })` or `resetPasswordForEmail` server-side with the service-role key.
-2. New `UserRepository` method, e.g. `sendPasswordReset(id: string): Promise<void>`.
+**QA3-09 (password reset) — resolved, implemented, self-service email link:**
+1. New Edge Function `admin-reset-password` (pattern-matched from `review-marketplace-package/index.ts`'s auth-header → `getUser` → service-role admin-role check), calling `admin.auth.admin.getUserById(profileId)` to resolve the email server-side, then `admin.auth.resetPasswordForEmail(email)`.
+2. New `UserRepository.sendPasswordReset(id)`, wired through both adapters.
 3. New "Reset password" button in the expanded user row in `UsersPage.tsx`, next to Suspend/Reactivate.
+4. **Known limitation, not fixed here:** neither the admin app nor the mobile app has a page listening for Supabase's `PASSWORD_RECOVERY` auth event to let the user actually set a new password once they click the emailed link. The reset email will send successfully; completing the flow end-to-end needs that landing page built as separate, larger scope (a real auth UI, not a small addition). Logged as a new open question.
 
-**QA3-11 (team search):**
-1. Add the same `useState('')` + `<input>` pattern from `UsersDirectory` to `TeamsOversightSection`.
-2. Either filter client-side (`teams.filter(t => t.name includes search)`, simplest, fine at current team counts) or add a `search` param to `useAllTeamsQuery`/the underlying team-repository `list` call to match the Users tab's server-side pattern. Pick one — don't mix patterns between the two tabs without a reason.
+**QA3-11 (team search) — resolved, implemented, client-side:**
+1. Added the same `useState('')` + `<input>` pattern from `UsersDirectory` to `TeamsOversightSection`, filtering the already-loaded `teams` array client-side by name (case-insensitive substring match).
 
 ## Verification plan
 
-- Existing tests to re-run: `npx vitest run tests/admin/story-12.1.test.js` (will still pass after these changes since it only regex-matches source — see note below).
-- **New test cases needed, and they must not repeat the current test's weakness:** `tests/admin/story-12.1.test.js` currently only does source-string/regex matching (e.g. `expect(usersPage).toMatch(/Display name for/)`) — it never renders the component or calls a live backend, so it could not have caught any of these three gaps. New tests should at minimum render `UsersPage`/`TeamsOversightSection` with React Testing Library against a mocked repository and assert the email value, reset-password button, and team search input are actually present and interactive — not just that certain strings exist in the file.
-- Manual re-test: admin account on the same MacBook/Chrome setup — search Teams by name, expand a user and confirm a real (not placeholder) email shows, trigger password reset and confirm the target user receives/can use a reset link.
+- `npx vitest run tests/admin/story-12.1.test.js`: 8/8 passing (5 original + 3 new: real email view-only, password reset trigger, Teams client-side search).
+- Full suite (`npx vitest run`): 256/266 non-skipped passing, same 7 pre-existing unrelated failures as before this change.
+- `tsc --noEmit` on `packages/api` and `apps/admin`: clean.
+- `eslint` on changed files: 0 errors.
+- Manual re-test (not done — no live device/account in this session): admin account — search Teams by name; expand a user and confirm a real (not placeholder) email shows in both the row and detail panel; trigger password reset and confirm the target user's inbox receives an email (confirming the reset *link itself* resolves to a working "set new password" page is **not** testable yet — that page doesn't exist, see the known limitation above).
 
-## Open questions — need confirmation before implementing
+## Resolved decisions
 
-- **Q1:** Should admins be able to *edit* a user's email (not just view it)? Editing auth email has knock-on effects (re-verification, possibly breaking the user's existing session/login) that are a product decision, not an engineering default. Not resolvable from code or the feedback doc — the feedback only says "cannot see **or edit**," which could mean either "give me a view" or "give me a view and an edit."
-- **Q2:** For password reset, should it (a) email the user a reset link (self-service completion), or (b) let the admin set/see a temporary password directly? These have very different security postures and the feedback doc doesn't say which the tester expected.
-- **Q3:** Is the Teams tab's search meant to be server-side (paginated, like Users) or client-side (filter what's already loaded)? Depends on expected team counts at scale, which isn't specified anywhere I can find in `docs/product/`.
+- **Q1, email editing:** view-only for Phase 1. No admin-initiated edit built — that needs a re-verification flow design first.
+- **Q2, password reset flow:** (a) — email the user a self-service reset link. Implemented, with the known gap that there's no completion page yet to process the link.
+- **Q3, Teams tab search:** client-side filter. Implemented.
+
+## Open questions — new, discovered during implementation
+
+- **Should a password-reset completion page be built** (in the mobile app, where end-users actually log in) to listen for Supabase's `PASSWORD_RECOVERY` auth event and let the user set a new password? Without it, the admin-triggered reset email sends successfully but the link the user clicks doesn't go anywhere useful. This is a real, separate auth-UI feature, not a small addition to this fix.

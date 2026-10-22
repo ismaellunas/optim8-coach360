@@ -34,6 +34,16 @@ const CHAT_SCREEN_PATH = path.join(
   'ChatScreen.jsx',
 );
 const APP_PATH = path.join(REPO_ROOT, 'apps', 'mobile', 'src', 'App.jsx');
+const TEAM_PROGRESS_SCREEN_PATH = path.join(
+  REPO_ROOT,
+  'apps',
+  'mobile',
+  'src',
+  'features',
+  'progress',
+  'ui',
+  'TeamProgressScreen.jsx',
+);
 const SCHEDULE_PATH = path.join(
   REPO_ROOT,
   'apps',
@@ -248,5 +258,38 @@ describe('STORY_7_3 AC4 — coach assigns corrective drills from review or via c
     const app = readFileSync(APP_PATH, 'utf8');
     expect(app).toMatch(/schedulePrefill/);
     expect(app).toMatch(/onShareViaSchedule/);
+  });
+});
+
+describe('STORY_7_3 Home stats bar (team slice) — resolved, BUG-QA2-04/QA3-08', () => {
+  it('test_STORY_7_3_AC1_home_stats_team_wired_to_real_data_record_dropped: no hardcoded team stats, Record removed', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).toMatch(/repos\.teams\.listForUser\(playerId\)/);
+    expect(app).toMatch(/repos\.rosters\.listMembers\(team\.id\)/);
+    expect(app).toMatch(/testId: "home-stat-players"/);
+    expect(app).toMatch(/testId: "home-stat-sessions"/);
+    expect(app).toMatch(/testId: "home-stat-next"/);
+    expect(app).not.toMatch(/\{ l: "Players", v: "14"/);
+    expect(app).not.toMatch(/"Record", v: "10-1"/);
+    expect(app).not.toMatch(/l: "Record"/);
+  });
+});
+
+describe('STORY_7_3 Team manager AI Insights/Progress (resolved, option c) — dedicated operational view', () => {
+  it('test_STORY_7_3_AC1_team_progress_screen_routes_and_scopes_real_data: no more dead end to a locked player screen', () => {
+    const app = readFileSync(APP_PATH, 'utf8');
+    expect(app).toMatch(/import \{ TeamProgressScreen \} from "\.\/features\/progress\/ui\/TeamProgressScreen\.jsx"/);
+    expect(app).toMatch(/screen === "progress" && user\.role === "team"/);
+    expect(app).toMatch(/<TeamProgressScreen user=\{user\} go=\{go\} \/>/);
+
+    const screen = readFileSync(TEAM_PROGRESS_SCREEN_PATH, 'utf8');
+    // Data this repo actually has — no attendance/RSVP/engagement tracking exists anywhere.
+    expect(screen).toMatch(/repos\.teams\.listForUser\(userId\)/);
+    expect(screen).toMatch(/repos\.rosters\.listMembers\(activeTeam\.id\)/);
+    expect(screen).toMatch(/repos\.sessions\.listForUser\(userId\)/);
+    expect(screen).toMatch(/repos\.objectives\.listForUser\(userId, 'team'\)/);
+    // Not a copy of the player-shaped ProgressScreen — no individual completions/feedback.
+    expect(screen).not.toMatch(/listPlayerProgress/);
+    expect(screen).not.toMatch(/coachFeedback/i);
   });
 });

@@ -153,6 +153,10 @@ export function SubscriptionsPage() {
           <p className="mt-1 font-display text-lg font-semibold text-coach-t1">Paid revenue</p>
           {revenueQuery.isLoading ? (
             <p className="mt-2 font-body text-sm text-coach-t2">Loading revenue…</p>
+          ) : revenueQuery.isError ? (
+            <p className="mt-2 font-body text-sm text-coach-red">
+              {(revenueQuery.error as Error).message}
+            </p>
           ) : (
             <>
               <p className="mt-2 font-display text-3xl font-bold text-coach-green">
