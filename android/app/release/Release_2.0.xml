@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="release_notes_2_0">What\'s new in 2.0:\n- Schedule: browse past and future weeks with new navigation controls — no more being stuck on the current week\n- Objectives: players can now set their own goals; home screen stats now reflect your real progress\n- Chat: players can start a conversation with their coach directly from the app\n- Profile: edit your details through an updated profile screen\n- Team accounts: home screen and progress view now show live roster and session data\n- General accuracy and stability improvements</string>
+</resources>

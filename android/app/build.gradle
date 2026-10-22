@@ -5,11 +5,19 @@ def isCiBuild = System.getenv("GITHUB_ACTIONS") == "true"
 android {
     namespace "com.optim8.coach360.app"
     compileSdk rootProject.ext.compileSdkVersion
+    signingConfigs {
+        release {
+            storeFile project.hasProperty('COACH360_RELEASE_STORE_FILE') ? file(COACH360_RELEASE_STORE_FILE) : null
+            storePassword project.hasProperty('COACH360_RELEASE_STORE_PASSWORD') ? COACH360_RELEASE_STORE_PASSWORD : null
+            keyAlias project.hasProperty('COACH360_RELEASE_KEY_ALIAS') ? COACH360_RELEASE_KEY_ALIAS : null
+            keyPassword project.hasProperty('COACH360_RELEASE_KEY_PASSWORD') ? COACH360_RELEASE_KEY_PASSWORD : null
+        }
+    }
     defaultConfig {
         applicationId "com.optim8.coach360.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
+        versionCode 3
         versionName "2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -25,6 +33,8 @@ android {
             // CI validates assembleRelease without a production keystore (see environment-promotion.md).
             if (isCiBuild) {
                 signingConfig signingConfigs.debug
+            } else if (project.hasProperty('COACH360_RELEASE_STORE_FILE')) {
+                signingConfig signingConfigs.release
             }
         }
     }
