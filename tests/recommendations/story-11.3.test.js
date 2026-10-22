@@ -143,7 +143,8 @@ describe('STORY_11_3 AC2 — Recommendation endpoint re-ranks top candidates and
 
     const index = readFileSync(EDGE_INDEX, 'utf8');
     expect(index).toMatch(/finalizeRecommendations/);
-    expect(index).toMatch(/LLM_CANDIDATE_POOL/);
+    // STORY-12.4 — pool size is admin-configurable (aiConfig.candidatePool), defaulting to LLM_CANDIDATE_POOL.
+    expect(index).toMatch(/aiConfig\.candidatePool/);
 
     const schemaSrc = readFileSync(DOMAIN_SCHEMA, 'utf8');
     expect(schemaSrc).toMatch(/\bwhy\b/);

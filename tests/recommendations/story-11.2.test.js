@@ -232,8 +232,9 @@ describe('STORY_11_2 AC3 — Top 3 packages returned with match score', () => {
     expect(shootingScore).toBeGreaterThan(defenseScore);
 
     const index = readFileSync(EDGE_INDEX, 'utf8');
+    // STORY-12.4 — pool size is admin-configurable (aiConfig.candidatePool), defaulting to LLM_CANDIDATE_POOL.
     expect(index).toMatch(
-      /rankPackageRecommendations\(candidates,\s*context,\s*(?:3|LLM_CANDIDATE_POOL)\)/,
+      /rankPackageRecommendations\(candidates,\s*context,\s*aiConfig\.candidatePool\)/,
     );
   });
 });

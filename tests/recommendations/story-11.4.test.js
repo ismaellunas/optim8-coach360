@@ -242,7 +242,8 @@ describe('STORY_11_4 AC4 — Query returns top 5–10 candidates by similarity',
     expect(recommendIndex).toMatch(/embedTextWithMistral/);
     expect(recommendIndex).toMatch(/mapSimilarityRowsToRecommendations/);
     expect(recommendIndex).toMatch(/retrieval/);
-    expect(recommendIndex).toMatch(/RAG_TOP_K_DEFAULT/);
+    // STORY-12.4 — top-K is admin-configurable (aiConfig.ragTopK), defaulting to RAG_TOP_K_DEFAULT.
+    expect(recommendIndex).toMatch(/aiConfig\.ragTopK/);
   });
 });
 
