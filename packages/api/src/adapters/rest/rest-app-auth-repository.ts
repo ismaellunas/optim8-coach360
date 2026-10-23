@@ -1,4 +1,11 @@
-import type { AppSession, AppSignInInput, SignUpInput, SignUpResult } from '@coach360/domain';
+import type {
+  AppSession,
+  AppSignInInput,
+  ConfirmPasswordResetInput,
+  RequestPasswordResetInput,
+  SignUpInput,
+  SignUpResult,
+} from '@coach360/domain';
 import { NotImplementedAdapterError } from '../../client/types.js';
 import type { AppAuthRepository } from '../../ports/app-auth-repository.js';
 
@@ -19,5 +26,15 @@ export class RestAppAuthRepository implements AppAuthRepository {
 
   async getSession(): Promise<AppSession | null> {
     throw new NotImplementedAdapterError('rest', 'getSession');
+  }
+
+  async requestPasswordReset(input: RequestPasswordResetInput): Promise<void> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'requestPasswordReset');
+  }
+
+  async confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<AppSession> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'confirmPasswordReset');
   }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../model/use-auth.js';
 import { SignInScreen, SignUpScreen } from './AuthScreens.jsx';
+import { ForgotPasswordScreen } from './ForgotPasswordScreen.jsx';
 import { RoleSelectScreen } from './RoleSelectScreen.jsx';
 
 function AuthBtn({ children, primary, onClick }) {
@@ -19,12 +20,14 @@ function AuthBtn({ children, primary, onClick }) {
 }
 
 export function AuthFlow() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, requestPasswordReset, confirmPasswordReset } = useAuth();
   const [mode, setMode] = useState('welcome');
   const [signupRole, setSignupRole] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [verificationSent, setVerificationSent] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState('request');
+  const [resetEmail, setResetEmail] = useState('');
 
   if (mode === 'welcome') {
     return (
@@ -65,6 +68,12 @@ export function AuthFlow() {
           setError(null);
           setVerificationSent(false);
         }}
+        onForgotPassword={function () {
+          setMode('forgot-password');
+          setForgotPasswordStep('request');
+          setResetEmail('');
+          setError(null);
+        }}
         onSubmit={async function (input) {
           setSubmitting(true);
           setError(null);
@@ -89,6 +98,50 @@ export function AuthFlow() {
         onBack={function () {
           setMode('welcome');
           setSignupRole(null);
+        }}
+      />
+    );
+  }
+
+  if (mode === 'forgot-password') {
+    return (
+      <ForgotPasswordScreen
+        step={forgotPasswordStep}
+        email={resetEmail}
+        submitting={submitting}
+        error={error}
+        onBack={function () {
+          if (forgotPasswordStep === 'confirm') {
+            setForgotPasswordStep('request');
+            setError(null);
+            return;
+          }
+          setMode('sign-in');
+          setError(null);
+        }}
+        onRequestCode={async function (requestedEmail) {
+          setSubmitting(true);
+          setError(null);
+          try {
+            await requestPasswordReset({ email: requestedEmail });
+            setResetEmail(requestedEmail);
+            setForgotPasswordStep('confirm');
+          } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'password_reset_request_failed');
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+        onConfirmReset={async function ({ token, newPassword }) {
+          setSubmitting(true);
+          setError(null);
+          try {
+            await confirmPasswordReset({ email: resetEmail, token, newPassword });
+          } catch (cause) {
+            setError(cause instanceof Error ? cause.message : 'password_reset_failed');
+          } finally {
+            setSubmitting(false);
+          }
         }}
       />
     );

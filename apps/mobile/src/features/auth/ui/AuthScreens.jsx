@@ -31,7 +31,7 @@ const ROLE_LABELS = {
   team_manager: 'Team Manager',
 };
 
-export function SignInScreen({ onSubmit, onSwitchToSignUp, submitting, error }) {
+export function SignInScreen({ onSubmit, onSwitchToSignUp, onForgotPassword, submitting, error }) {
   const emailId = 'sign-in-email';
   const passwordId = 'sign-in-password';
 
@@ -69,6 +69,15 @@ export function SignInScreen({ onSubmit, onSwitchToSignUp, submitting, error }) 
         {submitting ? 'Signing in…' : 'Sign in'}
       </AuthBtn>
       <div className="mt-4 text-center">
+        <button
+          type="button"
+          onClick={onForgotPassword}
+          className="cursor-pointer border-none bg-transparent font-body text-sm text-coach-orange"
+        >
+          Forgot password?
+        </button>
+      </div>
+      <div className="mt-2 text-center">
         <button
           type="button"
           onClick={onSwitchToSignUp}

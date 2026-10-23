@@ -19,11 +19,15 @@ export {
   signUpResultSchema,
   signUpInputSchema,
   appSignInInputSchema,
+  requestPasswordResetInputSchema,
+  confirmPasswordResetInputSchema,
   type SignupRole,
   type AppSession,
   type SignUpResult,
   type SignUpInput,
   type AppSignInInput,
+  type RequestPasswordResetInput,
+  type ConfirmPasswordResetInput,
 } from './auth/schema.js';
 export { isAuthenticatedSession } from './auth/rules.js';
 export {

@@ -4,6 +4,8 @@ import {
   signUpResultSchema,
   type AppSession,
   type AppSignInInput,
+  type ConfirmPasswordResetInput,
+  type RequestPasswordResetInput,
   type SignUpInput,
   type SignUpResult,
 } from '@coach360/domain';
@@ -95,6 +97,38 @@ export class SupabaseAppAuthRepository implements AppAuthRepository {
     return appSessionSchema.parse({
       user,
       accessToken: session.access_token,
+    });
+  }
+
+  async requestPasswordReset(input: RequestPasswordResetInput): Promise<void> {
+    const { error } = await this.client.auth.resetPasswordForEmail(input.email);
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  async confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<AppSession> {
+    const { data, error } = await this.client.auth.verifyOtp({
+      email: input.email,
+      token: input.token,
+      type: 'recovery',
+    });
+
+    if (error || !data.session || !data.user?.email) {
+      throw new Error(error?.message ?? 'password_reset_failed');
+    }
+
+    const { error: updateError } = await this.client.auth.updateUser({
+      password: input.newPassword,
+    });
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    const user = await loadProfileUser(this.client, data.user.id, data.user.email);
+    return appSessionSchema.parse({
+      user,
+      accessToken: data.session.access_token,
     });
   }
 }

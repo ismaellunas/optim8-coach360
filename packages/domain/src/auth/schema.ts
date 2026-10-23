@@ -33,3 +33,17 @@ export const appSignInInputSchema = z.object({
 });
 
 export type AppSignInInput = z.infer<typeof appSignInInputSchema>;
+
+export const requestPasswordResetInputSchema = z.object({
+  email: z.string().email(),
+});
+
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetInputSchema>;
+
+export const confirmPasswordResetInputSchema = z.object({
+  email: z.string().email(),
+  token: z.string().trim().min(6).max(8),
+  newPassword: z.string().min(6),
+});
+
+export type ConfirmPasswordResetInput = z.infer<typeof confirmPasswordResetInputSchema>;

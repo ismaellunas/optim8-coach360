@@ -66,6 +66,16 @@ export function AuthProvider({ children }) {
           setSession(null);
           setJustRegistered(false);
         },
+        requestPasswordReset: async function (input) {
+          setError(null);
+          await repos.appAuth.requestPasswordReset(input);
+        },
+        confirmPasswordReset: async function (input) {
+          setError(null);
+          const nextSession = await repos.appAuth.confirmPasswordReset(input);
+          setSession(nextSession);
+          return nextSession;
+        },
         clearJustRegistered: function () {
           setJustRegistered(false);
         },
