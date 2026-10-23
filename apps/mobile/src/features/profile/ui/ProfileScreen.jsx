@@ -177,6 +177,12 @@ export function ProfileScreen({ user, go, onSignOut }) {
         </Card>
       ) : null}
 
+      {isCoach ? (
+        <Card onClick={function () { go('coach-library'); }} data-testid="profile-my-library">
+          <span className="font-body text-sm text-coach-t1">My Library</span>
+        </Card>
+      ) : null}
+
       <Card onClick={function () { go('subscription'); }}>
         <span className="font-body text-sm text-coach-t1">Manage Subscription</span>
       </Card>

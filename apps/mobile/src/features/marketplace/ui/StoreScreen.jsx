@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
 import { canAccessDrippedContent, canPurchaseForTeamDistribution } from '@coach360/domain';
 import { useAuth } from '@/features/auth/model/use-auth.js';
+import { CoachLibraryScreen } from '@/features/content/ui/CoachLibraryScreen.jsx';
 import { OwnedPackageProgress } from '@/features/marketplace/ui/OwnedPackageProgress.jsx';
 import { TeamPackageCompletion } from '@/features/marketplace/ui/TeamPackageCompletion.jsx';
 import {
@@ -76,6 +77,29 @@ function colorForTag(tag) {
   return TAG_COLORS[tag] || COLORS.yellow;
 }
 
+function StoreContentTabs({ tab, onSelect }) {
+  return (
+    <div className="mb-4 flex rounded-xl bg-coach-card p-1" data-testid="store-content-tabs">
+      {[
+        { id: 'browse', label: 'Browse' },
+        { id: 'library', label: 'My Library' },
+      ].map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => onSelect(item.id)}
+          data-testid={`store-tab-${item.id}`}
+          className={`flex-1 cursor-pointer rounded-[10px] border-none py-2.5 font-display text-[13px] font-semibold uppercase ${
+            tab === item.id ? 'bg-coach-orange text-white' : 'bg-transparent text-coach-t3'
+          }`}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function mapCatalogRow(row, ownedIds) {
   return {
     id: row.id,
@@ -96,10 +120,18 @@ function mapCatalogRow(row, ownedIds) {
  * Coach/manager marketplace store — catalog + Stripe package checkout (STORY-10.1).
  * OQ-4.6: no pre-purchase outline / drip preview.
  */
-export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
+export function StoreScreen({
+  user,
+  tryA,
+  canAccess,
+  accessLevel,
+  onAttachContentToSession,
+  onDistributeContent,
+}) {
   const repos = useRepositories();
   const { session } = useAuth();
   const profileId = session?.user?.id ?? null;
+  const [tab, setTab] = useState('browse');
   const [fil, setFil] = useState('all');
   const [viewing, setViewing] = useState(null);
   const [pkgs, setPkgs] = useState([]);
@@ -116,6 +148,11 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
 
   const allowTeamPurchase = canPurchaseForTeamDistribution(user?.role, user?.tier);
   const showAiSuggestions = typeof canAccess === 'function' && canAccess(user, 'ai');
+  const canManageContent =
+    user?.role !== 'player' &&
+    user?.role !== 'team' &&
+    typeof canAccess === 'function' &&
+    canAccess(user, 'createContent');
 
   const filters = useMemo(() => {
     const tags = new Set(['all']);
@@ -231,6 +268,16 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
 
   const filtered = fil === 'all' ? pkgs : pkgs.filter((p) => p.tag === fil);
   const browseLevel = accessLevel(user, 'browseMarketplace');
+
+  if (canManageContent && tab === 'library') {
+    return (
+      <CoachLibraryScreen
+        onBack={() => setTab('browse')}
+        onAttachToSession={onAttachContentToSession}
+        onDistribute={onDistributeContent}
+      />
+    );
+  }
 
   if (viewing) {
     const pk = pkgs.find((x) => x.id === viewing);
@@ -358,6 +405,7 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
     return (
       <ScreenContainer>
         <PageHeader title="STORE" user={user} />
+        {canManageContent ? <StoreContentTabs tab={tab} onSelect={setTab} /> : null}
         <div className="py-[60px] text-center">
           <div className="mb-3 text-coach-t3">
             <IconLock />
@@ -377,6 +425,7 @@ export function StoreScreen({ user, tryA, canAccess, accessLevel }) {
   return (
     <ScreenContainer data-testid="marketplace-store">
       <PageHeader title="STORE" user={user} />
+      {canManageContent ? <StoreContentTabs tab={tab} onSelect={setTab} /> : null}
       {browseLevel === 'readonly' ? (
         <Card className="mb-3 border border-coach-orange/20 bg-coach-orange-glow/40">
           <div className="font-body text-[13px] font-semibold text-coach-t1">Browse only</div>

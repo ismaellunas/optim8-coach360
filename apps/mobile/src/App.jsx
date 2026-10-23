@@ -184,6 +184,30 @@ function HomeScreen({ user, go, tryA }) {
   var _completions = useState([]), completions = _completions[0], setCompletions = _completions[1];
   var _homeObjectives = useState([]), homeObjectives = _homeObjectives[0], setHomeObjectives = _homeObjectives[1];
   var _homeLoading = useState(false), homeLoading = _homeLoading[0], setHomeLoading = _homeLoading[1];
+  var _avatarUrl = useState(null), avatarUrl = _avatarUrl[0], setAvatarUrl = _avatarUrl[1];
+
+  var loadAvatar = useCallback(
+    async function () {
+      if (!playerId) {
+        setAvatarUrl(null);
+        return;
+      }
+      try {
+        var profile = await repos.profiles.getById(playerId);
+        setAvatarUrl(profile?.avatarUrl ?? null);
+      } catch {
+        setAvatarUrl(null);
+      }
+    },
+    [playerId, repos.profiles],
+  );
+
+  useEffect(
+    function () {
+      loadAvatar();
+    },
+    [loadAvatar],
+  );
 
   var loadPlayerHomeData = useCallback(
     async function () {
@@ -336,9 +360,14 @@ function HomeScreen({ user, go, tryA }) {
           <button
             type="button"
             onClick={function () { go("profile"); }}
+            data-testid="home-profile-button"
             className="cursor-pointer border-none bg-transparent p-0 text-coach-t2"
           >
-            <IconSettings />
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Profile" className="h-7 w-7 rounded-full object-cover" />
+            ) : (
+              <IconSettings />
+            )}
           </button>
         }
       />
@@ -698,6 +727,18 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     return registerBackButtonHandler(goBack);
   }, [goBack]);
 
+  function attachLibraryItemToSession(prefill) {
+    setSchedulePrefill(prefill);
+    go("schedule");
+  }
+
+  function distributeLibraryItem(item) {
+    tryA("distribute", function () {
+      setDistributeItem(item);
+      go("distribute-content");
+    });
+  }
+
   function clearPendingInvite() {
     setPendingInviteCode("");
     if (typeof window !== "undefined") {
@@ -870,7 +911,16 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
           />
         );
       }
-      return <StoreScreen user={user} tryA={tryA} canAccess={canAccess} accessLevel={accessLevel} />;
+      return (
+        <StoreScreen
+          user={user}
+          tryA={tryA}
+          canAccess={canAccess}
+          accessLevel={accessLevel}
+          onAttachContentToSession={attachLibraryItemToSession}
+          onDistributeContent={distributeLibraryItem}
+        />
+      );
     }
     if (screen === "progress" && user.role === "coach") {
       return (
@@ -939,10 +989,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
             setPackageSeedId(null);
             go("coach-library");
           }}
-          onAttachToSession={function (prefill) {
-            setSchedulePrefill(prefill);
-            go("schedule");
-          }}
+          onAttachToSession={attachLibraryItemToSession}
           onBuildPackage={function (item) {
             setPackageSeedId(item?.id ?? null);
             setLibraryHighlightId(item?.id ?? null);
@@ -954,19 +1001,11 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     if (screen === "coach-library") {
       return (
         <CoachLibraryScreen
-          onBack={function () { go("create-content"); }}
+          onBack={goBack}
           highlightId={libraryHighlightId}
           seedPackageItemId={packageSeedId}
-          onAttachToSession={function (prefill) {
-            setSchedulePrefill(prefill);
-            go("schedule");
-          }}
-          onDistribute={function (item) {
-            tryA("distribute", function () {
-              setDistributeItem(item);
-              go("distribute-content");
-            });
-          }}
+          onAttachToSession={attachLibraryItemToSession}
+          onDistribute={distributeLibraryItem}
         />
       );
     }
