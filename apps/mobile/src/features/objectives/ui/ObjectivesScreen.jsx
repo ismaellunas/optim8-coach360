@@ -110,6 +110,8 @@ export function ObjectivesScreen({ user, onBack }) {
   const [category, setCategory] = useState('');
   const [targetCompletions, setTargetCompletions] = useState('10');
   const [suggestions, setSuggestions] = useState([]);
+  const [confirmArchiveId, setConfirmArchiveId] = useState(null);
+  const [archivingId, setArchivingId] = useState(null);
 
   const loadObjectives = useCallback(
     async function () {
@@ -294,6 +296,24 @@ export function ObjectivesScreen({ user, onBack }) {
     }
   }
 
+  async function handleArchive(objective) {
+    if (confirmArchiveId !== objective.id) {
+      setConfirmArchiveId(objective.id);
+      return;
+    }
+    setConfirmArchiveId(null);
+    setArchivingId(objective.id);
+    setError(null);
+    try {
+      await repos.objectives.archive(userId, objective.id);
+      await loadObjectives();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'objectives_archive_failed');
+    } finally {
+      setArchivingId(null);
+    }
+  }
+
   return (
     <ScreenContainer data-testid="objectives-screen">
       <PageHeader title="OBJECTIVES" onBack={onBack} />
@@ -377,6 +397,23 @@ export function ObjectivesScreen({ user, onBack }) {
                     {objective.coachId === userId ? ' · Self-set' : ''}
                   </div>
                 </div>
+                {objective.coachId === userId ? (
+                  <Btn
+                    small
+                    className="shrink-0"
+                    disabled={archivingId === objective.id}
+                    onClick={function () {
+                      handleArchive(objective);
+                    }}
+                    data-testid={`objective-remove-${objective.id}`}
+                  >
+                    {archivingId === objective.id
+                      ? 'Removing…'
+                      : confirmArchiveId === objective.id
+                        ? 'Confirm'
+                        : 'Remove'}
+                  </Btn>
+                ) : null}
               </Card>
             );
           }
@@ -400,6 +437,24 @@ export function ObjectivesScreen({ user, onBack }) {
                   style={{ width: pct + '%', backgroundColor: barColor }}
                 />
               </div>
+              {objective.coachId === userId ? (
+                <div className="mt-2.5 flex justify-end">
+                  <Btn
+                    small
+                    disabled={archivingId === objective.id}
+                    onClick={function () {
+                      handleArchive(objective);
+                    }}
+                    data-testid={`objective-remove-${objective.id}`}
+                  >
+                    {archivingId === objective.id
+                      ? 'Removing…'
+                      : confirmArchiveId === objective.id
+                        ? 'Confirm remove'
+                        : 'Remove'}
+                  </Btn>
+                </div>
+              ) : null}
             </Card>
           );
         })}

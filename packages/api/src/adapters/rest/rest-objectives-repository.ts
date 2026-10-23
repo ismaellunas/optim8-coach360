@@ -18,4 +18,10 @@ export class RestObjectivesRepository implements ObjectivesRepository {
     void input;
     throw new NotImplementedAdapterError('rest', 'create');
   }
+
+  async archive(userId: string, objectiveId: string): Promise<void> {
+    void userId;
+    void objectiveId;
+    throw new NotImplementedAdapterError('rest', 'archive');
+  }
 }

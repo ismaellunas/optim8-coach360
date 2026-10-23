@@ -51,6 +51,7 @@ export class SupabaseObjectivesRepository implements ObjectivesRepository {
         .from('objectives')
         .select(OBJECTIVE_SELECT)
         .eq('coach_id', userId)
+        .is('archived_at', null)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -64,6 +65,7 @@ export class SupabaseObjectivesRepository implements ObjectivesRepository {
     const { data, error } = await this.client
       .from('objectives')
       .select(OBJECTIVE_SELECT)
+      .is('archived_at', null)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -97,5 +99,17 @@ export class SupabaseObjectivesRepository implements ObjectivesRepository {
     }
 
     return mapObjectiveRow(data);
+  }
+
+  async archive(userId: string, objectiveId: string): Promise<void> {
+    const { error } = await this.client
+      .from('objectives')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', objectiveId)
+      .eq('coach_id', userId);
+
+    if (error) {
+      throw new Error(`objectives_archive_failed:${error.message}`);
+    }
   }
 }
