@@ -19,15 +19,16 @@ function AuthBtn({ children, primary, onClick }) {
   );
 }
 
+const RECOVERY_REDIRECT_URL = 'com.optim8.coach360.app://reset-password';
+
 export function AuthFlow() {
-  const { signIn, signUp, requestPasswordReset, confirmPasswordReset } = useAuth();
+  const { signIn, signUp, requestPasswordReset } = useAuth();
   const [mode, setMode] = useState('welcome');
   const [signupRole, setSignupRole] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [verificationSent, setVerificationSent] = useState(false);
-  const [forgotPasswordStep, setForgotPasswordStep] = useState('request');
-  const [resetEmail, setResetEmail] = useState('');
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
 
   if (mode === 'welcome') {
     return (
@@ -70,8 +71,7 @@ export function AuthFlow() {
         }}
         onForgotPassword={function () {
           setMode('forgot-password');
-          setForgotPasswordStep('request');
-          setResetEmail('');
+          setForgotPasswordSent(false);
           setError(null);
         }}
         onSubmit={async function (input) {
@@ -106,39 +106,22 @@ export function AuthFlow() {
   if (mode === 'forgot-password') {
     return (
       <ForgotPasswordScreen
-        step={forgotPasswordStep}
-        email={resetEmail}
+        sent={forgotPasswordSent}
         submitting={submitting}
         error={error}
         onBack={function () {
-          if (forgotPasswordStep === 'confirm') {
-            setForgotPasswordStep('request');
-            setError(null);
-            return;
-          }
           setMode('sign-in');
+          setForgotPasswordSent(false);
           setError(null);
         }}
-        onRequestCode={async function (requestedEmail) {
+        onSubmit={async function (email) {
           setSubmitting(true);
           setError(null);
           try {
-            await requestPasswordReset({ email: requestedEmail });
-            setResetEmail(requestedEmail);
-            setForgotPasswordStep('confirm');
+            await requestPasswordReset({ email, redirectTo: RECOVERY_REDIRECT_URL });
+            setForgotPasswordSent(true);
           } catch (cause) {
             setError(cause instanceof Error ? cause.message : 'password_reset_request_failed');
-          } finally {
-            setSubmitting(false);
-          }
-        }}
-        onConfirmReset={async function ({ token, newPassword }) {
-          setSubmitting(true);
-          setError(null);
-          try {
-            await confirmPasswordReset({ email: resetEmail, token, newPassword });
-          } catch (cause) {
-            setError(cause instanceof Error ? cause.message : 'password_reset_failed');
           } finally {
             setSubmitting(false);
           }

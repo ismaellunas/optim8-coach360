@@ -17,72 +17,33 @@ function AuthBtn({ children, primary, disabled, onClick, type = 'button' }) {
   );
 }
 
-/** BUG-QA2-06 — in-app OTP reset (no deep-link infra in this app). */
-export function ForgotPasswordScreen({ step, email, onRequestCode, onConfirmReset, onBack, submitting, error }) {
+/** BUG-QA2-06 — emails a recovery link; completion happens via a deep link. */
+export function ForgotPasswordScreen({ sent, onSubmit, onBack, submitting, error }) {
   const emailId = 'forgot-password-email';
-  const tokenId = 'forgot-password-token';
-  const newPasswordId = 'forgot-password-new-password';
 
-  async function handleRequestSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const value = form.elements.namedItem(emailId).value.trim();
-    await onRequestCode(value);
+    const email = form.elements.namedItem(emailId).value.trim();
+    await onSubmit(email);
   }
 
-  async function handleConfirmSubmit(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const token = form.elements.namedItem(tokenId).value.trim();
-    const newPassword = form.elements.namedItem(newPasswordId).value;
-    await onConfirmReset({ token, newPassword });
-  }
-
-  if (step === 'confirm') {
+  if (sent) {
     return (
-      <form key="confirm" onSubmit={handleConfirmSubmit} className="px-6 py-10">
-        <button
-          type="button"
-          onClick={onBack}
-          className="mb-4 cursor-pointer border-none bg-transparent p-0 font-body text-[13px] text-coach-orange"
-        >
-          Back
-        </button>
-        <div className="mb-1 font-display text-2xl font-bold text-coach-t1">ENTER CODE</div>
-        <div className="mb-6 font-body text-sm text-coach-t2">
-          Enter the 6-digit code sent to {email}
-        </div>
-        <input
-          id={tokenId}
-          name={tokenId}
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          required
-          autoComplete="one-time-code"
-          placeholder="6-digit code"
-          className="mb-3 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-        />
-        <input
-          id={newPasswordId}
-          name={newPasswordId}
-          type="password"
-          required
-          minLength={6}
-          autoComplete="new-password"
-          placeholder="New password (min 6 characters)"
-          className="mb-5 box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-        />
-        {error ? <p className="mb-4 font-body text-sm text-coach-red">{error}</p> : null}
-        <AuthBtn primary type="submit" disabled={submitting}>
-          {submitting ? 'Resetting…' : 'Reset password'}
+      <div className="px-6 py-10 text-center">
+        <div className="mb-4 font-display text-2xl font-bold text-coach-t1">CHECK YOUR EMAIL</div>
+        <p className="mb-6 font-body text-sm leading-relaxed text-coach-t2">
+          We sent a password reset link to your email. Open it on this device to continue.
+        </p>
+        <AuthBtn primary onClick={onBack}>
+          Back to sign in
         </AuthBtn>
-      </form>
+      </div>
     );
   }
 
   return (
-    <form key="request" onSubmit={handleRequestSubmit} className="px-6 py-10">
+    <form onSubmit={handleSubmit} className="px-6 py-10">
       <button
         type="button"
         onClick={onBack}
@@ -92,7 +53,7 @@ export function ForgotPasswordScreen({ step, email, onRequestCode, onConfirmRese
       </button>
       <div className="mb-1 font-display text-2xl font-bold text-coach-t1">FORGOT PASSWORD</div>
       <div className="mb-6 font-body text-sm text-coach-t2">
-        We'll email you a 6-digit code to reset your password.
+        We'll email you a link to reset your password.
       </div>
       <input
         id={emailId}
@@ -105,7 +66,7 @@ export function ForgotPasswordScreen({ step, email, onRequestCode, onConfirmRese
       />
       {error ? <p className="mb-4 font-body text-sm text-coach-red">{error}</p> : null}
       <AuthBtn primary type="submit" disabled={submitting}>
-        {submitting ? 'Sending code…' : 'Send code'}
+        {submitting ? 'Sending…' : 'Send reset link'}
       </AuthBtn>
     </form>
   );

@@ -20,14 +20,16 @@ export {
   signUpInputSchema,
   appSignInInputSchema,
   requestPasswordResetInputSchema,
-  confirmPasswordResetInputSchema,
+  establishRecoverySessionInputSchema,
+  completePasswordResetInputSchema,
   type SignupRole,
   type AppSession,
   type SignUpResult,
   type SignUpInput,
   type AppSignInInput,
   type RequestPasswordResetInput,
-  type ConfirmPasswordResetInput,
+  type EstablishRecoverySessionInput,
+  type CompletePasswordResetInput,
 } from './auth/schema.js';
 export { isAuthenticatedSession } from './auth/rules.js';
 export {

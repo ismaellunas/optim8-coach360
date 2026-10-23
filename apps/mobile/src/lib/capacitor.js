@@ -38,3 +38,23 @@ export function exitApp() {
   if (!Capacitor.isNativePlatform()) return;
   CapacitorApp.exitApp();
 }
+
+/**
+ * Hooks custom-URL-scheme deep links (e.g. the Supabase password recovery
+ * link) to an in-app handler. No-op in the browser. Returns an unregister
+ * function. Also checks the launch URL for the cold-start case.
+ */
+export function registerAppUrlOpenHandler(onUrlOpen) {
+  if (!Capacitor.isNativePlatform()) return function () {};
+
+  CapacitorApp.getLaunchUrl().then(function (result) {
+    if (result?.url) onUrlOpen(result.url);
+  });
+
+  var listenerHandle = CapacitorApp.addListener('appUrlOpen', function (event) {
+    onUrlOpen(event.url);
+  });
+  return function unregister() {
+    listenerHandle.then(function (handle) { handle.remove(); }).catch(function () {});
+  };
+}

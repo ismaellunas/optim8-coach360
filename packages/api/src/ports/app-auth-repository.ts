@@ -1,7 +1,8 @@
 import type {
   AppSession,
   AppSignInInput,
-  ConfirmPasswordResetInput,
+  CompletePasswordResetInput,
+  EstablishRecoverySessionInput,
   RequestPasswordResetInput,
   SignUpInput,
   SignUpResult,
@@ -12,8 +13,10 @@ export interface AppAuthRepository {
   signIn(input: AppSignInInput): Promise<AppSession>;
   signOut(): Promise<void>;
   getSession(): Promise<AppSession | null>;
-  /** Sends a 6-digit recovery code to the email (BUG-QA2-06, no deep-link infra). */
+  /** Emails the default Supabase recovery link (BUG-QA2-06, native deep-link completion). */
   requestPasswordReset(input: RequestPasswordResetInput): Promise<void>;
-  /** Verifies the emailed code and sets the new password, returning the signed-in session. */
-  confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<AppSession>;
+  /** Establishes a session from the tokens in a tapped recovery deep link. */
+  establishRecoverySession(input: EstablishRecoverySessionInput): Promise<AppSession>;
+  /** Sets the new password on an already-established recovery session. */
+  completePasswordReset(input: CompletePasswordResetInput): Promise<AppSession>;
 }

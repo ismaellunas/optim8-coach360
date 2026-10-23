@@ -1,7 +1,8 @@
 import type {
   AppSession,
   AppSignInInput,
-  ConfirmPasswordResetInput,
+  CompletePasswordResetInput,
+  EstablishRecoverySessionInput,
   RequestPasswordResetInput,
   SignUpInput,
   SignUpResult,
@@ -33,8 +34,13 @@ export class RestAppAuthRepository implements AppAuthRepository {
     throw new NotImplementedAdapterError('rest', 'requestPasswordReset');
   }
 
-  async confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<AppSession> {
+  async establishRecoverySession(input: EstablishRecoverySessionInput): Promise<AppSession> {
     void input;
-    throw new NotImplementedAdapterError('rest', 'confirmPasswordReset');
+    throw new NotImplementedAdapterError('rest', 'establishRecoverySession');
+  }
+
+  async completePasswordReset(input: CompletePasswordResetInput): Promise<AppSession> {
+    void input;
+    throw new NotImplementedAdapterError('rest', 'completePasswordReset');
   }
 }

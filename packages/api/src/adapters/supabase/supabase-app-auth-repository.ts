@@ -4,7 +4,8 @@ import {
   signUpResultSchema,
   type AppSession,
   type AppSignInInput,
-  type ConfirmPasswordResetInput,
+  type CompletePasswordResetInput,
+  type EstablishRecoverySessionInput,
   type RequestPasswordResetInput,
   type SignUpInput,
   type SignUpResult,
@@ -101,23 +102,33 @@ export class SupabaseAppAuthRepository implements AppAuthRepository {
   }
 
   async requestPasswordReset(input: RequestPasswordResetInput): Promise<void> {
-    const { error } = await this.client.auth.resetPasswordForEmail(input.email);
+    const { error } = await this.client.auth.resetPasswordForEmail(
+      input.email,
+      input.redirectTo ? { redirectTo: input.redirectTo } : undefined,
+    );
     if (error) {
       throw new Error(error.message);
     }
   }
 
-  async confirmPasswordReset(input: ConfirmPasswordResetInput): Promise<AppSession> {
-    const { data, error } = await this.client.auth.verifyOtp({
-      email: input.email,
-      token: input.token,
-      type: 'recovery',
+  async establishRecoverySession(input: EstablishRecoverySessionInput): Promise<AppSession> {
+    const { data, error } = await this.client.auth.setSession({
+      access_token: input.accessToken,
+      refresh_token: input.refreshToken,
     });
 
     if (error || !data.session || !data.user?.email) {
-      throw new Error(error?.message ?? 'password_reset_failed');
+      throw new Error(error?.message ?? 'recovery_session_failed');
     }
 
+    const user = await loadProfileUser(this.client, data.user.id, data.user.email);
+    return appSessionSchema.parse({
+      user,
+      accessToken: data.session.access_token,
+    });
+  }
+
+  async completePasswordReset(input: CompletePasswordResetInput): Promise<AppSession> {
     const { error: updateError } = await this.client.auth.updateUser({
       password: input.newPassword,
     });
@@ -125,7 +136,12 @@ export class SupabaseAppAuthRepository implements AppAuthRepository {
       throw new Error(updateError.message);
     }
 
-    const user = await loadProfileUser(this.client, data.user.id, data.user.email);
+    const { data, error } = await this.client.auth.getSession();
+    if (error || !data.session?.user?.email) {
+      throw new Error(error?.message ?? 'password_reset_failed');
+    }
+
+    const user = await loadProfileUser(this.client, data.session.user.id, data.session.user.email);
     return appSessionSchema.parse({
       user,
       accessToken: data.session.access_token,

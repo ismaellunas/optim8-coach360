@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRepositories } from '@coach360/api';
+import { registerAppUrlOpenHandler } from '../../../lib/capacitor.js';
 import { AuthContext } from './auth-context-value.js';
 
 export function AuthProvider({ children }) {
@@ -8,6 +9,7 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [justRegistered, setJustRegistered] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(function () {
     let active = true;
@@ -34,6 +36,31 @@ export function AuthProvider({ children }) {
       active = false;
     };
   }, [repos.appAuth]);
+
+  useEffect(
+    function () {
+      return registerAppUrlOpenHandler(function (url) {
+        const hashIndex = url.indexOf('#');
+        if (hashIndex === -1) return;
+        const params = new URLSearchParams(url.slice(hashIndex + 1));
+        if (params.get('type') !== 'recovery') return;
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        if (!accessToken || !refreshToken) return;
+
+        repos.appAuth
+          .establishRecoverySession({ accessToken, refreshToken })
+          .then(function (nextSession) {
+            setSession(nextSession);
+            setRecoveryMode(true);
+          })
+          .catch(function (cause) {
+            setError(cause instanceof Error ? cause.message : 'recovery_link_failed');
+          });
+      });
+    },
+    [repos.appAuth],
+  );
 
   const value = useMemo(
     function () {
@@ -65,24 +92,27 @@ export function AuthProvider({ children }) {
           await repos.appAuth.signOut();
           setSession(null);
           setJustRegistered(false);
+          setRecoveryMode(false);
         },
         requestPasswordReset: async function (input) {
           setError(null);
           await repos.appAuth.requestPasswordReset(input);
         },
-        confirmPasswordReset: async function (input) {
+        completePasswordReset: async function (input) {
           setError(null);
-          const nextSession = await repos.appAuth.confirmPasswordReset(input);
+          const nextSession = await repos.appAuth.completePasswordReset(input);
           setSession(nextSession);
+          setRecoveryMode(false);
           return nextSession;
         },
+        recoveryMode,
         clearJustRegistered: function () {
           setJustRegistered(false);
         },
         justRegistered,
       };
     },
-    [error, isLoading, justRegistered, repos.appAuth, session],
+    [error, isLoading, justRegistered, recoveryMode, repos.appAuth, session],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

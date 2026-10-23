@@ -36,14 +36,20 @@ export type AppSignInInput = z.infer<typeof appSignInInputSchema>;
 
 export const requestPasswordResetInputSchema = z.object({
   email: z.string().email(),
+  redirectTo: z.string().url().optional(),
 });
 
 export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetInputSchema>;
 
-export const confirmPasswordResetInputSchema = z.object({
-  email: z.string().email(),
-  token: z.string().trim().min(6).max(8),
+export const establishRecoverySessionInputSchema = z.object({
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+});
+
+export type EstablishRecoverySessionInput = z.infer<typeof establishRecoverySessionInputSchema>;
+
+export const completePasswordResetInputSchema = z.object({
   newPassword: z.string().min(6),
 });
 
-export type ConfirmPasswordResetInput = z.infer<typeof confirmPasswordResetInputSchema>;
+export type CompletePasswordResetInput = z.infer<typeof completePasswordResetInputSchema>;
