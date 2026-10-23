@@ -176,6 +176,7 @@ function HomeScreen({ user, go, tryA }) {
   var isPlayer = user.role === "player";
   var isAdmin = user.role === "admin";
   var isTeam = user.role === "team";
+  var isCoach = !isPlayer && !isTeam && !isAdmin;
 
   var auth = useAuth();
   var repos = useRepositories();
@@ -303,6 +304,61 @@ function HomeScreen({ user, go, tryA }) {
     [loadTeamHomeData],
   );
 
+  // BUG-QA2-04: Home stats bar data for the coach role (roster, sessions, drill completions).
+  var _coachTeamsCount = useState(0), coachTeamsCount = _coachTeamsCount[0], setCoachTeamsCount = _coachTeamsCount[1];
+  var _coachPlayersCount = useState(0), coachPlayersCount = _coachPlayersCount[0], setCoachPlayersCount = _coachPlayersCount[1];
+  var _coachSessions = useState([]), coachSessions = _coachSessions[0], setCoachSessions = _coachSessions[1];
+  var _coachDrillsCompleted = useState(0), coachDrillsCompleted = _coachDrillsCompleted[0], setCoachDrillsCompleted = _coachDrillsCompleted[1];
+
+  var loadCoachHomeData = useCallback(
+    async function () {
+      if (!isCoach || !playerId) {
+        setCoachTeamsCount(0);
+        setCoachPlayersCount(0);
+        setCoachSessions([]);
+        setCoachDrillsCompleted(0);
+        return;
+      }
+      try {
+        var _rows = await Promise.all([
+          repos.teams.listForUser(playerId),
+          repos.sessions.listForUser(playerId),
+          repos.sessionContent.listCoachCompletions(),
+        ]);
+        var teams = _rows[0] ?? [];
+        setCoachTeamsCount(teams.length);
+        setCoachSessions(_rows[1] ?? []);
+        setCoachDrillsCompleted((_rows[2] ?? []).length);
+
+        var memberLists = await Promise.all(
+          teams.map(function (team) { return repos.rosters.listMembers(team.id); }),
+        );
+        var activePlayerIds = new Set();
+        memberLists.forEach(function (members) {
+          (members ?? []).forEach(function (member) {
+            if (member.rosterRole === "player" && member.status === "active") {
+              activePlayerIds.add(member.profileId);
+            }
+          });
+        });
+        setCoachPlayersCount(activePlayerIds.size);
+      } catch {
+        setCoachTeamsCount(0);
+        setCoachPlayersCount(0);
+        setCoachSessions([]);
+        setCoachDrillsCompleted(0);
+      }
+    },
+    [isCoach, playerId, repos.teams, repos.sessions, repos.sessionContent, repos.rosters],
+  );
+
+  useEffect(
+    function () {
+      loadCoachHomeData();
+    },
+    [loadCoachHomeData],
+  );
+
   var homeAccessLevel = isPlayer
     ? featureAccessLevel(user.role, user.tier, "viewProgress")
     : "none";
@@ -314,6 +370,7 @@ function HomeScreen({ user, go, tryA }) {
   }).length;
   var teamUpcomingSessions = filterUpcomingSessions(teamSessions);
   var nextTeamSession = teamUpcomingSessions[0] ?? null;
+  var coachUpcomingSessions = filterUpcomingSessions(coachSessions);
 
   if (isAdmin) {
     return (
@@ -348,7 +405,12 @@ function HomeScreen({ user, go, tryA }) {
         { l: "Sessions", v: String(teamUpcomingSessions.length), c: COLORS.purple, onClick: function () { go("schedule"); }, testId: "home-stat-sessions" },
         { l: "Next", v: nextTeamSession ? new Date(nextTeamSession.scheduledAt).toLocaleDateString([], { weekday: "short" }) : "—", c: COLORS.orange, onClick: function () { go("schedule"); }, testId: "home-stat-next" },
       ]
-    : [{ l: "Players", v: "34", c: COLORS.blue }, { l: "Teams", v: "4", c: COLORS.green }, { l: "Sessions", v: "128", c: COLORS.purple }, { l: "Drills", v: "57", c: COLORS.orange }];
+    : [
+        { l: "Players", v: String(coachPlayersCount), c: COLORS.blue, onClick: function () { go("teams"); }, testId: "home-stat-players" },
+        { l: "Teams", v: String(coachTeamsCount), c: COLORS.green, onClick: function () { go("teams"); }, testId: "home-stat-teams" },
+        { l: "Sessions", v: String(coachUpcomingSessions.length), c: COLORS.purple, onClick: function () { go("schedule"); }, testId: "home-stat-sessions" },
+        { l: "Drills", v: String(coachDrillsCompleted), c: COLORS.orange, onClick: function () { go("progress"); }, testId: "home-stat-drills" },
+      ];
 
   return (
     <ScreenContainer>
