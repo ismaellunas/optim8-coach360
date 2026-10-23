@@ -3,6 +3,7 @@
   "appName": "Coach360",
   "webDir": "apps/mobile/dist",
   "includePlugins": [
+    "@capacitor/app",
     "@capacitor/keyboard",
     "@capacitor/preferences",
     "@capacitor/status-bar"

@@ -1,5 +1,6 @@
 import './index.css';
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { registerBackButtonHandler, exitApp } from "./lib/capacitor.js";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
 import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
@@ -589,6 +590,9 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _packageSeedId = useState(null), packageSeedId = _packageSeedId[0], setPackageSeedId = _packageSeedId[1];
   var _distributeItem = useState(null), distributeItem = _distributeItem[0], setDistributeItem = _distributeItem[1];
   var _fr = useState(null), featureRequirements = _fr[0], setFeatureRequirements = _fr[1];
+  // Hardware/gesture back button support: records screens visited via go() so
+  // Android's back button can step back through them instead of closing the app.
+  var historyStackRef = useRef([]);
 
   var refreshFeatureFlags = useCallback(function () {
     if (!session?.user?.id) {
@@ -667,7 +671,32 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     };
   }, [screen, profileId, repos.billing, setBillingHistory]);
 
-  function go(s) { setScreen(s); }
+  function go(s) {
+    if (s !== screen) {
+      historyStackRef.current.push(screen);
+    }
+    setScreen(s);
+  }
+
+  var goBack = useCallback(
+    function () {
+      if (paywall) {
+        handlePaywallDismiss();
+        return;
+      }
+      var stack = historyStackRef.current;
+      if (stack.length > 0) {
+        setScreen(stack.pop());
+      } else {
+        exitApp();
+      }
+    },
+    [paywall],
+  );
+
+  useEffect(function () {
+    return registerBackButtonHandler(goBack);
+  }, [goBack]);
 
   function clearPendingInvite() {
     setPendingInviteCode("");
@@ -691,6 +720,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
 
   async function handleSignOut() {
     await auth.signOut();
+    historyStackRef.current = [];
     setScreen("home");
     setOnboarding(false);
   }
