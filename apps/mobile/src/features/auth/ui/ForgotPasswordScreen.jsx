@@ -40,7 +40,7 @@ export function ForgotPasswordScreen({ step, email, onRequestCode, onConfirmRese
 
   if (step === 'confirm') {
     return (
-      <form onSubmit={handleConfirmSubmit} className="px-6 py-10">
+      <form key="confirm" onSubmit={handleConfirmSubmit} className="px-6 py-10">
         <button
           type="button"
           onClick={onBack}
@@ -82,7 +82,7 @@ export function ForgotPasswordScreen({ step, email, onRequestCode, onConfirmRese
   }
 
   return (
-    <form onSubmit={handleRequestSubmit} className="px-6 py-10">
+    <form key="request" onSubmit={handleRequestSubmit} className="px-6 py-10">
       <button
         type="button"
         onClick={onBack}
