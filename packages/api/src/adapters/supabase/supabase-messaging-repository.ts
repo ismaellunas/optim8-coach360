@@ -13,6 +13,7 @@ import {
   normalizeModerationReason,
   previewBodyForMessage,
   sortMemberPair,
+  CHAT_THREAD_INITIAL_LIMIT,
   type AdminChatChannel,
   type AdminChatMessage,
   type ChatChannelType,
@@ -32,6 +33,19 @@ import type {
 
 const CHANNEL_SELECT = 'id, type, team_id, member_a, member_b, created_at';
 const MESSAGE_SELECT = 'id, channel_id, sender_id, body, message_type, attachment, created_at';
+
+type ConversationRpcRow = {
+  id: string;
+  channel_type: ChatChannelType;
+  team_id: string | null;
+  peer_id: string | null;
+  title: string;
+  last_body: string | null;
+  last_message_type: string | null;
+  last_attachment: ChatMessageAttachment | null;
+  last_at: string | null;
+  unread_count: number | null;
+};
 
 type ChannelRow = {
   id: string;
@@ -112,50 +126,33 @@ export class SupabaseMessagingRepository implements MessagingRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async listConversations(userId: string): Promise<ChatConversation[]> {
-    await this.ensureTeamChannelsForUser(userId);
+    void userId;
+    const { data, error } = await this.client.rpc('list_my_chat_conversations');
 
-    const { data: memberships, error: memberError } = await this.client
-      .from('chat_channel_members')
-      .select('channel_id, last_read_at')
-      .eq('profile_id', userId);
-
-    if (memberError) {
-      throw new Error(`chat_conversations_load_failed:${memberError.message}`);
+    if (error) {
+      throw new Error(`chat_conversations_load_failed:${error.message}`);
     }
 
-    if (!memberships?.length) {
-      return [];
-    }
-
-    const channelIds = memberships.map((row) => row.channel_id);
-    const lastReadByChannel = new Map(
-      memberships.map((row) => [row.channel_id, row.last_read_at as string]),
-    );
-
-    const { data: channels, error: channelError } = await this.client
-      .from('chat_channels')
-      .select(CHANNEL_SELECT)
-      .in('id', channelIds);
-
-    if (channelError) {
-      throw new Error(`chat_conversations_load_failed:${channelError.message}`);
-    }
-
-    const conversations: ChatConversation[] = [];
-
-    for (const channel of (channels ?? []) as ChannelRow[]) {
-      const lastReadAt = lastReadByChannel.get(channel.id) ?? '1970-01-01T00:00:00Z';
-      const summary = await this.loadConversationSummary(channel, userId, lastReadAt);
-      conversations.push(summary);
-    }
-
-    conversations.sort((a, b) => {
-      const aAt = a.lastAt ?? a.id;
-      const bAt = b.lastAt ?? b.id;
-      return aAt < bAt ? 1 : aAt > bAt ? -1 : 0;
+    return ((data ?? []) as ConversationRpcRow[]).map((row) => {
+      const messageType: MvpChatMessageType =
+        row.last_message_type && isMvpChatMessageType(row.last_message_type)
+          ? row.last_message_type
+          : 'text';
+      const lastAttachment = mapAttachment(row.last_attachment ?? null);
+      const hasLast = Boolean(row.last_at);
+      return {
+        id: row.id,
+        type: row.channel_type,
+        teamId: row.team_id,
+        peerId: row.peer_id,
+        title: row.title,
+        lastMessage: hasLast
+          ? previewBodyForMessage(messageType, row.last_body ?? '', lastAttachment)
+          : null,
+        lastAt: row.last_at,
+        unreadCount: computeUnreadCount(row.unread_count ?? 0),
+      };
     });
-
-    return conversations;
   }
 
   async ensureTeamChannel(teamId: string): Promise<ChatConversation> {
@@ -182,19 +179,28 @@ export class SupabaseMessagingRepository implements MessagingRepository {
     return this.ensurePairChannel('p2p', userA, userB);
   }
 
-  async listChannelMessages(channelId: string): Promise<ChatMessage[]> {
-    const { data, error } = await this.client
+  async listChannelMessages(
+    channelId: string,
+    options?: { limit?: number },
+  ): Promise<ChatMessage[]> {
+    const limit = options?.limit;
+    const capped = typeof limit === 'number' && limit > 0;
+    const query = this.client
       .from('chat_messages')
       .select(MESSAGE_SELECT)
       .eq('channel_id', channelId)
-      .is('hidden_at', null)
-      .order('created_at', { ascending: true });
+      .is('hidden_at', null);
+
+    const { data, error } = capped
+      ? await query.order('created_at', { ascending: false }).limit(limit)
+      : await query.order('created_at', { ascending: true });
 
     if (error) {
       throw new Error(`chat_messages_load_failed:${error.message}`);
     }
 
-    return ((data ?? []) as MessageRow[]).map(mapMessageRow);
+    const rows = ((data ?? []) as MessageRow[]).map(mapMessageRow);
+    return capped ? rows.reverse() : rows;
   }
 
   async sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage> {
@@ -284,8 +290,21 @@ export class SupabaseMessagingRepository implements MessagingRepository {
 
   async listTeamPeerShares(teamId: string): Promise<ChatMessage[]> {
     const conversation = await this.ensureTeamChannel(teamId);
-    const messages = await this.listChannelMessages(conversation.id);
-    return messages.filter((message) => isPeerShareMessageType(message.messageType));
+    const { data, error } = await this.client
+      .from('chat_messages')
+      .select(MESSAGE_SELECT)
+      .eq('channel_id', conversation.id)
+      .is('hidden_at', null)
+      .in('message_type', ['achievement', 'insight'])
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      throw new Error(`chat_messages_load_failed:${error.message}`);
+    }
+
+    return ((data ?? []) as MessageRow[])
+      .map(mapMessageRow)
+      .filter((message) => isPeerShareMessageType(message.messageType));
   }
 
   async uploadChatVideo(
@@ -378,7 +397,9 @@ export class SupabaseMessagingRepository implements MessagingRepository {
 
   async listDirectMessages(coachId: string, playerId: string): Promise<DirectMessage[]> {
     const conversation = await this.ensureDmChannel(coachId, playerId);
-    const messages = await this.listChannelMessages(conversation.id);
+    const messages = await this.listChannelMessages(conversation.id, {
+      limit: CHAT_THREAD_INITIAL_LIMIT,
+    });
     return messages.map((message) => ({
       id: message.id,
       coachId,
@@ -613,32 +634,6 @@ export class SupabaseMessagingRepository implements MessagingRepository {
 
     if (profileIds.length > 0) {
       await this.ensureMembers(channelId, profileIds);
-    }
-  }
-
-  private async ensureTeamChannelsForUser(userId: string): Promise<void> {
-    const { data: roster, error } = await this.client
-      .from('rosters')
-      .select('team_id')
-      .eq('profile_id', userId)
-      .eq('status', 'active');
-
-    if (error) {
-      throw new Error(`chat_team_list_failed:${error.message}`);
-    }
-
-    const { data: owned } = await this.client
-      .from('teams')
-      .select('id')
-      .eq('created_by', userId);
-
-    const teamIds = new Set<string>([
-      ...(roster ?? []).map((row) => row.team_id as string),
-      ...(owned ?? []).map((row) => row.id as string),
-    ]);
-
-    for (const teamId of teamIds) {
-      await this.ensureTeamChannel(teamId);
     }
   }
 

@@ -430,6 +430,7 @@ export {
 } from './team/invite-rules.js';
 export {
   CHAT_CHANNEL_TYPES,
+  CHAT_THREAD_INITIAL_LIMIT,
   isChatChannelType,
   sortMemberPair,
   computeUnreadCount,

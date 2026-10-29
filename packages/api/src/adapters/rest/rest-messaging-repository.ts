@@ -32,8 +32,12 @@ export class RestMessagingRepository implements MessagingRepository {
     throw new NotImplementedAdapterError('rest', 'ensureP2pChannel');
   }
 
-  async listChannelMessages(channelId: string): Promise<ChatMessage[]> {
+  async listChannelMessages(
+    channelId: string,
+    options?: { limit?: number },
+  ): Promise<ChatMessage[]> {
     void channelId;
+    void options;
     throw new NotImplementedAdapterError('rest', 'listChannelMessages');
   }
 

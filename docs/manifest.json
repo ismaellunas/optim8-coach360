@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-23T06:16:56.337Z",
+  "generated": "2026-10-29T07:02:45.080Z",
   "root": "docs",
   "tree": [
     {
@@ -162,6 +162,11 @@
           "type": "file",
           "name": "flows.md",
           "path": "product/flows.md"
+        },
+        {
+          "type": "file",
+          "name": "season-lifecycle-feature-plan.md",
+          "path": "product/season-lifecycle-feature-plan.md"
         },
         {
           "type": "file",

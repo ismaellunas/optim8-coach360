@@ -156,7 +156,7 @@ describe('STORY_4_4 AC3 — dismiss paywall and continue browsing', () => {
     expect(app).toMatch(/handlePaywallDismiss/);
     expect(app).toMatch(/function handlePaywallDismiss\(\) \{\s*setPaywall\(null\)/);
     expect(app).toMatch(/handlePaywallBrowseFree/);
-    expect(app).toMatch(/setScreen\("marketplace"\)/);
+    expect(app).toMatch(/go\("marketplace"\)/);
     // Dismiss does not force subscription navigation.
     const dismissSlice = app.slice(app.indexOf('function handlePaywallDismiss'));
     const dismissFn = dismissSlice.slice(0, dismissSlice.indexOf('function handlePaywallBrowseFree'));

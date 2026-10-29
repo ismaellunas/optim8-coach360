@@ -15,6 +15,9 @@ export function computeUnreadCount(unreadMessages: number): number {
   return Math.max(0, Math.floor(unreadMessages));
 }
 
+/** Newest messages loaded when opening a thread. Older history is not fetched yet. */
+export const CHAT_THREAD_INITIAL_LIMIT = 50;
+
 export function conversationTypeLabel(type: ChatChannelType): string {
   if (type === 'team') {
     return 'team';

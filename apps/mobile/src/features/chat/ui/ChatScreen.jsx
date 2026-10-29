@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   buildContentLinkAttachment,
   canSendTextOnChannelType,
+  CHAT_THREAD_INITIAL_LIMIT,
   computeUnreadCount,
 } from '@coach360/domain';
 import { useRepositories } from '@coach360/api';
@@ -80,6 +81,7 @@ export function ChatScreen({
   const canComposeDm = user?.role === 'coach' || user?.role === 'team_manager';
 
   const [conversations, setConversations] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
   const [activeChannelId, setActiveChannelId] = useState(null);
   const [activeTitle, setActiveTitle] = useState('');
   const [activePeerId, setActivePeerId] = useState(null);
@@ -108,8 +110,10 @@ export function ChatScreen({
       // of chatAllowed — RLS still governs which rows are actually visible.
       if (!userId) {
         setConversations([]);
+        setListLoading(false);
         return;
       }
+      setListLoading(true);
       try {
         const rows = await repos.messaging.listConversations(userId);
         setConversations(rows);
@@ -132,6 +136,8 @@ export function ChatScreen({
       } catch (cause) {
         setConversations([]);
         setError(cause instanceof Error ? cause.message : 'chat_conversations_load_failed');
+      } finally {
+        setListLoading(false);
       }
     },
     [repos, userId],
@@ -246,10 +252,16 @@ export function ChatScreen({
       setLoading(true);
       setError(null);
       try {
-        const rows = await repos.messaging.listChannelMessages(channelId);
+        const rows = await repos.messaging.listChannelMessages(channelId, {
+          limit: CHAT_THREAD_INITIAL_LIMIT,
+        });
         setMessages(rows);
         await repos.messaging.markChannelRead(channelId);
-        await loadConversations();
+        setConversations(function (prev) {
+          return prev.map(function (c) {
+            return c.id === channelId ? { ...c, unreadCount: 0 } : c;
+          });
+        });
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'chat_messages_load_failed');
         setMessages([]);
@@ -257,7 +269,7 @@ export function ChatScreen({
         setLoading(false);
       }
     },
-    [loadConversations, repos.messaging],
+    [repos.messaging],
   );
 
   const openDmWithPlayer = useCallback(
@@ -437,7 +449,6 @@ export function ChatScreen({
       }
       setMsg('');
       await loadMessages(activeChannelId);
-      await loadConversations();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_message_send_failed');
     } finally {
@@ -462,7 +473,6 @@ export function ChatScreen({
       });
       setMsg('');
       await loadMessages(activeChannelId);
-      await loadConversations();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_content_link_send_failed');
     } finally {
@@ -491,7 +501,6 @@ export function ChatScreen({
       });
       setMsg('');
       await loadMessages(activeChannelId);
-      await loadConversations();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_video_send_failed');
     } finally {
@@ -754,7 +763,12 @@ export function ChatScreen({
       {error ? (
         <p className="mb-3 font-body text-xs text-coach-red">{error}</p>
       ) : null}
-      {conversations.length === 0 ? (
+      {listLoading && conversations.length === 0 ? (
+        <p className="py-10 text-center font-body text-sm text-coach-t3" data-testid="chat-list-loading">
+          Loading conversations…
+        </p>
+      ) : null}
+      {!listLoading && conversations.length === 0 ? (
         <div className="py-10 text-center" data-testid="chat-empty-state">
           <p className="mb-2 font-body text-sm text-coach-t3">No conversations yet.</p>
           {canComposeDm || isPlayerRole ? (

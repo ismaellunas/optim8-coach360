@@ -1,6 +1,7 @@
 import './index.css';
 import { useState, useEffect, useCallback, useRef } from "react";
-import { registerBackButtonHandler, exitApp } from "./lib/capacitor.js";
+import { App as CapacitorApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 import { AuthGate } from "./features/auth/ui/AuthGate.jsx";
 import { ProfileGate } from "./features/profile/ui/ProfileGate.jsx";
 import { SubscriptionGate } from "./features/subscription/ui/SubscriptionGate.jsx";
@@ -176,7 +177,6 @@ function HomeScreen({ user, go, tryA }) {
   var isPlayer = user.role === "player";
   var isAdmin = user.role === "admin";
   var isTeam = user.role === "team";
-  var isCoach = !isPlayer && !isTeam && !isAdmin;
 
   var auth = useAuth();
   var repos = useRepositories();
@@ -185,30 +185,6 @@ function HomeScreen({ user, go, tryA }) {
   var _completions = useState([]), completions = _completions[0], setCompletions = _completions[1];
   var _homeObjectives = useState([]), homeObjectives = _homeObjectives[0], setHomeObjectives = _homeObjectives[1];
   var _homeLoading = useState(false), homeLoading = _homeLoading[0], setHomeLoading = _homeLoading[1];
-  var _avatarUrl = useState(null), avatarUrl = _avatarUrl[0], setAvatarUrl = _avatarUrl[1];
-
-  var loadAvatar = useCallback(
-    async function () {
-      if (!playerId) {
-        setAvatarUrl(null);
-        return;
-      }
-      try {
-        var profile = await repos.profiles.getById(playerId);
-        setAvatarUrl(profile?.avatarUrl ?? null);
-      } catch {
-        setAvatarUrl(null);
-      }
-    },
-    [playerId, repos.profiles],
-  );
-
-  useEffect(
-    function () {
-      loadAvatar();
-    },
-    [loadAvatar],
-  );
 
   var loadPlayerHomeData = useCallback(
     async function () {
@@ -304,61 +280,6 @@ function HomeScreen({ user, go, tryA }) {
     [loadTeamHomeData],
   );
 
-  // BUG-QA2-04: Home stats bar data for the coach role (roster, sessions, drill completions).
-  var _coachTeamsCount = useState(0), coachTeamsCount = _coachTeamsCount[0], setCoachTeamsCount = _coachTeamsCount[1];
-  var _coachPlayersCount = useState(0), coachPlayersCount = _coachPlayersCount[0], setCoachPlayersCount = _coachPlayersCount[1];
-  var _coachSessions = useState([]), coachSessions = _coachSessions[0], setCoachSessions = _coachSessions[1];
-  var _coachDrillsCompleted = useState(0), coachDrillsCompleted = _coachDrillsCompleted[0], setCoachDrillsCompleted = _coachDrillsCompleted[1];
-
-  var loadCoachHomeData = useCallback(
-    async function () {
-      if (!isCoach || !playerId) {
-        setCoachTeamsCount(0);
-        setCoachPlayersCount(0);
-        setCoachSessions([]);
-        setCoachDrillsCompleted(0);
-        return;
-      }
-      try {
-        var _rows = await Promise.all([
-          repos.teams.listForUser(playerId),
-          repos.sessions.listForUser(playerId),
-          repos.sessionContent.listCoachCompletions(),
-        ]);
-        var teams = _rows[0] ?? [];
-        setCoachTeamsCount(teams.length);
-        setCoachSessions(_rows[1] ?? []);
-        setCoachDrillsCompleted((_rows[2] ?? []).length);
-
-        var memberLists = await Promise.all(
-          teams.map(function (team) { return repos.rosters.listMembers(team.id); }),
-        );
-        var activePlayerIds = new Set();
-        memberLists.forEach(function (members) {
-          (members ?? []).forEach(function (member) {
-            if (member.rosterRole === "player" && member.status === "active") {
-              activePlayerIds.add(member.profileId);
-            }
-          });
-        });
-        setCoachPlayersCount(activePlayerIds.size);
-      } catch {
-        setCoachTeamsCount(0);
-        setCoachPlayersCount(0);
-        setCoachSessions([]);
-        setCoachDrillsCompleted(0);
-      }
-    },
-    [isCoach, playerId, repos.teams, repos.sessions, repos.sessionContent, repos.rosters],
-  );
-
-  useEffect(
-    function () {
-      loadCoachHomeData();
-    },
-    [loadCoachHomeData],
-  );
-
   var homeAccessLevel = isPlayer
     ? featureAccessLevel(user.role, user.tier, "viewProgress")
     : "none";
@@ -370,7 +291,6 @@ function HomeScreen({ user, go, tryA }) {
   }).length;
   var teamUpcomingSessions = filterUpcomingSessions(teamSessions);
   var nextTeamSession = teamUpcomingSessions[0] ?? null;
-  var coachUpcomingSessions = filterUpcomingSessions(coachSessions);
 
   if (isAdmin) {
     return (
@@ -405,12 +325,7 @@ function HomeScreen({ user, go, tryA }) {
         { l: "Sessions", v: String(teamUpcomingSessions.length), c: COLORS.purple, onClick: function () { go("schedule"); }, testId: "home-stat-sessions" },
         { l: "Next", v: nextTeamSession ? new Date(nextTeamSession.scheduledAt).toLocaleDateString([], { weekday: "short" }) : "—", c: COLORS.orange, onClick: function () { go("schedule"); }, testId: "home-stat-next" },
       ]
-    : [
-        { l: "Players", v: String(coachPlayersCount), c: COLORS.blue, onClick: function () { go("teams"); }, testId: "home-stat-players" },
-        { l: "Teams", v: String(coachTeamsCount), c: COLORS.green, onClick: function () { go("teams"); }, testId: "home-stat-teams" },
-        { l: "Sessions", v: String(coachUpcomingSessions.length), c: COLORS.purple, onClick: function () { go("schedule"); }, testId: "home-stat-sessions" },
-        { l: "Drills", v: String(coachDrillsCompleted), c: COLORS.orange, onClick: function () { go("progress"); }, testId: "home-stat-drills" },
-      ];
+    : [{ l: "Players", v: "34", c: COLORS.blue }, { l: "Teams", v: "4", c: COLORS.green }, { l: "Sessions", v: "128", c: COLORS.purple }, { l: "Drills", v: "57", c: COLORS.orange }];
 
   return (
     <ScreenContainer>
@@ -422,14 +337,9 @@ function HomeScreen({ user, go, tryA }) {
           <button
             type="button"
             onClick={function () { go("profile"); }}
-            data-testid="home-profile-button"
             className="cursor-pointer border-none bg-transparent p-0 text-coach-t2"
           >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Profile" className="h-7 w-7 rounded-full object-cover" />
-            ) : (
-              <IconSettings />
-            )}
+            <IconSettings />
           </button>
         }
       />
@@ -666,6 +576,10 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       })
     : null;
   var _s = useState("home"), screen = _s[0], setScreen = _s[1];
+  // Android hardware/gesture back button: screenStackRef tracks screens visited via
+  // go() so back retraces actual navigation history instead of exiting the app
+  // (Capacitor's default when the WebView has no browser history to fall back on).
+  var screenStackRef = useRef([]);
   var _o = useState(false), onboarding = _o[0], setOnboarding = _o[1];
   var _p = useState(null), paywall = _p[0], setPaywall = _p[1];
   var _paywallBusy = useState(false), paywallBusy = _paywallBusy[0], setPaywallBusy = _paywallBusy[1];
@@ -681,9 +595,6 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   var _packageSeedId = useState(null), packageSeedId = _packageSeedId[0], setPackageSeedId = _packageSeedId[1];
   var _distributeItem = useState(null), distributeItem = _distributeItem[0], setDistributeItem = _distributeItem[1];
   var _fr = useState(null), featureRequirements = _fr[0], setFeatureRequirements = _fr[1];
-  // Hardware/gesture back button support: records screens visited via go() so
-  // Android's back button can step back through them instead of closing the app.
-  var historyStackRef = useRef([]);
 
   var refreshFeatureFlags = useCallback(function () {
     if (!session?.user?.id) {
@@ -724,21 +635,21 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
 
   useEffect(function() {
     if (onboardingNav.redirectToSchedule) {
-      setScreen("schedule");
+      resetScreen("schedule");
       onboardingNav.clearRedirectToSchedule();
     }
   }, [onboardingNav, setScreen]);
 
   useEffect(function() {
     if (subscriptionState.redirectToSubscription) {
-      setScreen("subscription");
+      resetScreen("subscription");
       subscriptionState.clearRedirectToSubscription();
     }
   }, [subscriptionState, setScreen]);
 
   useEffect(function () {
     if (pendingInviteCode && user && user.role === "player") {
-      setScreen("join-team");
+      resetScreen("join-team");
     }
   }, [pendingInviteCode, user, setScreen]);
 
@@ -763,43 +674,37 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   }, [screen, profileId, repos.billing, setBillingHistory]);
 
   function go(s) {
-    if (s !== screen) {
-      historyStackRef.current.push(screen);
-    }
+    if (s === screen) return;
+    screenStackRef.current = [...screenStackRef.current, screen];
     setScreen(s);
   }
 
-  var goBack = useCallback(
-    function () {
-      if (paywall) {
-        handlePaywallDismiss();
-        return;
-      }
-      var stack = historyStackRef.current;
-      if (stack.length > 0) {
-        setScreen(stack.pop());
-      } else {
-        exitApp();
-      }
-    },
-    [paywall],
-  );
+  // Context resets (sign-out, onboarding completion, deep-link redirects) replace
+  // the current screen rather than pushing — there is no meaningful "back" target
+  // into a prior session/flow.
+  function resetScreen(s) {
+    screenStackRef.current = [];
+    setScreen(s);
+  }
+
+  var goBack = useCallback(function () {
+    var stack = screenStackRef.current;
+    if (stack.length > 0) {
+      var prev = stack[stack.length - 1];
+      screenStackRef.current = stack.slice(0, -1);
+      setScreen(prev);
+    } else {
+      CapacitorApp.exitApp();
+    }
+  }, [setScreen]);
 
   useEffect(function () {
-    return registerBackButtonHandler(goBack);
+    if (!Capacitor.isNativePlatform()) return;
+    var listenerPromise = CapacitorApp.addListener("backButton", goBack);
+    return function () {
+      listenerPromise.then(function (listener) { listener.remove(); });
+    };
   }, [goBack]);
-
-  function attachLibraryItemToSession(prefill) {
-    setSchedulePrefill(prefill);
-    go("schedule");
-  }
-
-  function distributeLibraryItem(item) {
-    tryA("distribute", function () {
-      setDistributeItem(item);
-      go("distribute-content");
-    });
-  }
 
   function clearPendingInvite() {
     setPendingInviteCode("");
@@ -808,7 +713,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
       url.searchParams.delete("invite");
       window.history.replaceState({}, "", url.pathname + url.search);
     }
-    setScreen("home");
+    resetScreen("home");
   }
 
   function tryA(feature, action) {
@@ -818,13 +723,12 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
 
   function finishOnboarding() {
     setOnboarding(false);
-    setScreen("home");
+    resetScreen("home");
   }
 
   async function handleSignOut() {
     await auth.signOut();
-    historyStackRef.current = [];
-    setScreen("home");
+    resetScreen("home");
     setOnboarding(false);
   }
 
@@ -923,7 +827,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
   function handlePaywallBrowseFree() {
     setPaywall(null);
     setPaywallError(null);
-    setScreen("marketplace");
+    go("marketplace");
   }
 
   var tabs;
@@ -973,16 +877,7 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
           />
         );
       }
-      return (
-        <StoreScreen
-          user={user}
-          tryA={tryA}
-          canAccess={canAccess}
-          accessLevel={accessLevel}
-          onAttachContentToSession={attachLibraryItemToSession}
-          onDistributeContent={distributeLibraryItem}
-        />
-      );
+      return <StoreScreen user={user} tryA={tryA} canAccess={canAccess} accessLevel={accessLevel} />;
     }
     if (screen === "progress" && user.role === "coach") {
       return (
@@ -1051,7 +946,10 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
             setPackageSeedId(null);
             go("coach-library");
           }}
-          onAttachToSession={attachLibraryItemToSession}
+          onAttachToSession={function (prefill) {
+            setSchedulePrefill(prefill);
+            go("schedule");
+          }}
           onBuildPackage={function (item) {
             setPackageSeedId(item?.id ?? null);
             setLibraryHighlightId(item?.id ?? null);
@@ -1063,11 +961,19 @@ function Coach360App({ pendingInviteCode, setPendingInviteCode }) {
     if (screen === "coach-library") {
       return (
         <CoachLibraryScreen
-          onBack={goBack}
+          onBack={function () { go("create-content"); }}
           highlightId={libraryHighlightId}
           seedPackageItemId={packageSeedId}
-          onAttachToSession={attachLibraryItemToSession}
-          onDistribute={distributeLibraryItem}
+          onAttachToSession={function (prefill) {
+            setSchedulePrefill(prefill);
+            go("schedule");
+          }}
+          onDistribute={function (item) {
+            tryA("distribute", function () {
+              setDistributeItem(item);
+              go("distribute-content");
+            });
+          }}
         />
       );
     }

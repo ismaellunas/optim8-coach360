@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   CHAT_CHANNEL_TYPES,
+  CHAT_THREAD_INITIAL_LIMIT,
   computeUnreadCount,
   isChatChannelType,
   sortMemberPair,
@@ -226,6 +227,33 @@ describe('STORY_8_1 Player-initiated coach messaging (resolved, QA3-05) — entr
 });
 
 describe('STORY_8_1 AC4 — unread counts and conversation list persist', () => {
+  it('test_STORY_8_1_AC4_conversation_list_uses_single_rpc: inbox is one RPC, not per-channel summaries', () => {
+    const sqlPath = path.join(
+      REPO_ROOT,
+      'supabase',
+      'migrations',
+      '20261029120000_list_my_chat_conversations.sql',
+    );
+    expect(existsSync(sqlPath)).toBe(true);
+    const sql = readFileSync(sqlPath, 'utf8');
+    expect(sql).toMatch(/create or replace function public\.list_my_chat_conversations\(\)/);
+    expect(sql).toMatch(/on conflict \(team_id\) where type = 'team' do nothing/);
+    expect(sql).toMatch(/grant execute on function public\.list_my_chat_conversations\(\) to authenticated/);
+    expect(CHAT_THREAD_INITIAL_LIMIT).toBe(50);
+
+    const repo = readFileSync(MESSAGING_REPO_PATH, 'utf8');
+    expect(repo).toMatch(/rpc\('list_my_chat_conversations'\)/);
+    expect(repo).not.toMatch(/ensureTeamChannelsForUser/);
+    expect(repo).toMatch(/CHAT_THREAD_INITIAL_LIMIT/);
+    expect(repo).toMatch(/\.limit\(limit\)/);
+
+    const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
+    expect(chat).toMatch(/CHAT_THREAD_INITIAL_LIMIT/);
+    expect(chat).toMatch(/chat-list-loading/);
+    expect(chat).toMatch(/unreadCount: 0/);
+    expect(chat).toMatch(/limit: CHAT_THREAD_INITIAL_LIMIT/);
+  });
+
   it('test_STORY_8_1_AC4_unread_and_conversation_list_persist: members last_read and unread UI', () => {
     expect(computeUnreadCount(3)).toBe(3);
     expect(computeUnreadCount(-1)).toBe(0);

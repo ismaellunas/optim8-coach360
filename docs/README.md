@@ -28,7 +28,8 @@ docs/
 ├── bug-investigations-archive.md  ← resolved QA write-ups
 ├── product/
 │   ├── flows.md              # 18 journeys, access matrix (canonical)
-│   └── stakeholder-questions.md
+│   ├── stakeholder-questions.md
+│   └── season-lifecycle-feature-plan.md  # Proposed: team archive/rollover, pending sign-off
 ├── architecture/
 │   ├── tech-stack.md         # Single-stack architecture (Vite + Capacitor + SaaS)
 │   ├── frontend-architecture.md  # Monorepo, FSD layers, repository pattern
@@ -73,6 +74,7 @@ docs/
 | [`bug-investigations.md`](./bug-investigations.md) | Open QA bugs (Fold7 pass and later) |
 | [`bug-investigations-archive.md`](./bug-investigations-archive.md) | Resolved QA investigations |
 | [`prototype/README.md`](./prototype/README.md) | UI mock (`src/App.jsx`) — slice-first workflow, hardens into production |
+| [`product/season-lifecycle-feature-plan.md`](./product/season-lifecycle-feature-plan.md) | Proposed team archive/rollover feature — awaiting stakeholder decision |
 
 **Active planning baseline:** **172 hours** (~22 working days, solo). See [`delivery/delivery-estimate.md`](./delivery/delivery-estimate.md).
 
@@ -84,6 +86,7 @@ docs/
 | --- | --- |
 | User journeys & tiers | `product/flows.md` |
 | Open product questions | `product/stakeholder-questions.md` |
+| Team season archive/rollover (proposed) | `product/season-lifecycle-feature-plan.md` |
 | Content packaging & uploads | `architecture/content-model.md` |
 | Sanity vs admin dashboard | `architecture/content-model.md` |
 | AI / RAG | `architecture/ai-integration.md` |

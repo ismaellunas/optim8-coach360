@@ -65,7 +65,10 @@ export type MessagingRepository = {
   ensureTeamChannel(teamId: string): Promise<ChatConversation>;
   ensureDmChannel(userA: string, userB: string): Promise<ChatConversation>;
   ensureP2pChannel(userA: string, userB: string): Promise<ChatConversation>;
-  listChannelMessages(channelId: string): Promise<ChatMessage[]>;
+  listChannelMessages(
+    channelId: string,
+    options?: { limit?: number },
+  ): Promise<ChatMessage[]>;
   sendChannelMessage(input: SendChannelMessageInput): Promise<ChatMessage>;
   /** STORY-8.3 — peer achievement/insight messages on a team channel. */
   listTeamPeerShares(teamId: string): Promise<ChatMessage[]>;
