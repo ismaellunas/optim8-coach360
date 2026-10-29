@@ -105,6 +105,11 @@ export function AuthProvider({ children }) {
           setRecoveryMode(false);
           return nextSession;
         },
+        refreshSession: async function () {
+          const nextSession = await repos.appAuth.getSession();
+          setSession(nextSession);
+          return nextSession;
+        },
         recoveryMode,
         clearJustRegistered: function () {
           setJustRegistered(false);

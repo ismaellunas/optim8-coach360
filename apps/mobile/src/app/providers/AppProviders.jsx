@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { createRepositories, RepositoryProvider, resolveAdapterMode } from '@coach360/api';
 import { AuthProvider } from '@/features/auth/model/auth-context.jsx';
+import { KeyboardInsetProvider } from '@/lib/keyboard-inset-context.jsx';
 import { readMobileEnv } from '@/lib/env.js';
 import { createSupabaseAuthStorage } from '@/lib/supabase-storage.js';
 
@@ -30,7 +31,9 @@ export function AppProviders({ children }) {
 
   return (
     <RepositoryProvider value={repositories}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <KeyboardInsetProvider>{children}</KeyboardInsetProvider>
+      </AuthProvider>
     </RepositoryProvider>
   );
 }

@@ -1,3 +1,4 @@
+import { useKeyboardInset } from '@/lib/use-keyboard-inset.js';
 import {
   BADGE_TONES,
   resolveTone,
@@ -68,7 +69,32 @@ export function Card({ children, onClick, className = '', style, ...rest }) {
   );
 }
 
-export function Field({ label, placeholder, id, name, type = 'text', value, onChange }) {
+export function Field({
+  label,
+  placeholder,
+  id,
+  name,
+  type = 'text',
+  value,
+  onChange,
+  multiline = false,
+  disabled = false,
+  readOnly = false,
+  min,
+  max,
+  maxLength,
+  list,
+  hint,
+  rows = 3,
+}) {
+  const controlClass = [
+    'box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none',
+    disabled || readOnly ? 'text-coach-t2' : '',
+    multiline ? 'resize-none' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return (
     <div className="mb-3.5">
       {label ? (
@@ -79,15 +105,37 @@ export function Field({ label, placeholder, id, name, type = 'text', value, onCh
           {label}
         </label>
       ) : null}
-      <input
-        id={id}
-        name={name || id}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className="box-border w-full rounded-xl border border-coach-border bg-coach-card px-4 py-3.5 font-body text-base text-coach-t1 outline-none"
-      />
+      {multiline ? (
+        <textarea
+          id={id}
+          name={name || id}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          readOnly={readOnly}
+          rows={rows}
+          maxLength={maxLength}
+          className={controlClass}
+        />
+      ) : (
+        <input
+          id={id}
+          name={name || id}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          readOnly={readOnly}
+          min={min}
+          max={max}
+          maxLength={maxLength}
+          list={list}
+          className={controlClass}
+        />
+      )}
+      {hint ? <p className="mt-1.5 font-body text-xs text-coach-t3">{hint}</p> : null}
     </div>
   );
 }
@@ -184,6 +232,10 @@ export function AppShell({ children, footer, overlay }) {
 }
 
 export function TabBar({ tabs, activeId, onSelect }) {
+  const { visible: keyboardOpen } = useKeyboardInset();
+  if (keyboardOpen) {
+    return null;
+  }
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 w-full bg-gradient-to-t from-coach-bg from-80% to-transparent px-4 pb-[env(safe-area-inset-bottom)] pt-4">
       <div className="flex items-center justify-around rounded-t-[20px] border-t border-coach-border bg-coach-surface px-2 pb-3 pt-2.5">

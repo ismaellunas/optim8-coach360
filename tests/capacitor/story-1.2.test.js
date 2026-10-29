@@ -130,6 +130,7 @@ describe('STORY_1_2 AC4 — native plugins configured', () => {
     const config = JSON.parse(readFileSync(CAPACITOR_CONFIG, 'utf8'));
     expect(config.plugins?.StatusBar).toBeTruthy();
     expect(config.plugins?.Keyboard).toBeTruthy();
+    expect(config.plugins?.Keyboard?.resize).toBe('none');
 
     const initSource = readFileSync(CAPACITOR_INIT, 'utf8');
     expect(initSource).toMatch(/@capacitor\/status-bar/);

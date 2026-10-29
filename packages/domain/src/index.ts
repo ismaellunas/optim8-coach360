@@ -38,11 +38,13 @@ export {
   coachProfileInputSchema,
   playerProfileInputSchema,
   teamManagerProfileInputSchema,
+  selfProfileInputSchema,
   type CoachContext,
   type Profile,
   type CoachProfileInput,
   type PlayerProfileInput,
   type TeamManagerProfileInput,
+  type SelfProfileInput,
 } from './profile/schema.js';
 export { isProfileComplete } from './profile/rules.js';
 export {

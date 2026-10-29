@@ -2,15 +2,41 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   coachProfileInputSchema,
   playerProfileInputSchema,
+  selfProfileInputSchema,
   teamManagerProfileInputSchema,
   type CoachProfileInput,
   type PlayerProfileInput,
   type Profile,
+  type SelfProfileInput,
   type TeamManagerProfileInput,
 } from '@coach360/domain';
 import type { ProfileRepository } from '../../ports/profile-repository.js';
 import { mapProfileRow, PROFILE_SELECT } from './mappers/profile-mapper.js';
 import { mapProfileUpdateError } from './map-profile-update-error.js';
+
+function storedBio(bio: string | undefined): string | null {
+  if (!bio) return null;
+  return bio;
+}
+
+/** Optional identity columns. Omitted keys are left unchanged. */
+function identityColumns(input: {
+  displayName?: string | undefined;
+  avatarUrl?: string | null | undefined;
+  bio?: string | undefined;
+}): Record<string, string | null> {
+  const columns: Record<string, string | null> = {};
+  if (input.displayName !== undefined) {
+    columns.display_name = input.displayName;
+  }
+  if (input.avatarUrl !== undefined) {
+    columns.avatar_url = input.avatarUrl;
+  }
+  if (input.bio !== undefined) {
+    columns.bio = storedBio(input.bio);
+  }
+  return columns;
+}
 
 export class SupabaseProfileRepository implements ProfileRepository {
   constructor(private readonly client: SupabaseClient) {}
@@ -41,8 +67,12 @@ export class SupabaseProfileRepository implements ProfileRepository {
       .from('profiles')
       .update({
         coach_context: parsed.coachContext,
-        bio: parsed.bio ?? null,
+        bio: storedBio(parsed.bio),
         profile_completed_at: now,
+        ...identityColumns({
+          displayName: parsed.displayName,
+          avatarUrl: parsed.avatarUrl,
+        }),
       })
       .eq('id', id)
       .select(PROFILE_SELECT)
@@ -70,6 +100,10 @@ export class SupabaseProfileRepository implements ProfileRepository {
         position: parsed.position,
         avatar_url: parsed.avatarUrl ?? null,
         profile_completed_at: now,
+        ...identityColumns({
+          displayName: parsed.displayName,
+          bio: parsed.bio,
+        }),
       })
       .eq('id', id)
       .select(PROFILE_SELECT)
@@ -92,7 +126,36 @@ export class SupabaseProfileRepository implements ProfileRepository {
     const { data, error } = await this.client
       .from('profiles')
       .update({
-        bio: parsed.bio ?? null,
+        bio: storedBio(parsed.bio),
+        ...identityColumns({
+          displayName: parsed.displayName,
+          avatarUrl: parsed.avatarUrl,
+        }),
+      })
+      .eq('id', id)
+      .select(PROFILE_SELECT)
+      .maybeSingle();
+
+    if (error) {
+      throw mapProfileUpdateError(error);
+    }
+
+    if (!data) {
+      throw new Error('profile_not_found');
+    }
+
+    return mapProfileRow(data);
+  }
+
+  async updateSelfProfile(id: string, input: SelfProfileInput): Promise<Profile> {
+    const parsed = selfProfileInputSchema.parse(input);
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .update({
+        display_name: parsed.displayName,
+        bio: storedBio(parsed.bio),
+        avatar_url: parsed.avatarUrl,
       })
       .eq('id', id)
       .select(PROFILE_SELECT)

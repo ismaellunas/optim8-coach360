@@ -23,23 +23,42 @@ export const profileSchema = z.object({
 
 export type Profile = z.infer<typeof profileSchema>;
 
+const displayNameSchema = z.string().trim().min(1).max(120);
+const bioSchema = z.string().trim().max(500);
+const avatarUrlSchema = z.string().url().nullable();
+
 export const coachProfileInputSchema = z.object({
   coachContext: coachContextSchema,
-  bio: z.string().trim().optional(),
+  bio: bioSchema.optional(),
+  displayName: displayNameSchema.optional(),
+  avatarUrl: avatarUrlSchema.optional(),
 });
 
 export type CoachProfileInput = z.infer<typeof coachProfileInputSchema>;
 
 export const playerProfileInputSchema = z.object({
   age: z.number().int().min(5).max(99),
-  position: z.string().trim().min(1),
-  avatarUrl: z.string().url().nullable().optional(),
+  position: z.string().trim().min(1).max(80),
+  avatarUrl: avatarUrlSchema.optional(),
+  bio: bioSchema.optional(),
+  displayName: displayNameSchema.optional(),
 });
 
 export type PlayerProfileInput = z.infer<typeof playerProfileInputSchema>;
 
 export const teamManagerProfileInputSchema = z.object({
-  bio: z.string().trim().optional(),
+  bio: bioSchema.optional(),
+  displayName: displayNameSchema.optional(),
+  avatarUrl: avatarUrlSchema.optional(),
 });
 
 export type TeamManagerProfileInput = z.infer<typeof teamManagerProfileInputSchema>;
+
+/** Shared identity fields any role may change. Email is not included. */
+export const selfProfileInputSchema = z.object({
+  displayName: displayNameSchema,
+  bio: bioSchema,
+  avatarUrl: avatarUrlSchema,
+});
+
+export type SelfProfileInput = z.infer<typeof selfProfileInputSchema>;

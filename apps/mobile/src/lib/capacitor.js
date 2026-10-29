@@ -14,7 +14,7 @@ export async function initNativeShell() {
     if (Capacitor.getPlatform() === 'android') {
       await StatusBar.setBackgroundColor({ color: '#0B0E14' });
     }
-    await Keyboard.setResizeMode({ mode: KeyboardResize.Body });
+    await Keyboard.setResizeMode({ mode: KeyboardResize.None });
   } catch (error) {
     console.warn('initNativeShell failed', error);
   }

@@ -6,6 +6,7 @@ import {
   computeUnreadCount,
 } from '@coach360/domain';
 import { useRepositories } from '@coach360/api';
+import { useKeyboardInset } from '@/lib/use-keyboard-inset.js';
 import { useAuth } from '@/features/auth/model/use-auth.js';
 import {
   chatPeerDisplayLabel,
@@ -74,6 +75,7 @@ export function ChatScreen({
   onInitialDmConsumed,
 }) {
   const { session } = useAuth();
+  const { height: keyboardHeight, visible: keyboardOpen } = useKeyboardInset();
   const repos = useRepositories();
   const userId = session?.user.id;
   const isCoach = user?.role === 'coach';
@@ -456,6 +458,11 @@ export function ChatScreen({
     }
   }
 
+  function handleComposeSubmit(event) {
+    event.preventDefault();
+    void handleSend();
+  }
+
   async function handleSendContentLink(ref) {
     if (!userId || !activeChannelId || !chatAllowed) {
       return;
@@ -653,7 +660,12 @@ export function ChatScreen({
   if (activeChannelId) {
     return (
       <div
-        className="flex min-h-[calc(100svh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-5rem)] flex-col"
+        className={`flex min-h-0 flex-col overflow-hidden ${
+          keyboardOpen
+            ? 'h-[calc(100dvh-env(safe-area-inset-top))]'
+            : 'h-[calc(100dvh-env(safe-area-inset-top)-5.5rem)]'
+        }`}
+        style={keyboardOpen ? { paddingBottom: keyboardHeight } : undefined}
         data-testid="direct-message-thread"
         data-channel-type={activeType || 'dm'}
       >
@@ -676,7 +688,7 @@ export function ChatScreen({
           <div className="font-body text-[15px] font-semibold text-coach-t1">{activeTitle}</div>
         </div>
         <div
-          className="flex-1 overflow-y-auto px-6 py-4"
+          className="min-h-0 flex-1 overflow-y-auto px-6 py-4"
           data-testid="direct-message-list"
         >
           {loading ? (
@@ -704,7 +716,10 @@ export function ChatScreen({
         {error ? (
           <p className="px-6 font-body text-xs text-coach-red">{error}</p>
         ) : null}
-        <div className="flex gap-2.5 border-t border-coach-border px-6 pb-5 pt-3">
+        <form
+          onSubmit={handleComposeSubmit}
+          className="flex shrink-0 gap-2.5 border-t border-coach-border bg-coach-bg px-6 pb-5 pt-3"
+        >
           <button
             type="button"
             disabled={sending}
@@ -725,18 +740,19 @@ export function ChatScreen({
             }}
             placeholder="Type a message..."
             data-testid="direct-message-input"
+            enterKeyHint="send"
+            autoComplete="off"
             className="flex-1 rounded-[14px] border border-coach-border bg-coach-card px-4 py-3 font-body text-sm text-coach-t1 outline-none"
           />
           <button
-            type="button"
+            type="submit"
             disabled={sending || !msg.trim()}
-            onClick={handleSend}
             data-testid="direct-message-send"
             className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-[14px] border-none bg-coach-orange text-white disabled:opacity-50"
           >
             <IconSend />
           </button>
-        </div>
+        </form>
       </div>
     );
   }

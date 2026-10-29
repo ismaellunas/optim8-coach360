@@ -2,6 +2,7 @@ import type {
   CoachProfileInput,
   PlayerProfileInput,
   Profile,
+  SelfProfileInput,
   TeamManagerProfileInput,
 } from '@coach360/domain';
 import { NotImplementedAdapterError } from '../../client/types.js';
@@ -32,6 +33,12 @@ export class RestProfileRepository implements ProfileRepository {
     void id;
     void input;
     throw new NotImplementedAdapterError('rest', 'updateTeamManagerProfile');
+  }
+
+  async updateSelfProfile(id: string, input: SelfProfileInput): Promise<Profile> {
+    void id;
+    void input;
+    throw new NotImplementedAdapterError('rest', 'updateSelfProfile');
   }
 
   async enterTeamSetupPath(id: string, input?: TeamManagerProfileInput): Promise<Profile> {

@@ -176,6 +176,11 @@ describe('STORY_8_1 AC3 — real-time message delivery', () => {
     const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
     expect(chat).toMatch(/useChatRealtime/);
     expect(chat).toMatch(/handleRealtimeMessage/);
+    expect(chat).toMatch(/enterKeyHint="send"/);
+    expect(chat).toMatch(/handleComposeSubmit/);
+    expect(chat).toMatch(/type="submit"/);
+    expect(chat).toMatch(/useKeyboardInset/);
+    expect(chat).toMatch(/paddingBottom: keyboardHeight/);
 
     const hook = readFileSync(REALTIME_HOOK_PATH, 'utf8');
     expect(hook).toMatch(/messaging\.subscribeToChannel\(channelId, onMessage\)/);
@@ -234,11 +239,21 @@ describe('STORY_8_1 AC4 — unread counts and conversation list persist', () => 
       'migrations',
       '20261029120000_list_my_chat_conversations.sql',
     );
+    const fixSqlPath = path.join(
+      REPO_ROOT,
+      'supabase',
+      'migrations',
+      '20261029121000_fix_list_my_chat_conversations_team_id.sql',
+    );
     expect(existsSync(sqlPath)).toBe(true);
+    expect(existsSync(fixSqlPath)).toBe(true);
     const sql = readFileSync(sqlPath, 'utf8');
+    const fixSql = readFileSync(fixSqlPath, 'utf8');
     expect(sql).toMatch(/create or replace function public\.list_my_chat_conversations\(\)/);
     expect(sql).toMatch(/on conflict \(team_id\) where type = 'team' do nothing/);
+    expect(sql).toMatch(/#variable_conflict use_column/);
     expect(sql).toMatch(/grant execute on function public\.list_my_chat_conversations\(\) to authenticated/);
+    expect(fixSql).toMatch(/#variable_conflict use_column/);
     expect(CHAT_THREAD_INITIAL_LIMIT).toBe(50);
 
     const repo = readFileSync(MESSAGING_REPO_PATH, 'utf8');
