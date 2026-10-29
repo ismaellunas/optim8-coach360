@@ -221,7 +221,7 @@ describe('STORY_7_3 AC3 — coach provides feedback via direct message', () => {
     const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
     expect(chat).toMatch(/data-testid="direct-message-thread"/);
     expect(chat).toMatch(/data-testid="direct-message-send"/);
-    expect(chat).toMatch(/sendDirectMessage/);
+    expect(chat).toMatch(/sendChannelMessage/);
     expect(chat).toMatch(/resolvePlayerDisplayNames/);
 
     const app = readFileSync(APP_PATH, 'utf8');

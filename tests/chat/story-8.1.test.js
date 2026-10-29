@@ -175,7 +175,13 @@ describe('STORY_8_1 AC3 — real-time message delivery', () => {
 
     const chat = readFileSync(CHAT_SCREEN_PATH, 'utf8');
     expect(chat).toMatch(/useChatRealtime/);
-    expect(chat).toMatch(/handleRealtimeMessage/);
+    expect(chat).toMatch(/applyMessageToThread/);
+    const sendBlock = chat.slice(
+      chat.indexOf('async function handleSend()'),
+      chat.indexOf('function handleComposeSubmit'),
+    );
+    expect(sendBlock).not.toMatch(/loadMessages/);
+    expect(sendBlock).toMatch(/applyMessageToThread\(sent\)/);
     expect(chat).toMatch(/enterKeyHint="send"/);
     expect(chat).toMatch(/handleComposeSubmit/);
     expect(chat).toMatch(/type="submit"/);

@@ -4,6 +4,7 @@ import {
   canSendTextOnChannelType,
   CHAT_THREAD_INITIAL_LIMIT,
   computeUnreadCount,
+  previewBodyForMessage,
 } from '@coach360/domain';
 import { useRepositories } from '@coach360/api';
 import { useKeyboardInset } from '@/lib/use-keyboard-inset.js';
@@ -86,7 +87,7 @@ export function ChatScreen({
   const [listLoading, setListLoading] = useState(true);
   const [activeChannelId, setActiveChannelId] = useState(null);
   const [activeTitle, setActiveTitle] = useState('');
-  const [activePeerId, setActivePeerId] = useState(null);
+  const [, setActivePeerId] = useState(null);
   const [activeType, setActiveType] = useState(null);
   const [messages, setMessages] = useState([]);
   const [playerNames, setPlayerNames] = useState({});
@@ -303,25 +304,41 @@ export function ChatScreen({
     [loadMessages, playerNames, repos.messaging, userId],
   );
 
-  const handleRealtimeMessage = useCallback(
-    function (message) {
-      setMessages(function (prev) {
-        if (prev.some(function (row) {
-          return row.id === message.id;
-        })) {
-          return prev;
+  const applyMessageToThread = useCallback(function (message) {
+    if (!message?.id) {
+      return;
+    }
+    setMessages(function (prev) {
+      if (prev.some(function (row) {
+        return row.id === message.id;
+      })) {
+        return prev;
+      }
+      return prev.concat([message]);
+    });
+    setConversations(function (prev) {
+      return prev.map(function (c) {
+        if (c.id !== message.channelId) {
+          return c;
         }
-        return prev.concat([message]);
+        return {
+          ...c,
+          lastMessage: previewBodyForMessage(
+            message.messageType,
+            message.body,
+            message.attachment,
+          ) || c.lastMessage,
+          lastAt: message.createdAt ?? c.lastAt,
+        };
       });
-    },
-    [],
-  );
+    });
+  }, []);
 
   useChatRealtime(
     // STORY-8.1 (resolved): DM realtime must work at every tier too.
     repos.messaging,
     activeChannelId,
-    handleRealtimeMessage,
+    applyMessageToThread,
   );
 
   useEffect(
@@ -434,23 +451,14 @@ export function ChatScreen({
     setSending(true);
     setError(null);
     try {
-      if (activeType === 'dm' && activePeerId) {
-        const coachId = canComposeDm ? userId : activePeerId;
-        const playerId = canComposeDm ? activePeerId : userId;
-        await repos.messaging.sendDirectMessage({
-          coachId,
-          playerId,
-          body: trimmed,
-        });
-      } else {
-        await repos.messaging.sendChannelMessage({
-          channelId: activeChannelId,
-          body: trimmed,
-          messageType: 'text',
-        });
-      }
+      const sent = await repos.messaging.sendChannelMessage({
+        channelId: activeChannelId,
+        body: trimmed,
+        messageType: 'text',
+      });
       setMsg('');
-      await loadMessages(activeChannelId);
+      applyMessageToThread(sent);
+      void repos.messaging.markChannelRead(activeChannelId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_message_send_failed');
     } finally {
@@ -472,14 +480,15 @@ export function ChatScreen({
     setAttaching(false);
     try {
       const attachment = buildContentLinkAttachment(ref);
-      await repos.messaging.sendChannelMessage({
+      const sent = await repos.messaging.sendChannelMessage({
         channelId: activeChannelId,
         messageType: 'content_link',
         attachment,
         body: msg.trim() || attachment.title,
       });
       setMsg('');
-      await loadMessages(activeChannelId);
+      applyMessageToThread(sent);
+      void repos.messaging.markChannelRead(activeChannelId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_content_link_send_failed');
     } finally {
@@ -500,14 +509,15 @@ export function ChatScreen({
         file,
         file.name || 'chat-video.mp4',
       );
-      await repos.messaging.sendChannelMessage({
+      const sent = await repos.messaging.sendChannelMessage({
         channelId: activeChannelId,
         messageType: 'video',
         attachment,
         body: msg.trim(),
       });
       setMsg('');
-      await loadMessages(activeChannelId);
+      applyMessageToThread(sent);
+      void repos.messaging.markChannelRead(activeChannelId);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'chat_video_send_failed');
     } finally {

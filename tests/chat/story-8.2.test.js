@@ -100,7 +100,7 @@ describe('STORY_8_2 AC1 — text messages all channel types at Advanced+', () =>
     expect(screen).toMatch(/canSendTextOnChannelType/);
     expect(screen).toMatch(/messageType: 'text'/);
     expect(screen).toMatch(/sendChannelMessage/);
-    expect(screen).toMatch(/sendDirectMessage/);
+    expect(screen).toMatch(/applyMessageToThread/);
     expect(screen).toMatch(/canAccess\(user, 'chat'\)/);
     expect(screen).toMatch(/data-channel-type=\{activeType/);
   });
